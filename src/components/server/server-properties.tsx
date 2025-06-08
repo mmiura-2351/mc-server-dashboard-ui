@@ -234,10 +234,14 @@ export function ServerPropertiesEditor({
     return <div className={styles.loading}>Loading server properties...</div>;
   }
 
-  // Render property input as text field with description
+  // Render property input with appropriate control based on initial value type
   const renderPropertyInput = (key: string, value: string | number | boolean) => {
     const label = PROPERTY_LABELS[key] || key.replace(/-/g, " ").replace(/\./g, " ").replace(/\b\w/g, l => l.toUpperCase());
     const description = PROPERTY_DESCRIPTIONS[key];
+    
+    // Check if the initial value (from original properties) was a boolean
+    const initialValue = properties ? properties[key] : value;
+    const isBooleanProperty = typeof initialValue === 'boolean';
     
     return (
       <div key={key} className={styles.property}>
@@ -245,14 +249,27 @@ export function ServerPropertiesEditor({
           {label}
           {description && <span className={styles.description}>({description})</span>}
         </label>
-        <input
-          id={key}
-          type="text"
-          value={String(value)}
-          onChange={(e) => handleChange(key, e.target.value)}
-          disabled={isSaving}
-          placeholder={`Enter ${label.toLowerCase()}`}
-        />
+        
+        {isBooleanProperty ? (
+          <select
+            id={key}
+            value={String(value)}
+            onChange={(e) => handleChange(key, e.target.value)}
+            disabled={isSaving}
+          >
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        ) : (
+          <input
+            id={key}
+            type="text"
+            value={String(value)}
+            onChange={(e) => handleChange(key, e.target.value)}
+            disabled={isSaving}
+            placeholder={`Enter ${label.toLowerCase()}`}
+          />
+        )}
       </div>
     );
   };
