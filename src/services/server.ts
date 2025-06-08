@@ -374,28 +374,142 @@ export async function removeOpPermission(
   return ok(undefined);
 }
 
-export async function getServerProperties(
-  _serverId: number
-): Promise<Result<ServerProperties, AuthError>> {
-  // Placeholder implementation - would use files API
-  return ok({
-    "server-port": 25565,
-    "max-players": 20,
-    difficulty: "normal",
-    gamemode: "survival",
-    pvp: true,
-    "spawn-protection": 16,
-    "view-distance": 10,
-    "simulation-distance": 10,
-    "enable-command-block": false,
-    motd: "A Minecraft Server",
+// Read server.properties file content
+export async function getServerPropertiesFile(
+  serverId: number
+): Promise<Result<string, AuthError>> {
+  return fetchWithErrorHandling<{ content: string; encoding: string; file_info: unknown }>(
+    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/server.properties/read`
+  ).then((result) => {
+    if (result.isOk()) {
+      return ok(result.value.content);
+    }
+    return err(result.error);
   });
 }
 
-export async function updateServerProperties(
-  _serverId: number,
-  _properties: Partial<ServerProperties>
+// Parse server.properties content into object
+export function parseServerProperties(content: string): ServerProperties {
+  const properties: ServerProperties = {};
+  const lines = content.split('\n');
+  
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    // Skip comments and empty lines
+    if (trimmedLine.startsWith('#') || trimmedLine === '') {
+      continue;
+    }
+    
+    // Parse key=value pairs
+    const equalIndex = trimmedLine.indexOf('=');
+    if (equalIndex !== -1) {
+      const key = trimmedLine.substring(0, equalIndex).trim();
+      const value = trimmedLine.substring(equalIndex + 1).trim();
+      
+      // Convert to appropriate type
+      if (value === 'true' || value === 'false') {
+        properties[key] = value === 'true';
+      } else if (!isNaN(Number(value)) && value !== '') {
+        properties[key] = Number(value);
+      } else {
+        properties[key] = value;
+      }
+    }
+  }
+  
+  return properties;
+}
+
+// Convert properties object back to file content
+export function stringifyServerProperties(properties: ServerProperties): string {
+  const lines: string[] = [];
+  
+  // Add header comment
+  lines.push('#Minecraft server properties');
+  lines.push(`#${new Date().toString()}`);
+  
+  // Sort keys for consistency
+  const sortedKeys = Object.keys(properties).sort();
+  
+  for (const key of sortedKeys) {
+    const value = properties[key];
+    lines.push(`${key}=${value}`);
+  }
+  
+  return lines.join('\n');
+}
+
+export async function getServerProperties(
+  serverId: number
+): Promise<Result<ServerProperties, AuthError>> {
+  const fileResult = await getServerPropertiesFile(serverId);
+  
+  if (fileResult.isErr()) {
+    return err(fileResult.error);
+  }
+  
+  try {
+    const properties = parseServerProperties(fileResult.value);
+    return ok(properties);
+  } catch {
+    return err({
+      message: "Failed to parse server.properties file",
+    });
+  }
+}
+
+// Write server.properties file
+export async function writeServerPropertiesFile(
+  serverId: number,
+  content: string
 ): Promise<Result<void, AuthError>> {
-  // Placeholder implementation - would use files API
+  const result = await fetchWithErrorHandling<Record<string, unknown>>(
+    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/server.properties`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        content: content,
+        encoding: "utf-8",
+        create_backup: true,
+      }),
+    }
+  );
+  if (result.isErr()) {
+    return err(result.error);
+  }
   return ok(undefined);
+}
+
+export async function updateServerProperties(
+  serverId: number,
+  properties: Partial<ServerProperties>
+): Promise<Result<void, AuthError>> {
+  // First, get the current properties
+  const fileResult = await getServerPropertiesFile(serverId);
+  
+  if (fileResult.isErr()) {
+    return err(fileResult.error);
+  }
+  
+  try {
+    // Parse current properties
+    const currentProperties = parseServerProperties(fileResult.value);
+    
+    // Merge with new properties
+    const updatedProperties = {
+      ...currentProperties,
+      ...properties,
+    };
+    
+    // Convert to file content
+    const content = stringifyServerProperties(updatedProperties as ServerProperties);
+    
+    // Write the file
+    return writeServerPropertiesFile(serverId, content);
+  } catch {
+    return err({
+      message: "Failed to parse server.properties file",
+    });
+  }
 }

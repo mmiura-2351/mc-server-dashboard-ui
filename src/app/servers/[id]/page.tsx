@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { MainLayout } from "@/components/layout/main-layout";
+import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -17,6 +18,7 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
+  const [activeTab, setActiveTab] = useState<"info" | "properties">("info");
 
   const serverId = parseInt(params.id as string);
 
@@ -228,84 +230,109 @@ export default function ServerDetailPage() {
           </div>
         )}
 
-        <div className={styles.content}>
-          <div className={styles.infoSection}>
-            <h2>Server Information</h2>
-            <div className={styles.infoGrid}>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Minecraft Version:</span>
-                <span>{server.minecraft_version}</span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Server Type:</span>
-                <span className={styles.serverType}>{server.server_type}</span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Max Players:</span>
-                <span>{server.max_players}</span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Memory Limit:</span>
-                <span>{server.max_memory}MB</span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Port:</span>
-                <span>{server.port}</span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Created:</span>
-                <span>{new Date(server.created_at).toLocaleDateString()}</span>
-              </div>
-            </div>
-            {server.description && (
-              <div className={styles.description}>
-                <span className={styles.label}>Description:</span>
-                <p>{server.description}</p>
-              </div>
-            )}
-          </div>
+        <div className={styles.tabContainer}>
+          <button
+            className={`${styles.tab} ${activeTab === "info" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("info")}
+          >
+            Information
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("properties")}
+          >
+            Properties
+          </button>
+        </div>
 
-          <div className={styles.actionsSection}>
-            <h2>Server Actions</h2>
-            <div className={styles.actionButtons}>
-              {(server.status === ServerStatus.STOPPED ||
-                server.status === ServerStatus.ERROR) && (
-                <button
-                  onClick={() => handleServerAction("start")}
-                  className={`${styles.actionButton} ${styles.startButton}`}
-                  disabled={isActioning}
-                >
-                  {isActioning ? "Starting..." : "Start Server"}
-                </button>
-              )}
-              {(server.status === ServerStatus.RUNNING ||
-                server.status === ServerStatus.STARTING) && (
-                <button
-                  onClick={() => handleServerAction("stop")}
-                  className={`${styles.actionButton} ${styles.stopButton}`}
-                  disabled={isActioning}
-                >
-                  {isActioning ? "Stopping..." : "Stop Server"}
-                </button>
-              )}
-              {server.status === ServerStatus.RUNNING && (
-                <button
-                  onClick={() => handleServerAction("restart")}
-                  className={`${styles.actionButton} ${styles.restartButton}`}
-                  disabled={isActioning}
-                >
-                  {isActioning ? "Restarting..." : "Restart Server"}
-                </button>
-              )}
-              <button
-                onClick={handleDeleteServer}
-                className={`${styles.actionButton} ${styles.deleteButton}`}
-                disabled={isActioning}
-              >
-                {isActioning ? "Deleting..." : "Delete Server"}
-              </button>
-            </div>
-          </div>
+        <div className={styles.content}>
+          {activeTab === "info" ? (
+            <>
+              <div className={styles.infoSection}>
+                <h2>Server Information</h2>
+                <div className={styles.infoGrid}>
+                  <div className={styles.infoItem}>
+                    <span className={styles.label}>Minecraft Version:</span>
+                    <span>{server.minecraft_version}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.label}>Server Type:</span>
+                    <span className={styles.serverType}>
+                      {server.server_type}
+                    </span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.label}>Max Players:</span>
+                    <span>{server.max_players}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.label}>Memory Limit:</span>
+                    <span>{server.max_memory}MB</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.label}>Port:</span>
+                    <span>{server.port}</span>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <span className={styles.label}>Created:</span>
+                    <span>
+                      {new Date(server.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                {server.description && (
+                  <div className={styles.description}>
+                    <span className={styles.label}>Description:</span>
+                    <p>{server.description}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.actionsSection}>
+                <h2>Server Actions</h2>
+                <div className={styles.actionButtons}>
+                  {(server.status === ServerStatus.STOPPED ||
+                    server.status === ServerStatus.ERROR) && (
+                    <button
+                      onClick={() => handleServerAction("start")}
+                      className={`${styles.actionButton} ${styles.startButton}`}
+                      disabled={isActioning}
+                    >
+                      {isActioning ? "Starting..." : "Start Server"}
+                    </button>
+                  )}
+                  {(server.status === ServerStatus.RUNNING ||
+                    server.status === ServerStatus.STARTING) && (
+                    <button
+                      onClick={() => handleServerAction("stop")}
+                      className={`${styles.actionButton} ${styles.stopButton}`}
+                      disabled={isActioning}
+                    >
+                      {isActioning ? "Stopping..." : "Stop Server"}
+                    </button>
+                  )}
+                  {server.status === ServerStatus.RUNNING && (
+                    <button
+                      onClick={() => handleServerAction("restart")}
+                      className={`${styles.actionButton} ${styles.restartButton}`}
+                      disabled={isActioning}
+                    >
+                      {isActioning ? "Restarting..." : "Restart Server"}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleDeleteServer}
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                    disabled={isActioning}
+                  >
+                    {isActioning ? "Deleting..." : "Delete Server"}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <ServerPropertiesEditor serverId={server.id} />
+          )}
         </div>
       </div>
     </MainLayout>
