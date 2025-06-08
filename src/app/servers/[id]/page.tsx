@@ -244,13 +244,13 @@ export default function ServerDetailPage() {
             className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
             onClick={() => setActiveTab("settings")}
           >
-            {t("servers.settings")}
+            Settings
           </button>
           <button
             className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
             onClick={() => setActiveTab("properties")}
           >
-            {t("servers.properties")}
+            Properties
           </button>
         </div>
 
