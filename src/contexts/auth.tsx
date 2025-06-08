@@ -56,6 +56,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
+    
     if (!token) {
       setIsLoading(false);
       return;
@@ -65,8 +67,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const result = await authService.getCurrentUser(token);
       if (result.isOk()) {
         setUser(result.value);
+      } else if (result.error.status === 401 && refreshToken) {
+        // Try to refresh the token
+        const refreshResult = await authService.refreshToken({ refresh_token: refreshToken });
+        if (refreshResult.isOk()) {
+          const { access_token, refresh_token: newRefreshToken } = refreshResult.value;
+          localStorage.setItem("access_token", access_token);
+          localStorage.setItem("refresh_token", newRefreshToken);
+          
+          // Try to get user with new token
+          const userResult = await authService.getCurrentUser(access_token);
+          if (userResult.isOk()) {
+            setUser(userResult.value);
+          } else {
+            // Clear all tokens if still failed
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("user_data");
+          }
+        } else {
+          // Refresh failed, clear all tokens
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user_data");
+        }
       } else {
+        // Other error, clear tokens
         localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_data");
       }
       setIsLoading(false);
     };
@@ -83,12 +112,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setIsLoading(true);
-    const { access_token } = loginResult.value;
+    const { access_token, refresh_token } = loginResult.value;
     localStorage.setItem("access_token", access_token);
+    localStorage.setItem("refresh_token", refresh_token);
 
     const userResult = await authService.getCurrentUser(access_token);
     if (userResult.isErr()) {
       localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
       setIsLoading(false);
       return err(userResult.error);
     }
@@ -112,6 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_data");
     setUser(null);
   };
@@ -126,13 +158,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const result = await authService.updateUserInfo(token, userData);
     if (result.isOk()) {
-      const { user, access_token } = result.value;
+      const { user, access_token, refresh_token } = result.value;
       setUser(user);
       localStorage.setItem("user_data", JSON.stringify(user));
 
       // 新しいトークンが提供された場合は更新
       if (access_token && access_token !== "") {
         localStorage.setItem("access_token", access_token);
+      }
+      if (refresh_token && refresh_token !== "") {
+        localStorage.setItem("refresh_token", refresh_token);
       }
 
       return ok(user);
@@ -150,13 +185,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const result = await authService.updatePassword(token, passwordData);
     if (result.isOk()) {
-      const { user, access_token } = result.value;
+      const { user, access_token, refresh_token } = result.value;
       setUser(user);
       localStorage.setItem("user_data", JSON.stringify(user));
 
       // パスワード変更時は常に新しいトークンが提供される
       if (access_token && access_token !== "") {
         localStorage.setItem("access_token", access_token);
+      }
+      if (refresh_token && refresh_token !== "") {
+        localStorage.setItem("refresh_token", refresh_token);
       }
 
       return ok(user);
