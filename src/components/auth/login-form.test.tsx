@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LoginForm } from "./login-form";
-import * as authContext from "@/contexts/auth";
+import "@/contexts/auth";
 import { ok, err } from "neverthrow";
 
 // Mock the auth context

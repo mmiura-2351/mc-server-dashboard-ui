@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { ok, err } from "neverthrow";
+import { } from "neverthrow";
 import * as authService from "./auth";
 import { Role } from "@/types/auth";
 import type {

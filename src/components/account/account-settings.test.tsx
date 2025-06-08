@@ -6,9 +6,6 @@ import { useAuth } from "@/contexts/auth";
 import { LanguageProvider } from "@/contexts/language";
 import type {
   User,
-  UserUpdate,
-  PasswordUpdate,
-  UserDelete,
 } from "@/types/auth";
 import { Role } from "@/types/auth";
 
