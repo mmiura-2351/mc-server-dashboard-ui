@@ -166,24 +166,38 @@ export function ServerDashboard() {
 
     try {
       let result;
-      switch (action) {
-        case "start":
-          result = await serverService.startServer(serverId);
-          break;
-        case "stop":
-          result = await serverService.stopServer(serverId);
-          break;
-        case "delete":
-          if (
-            !confirm(
-              "Are you sure you want to delete this server? This action cannot be undone."
-            )
-          ) {
-            setIsLoading(false);
-            return;
-          }
-          result = await serverService.deleteServer(serverId);
-          break;
+      
+      // Handle delete action separately (with confirmation)
+      if (action === "delete") {
+        if (
+          !confirm(
+            "Are you sure you want to delete this server? This action cannot be undone."
+          )
+        ) {
+          setActioningServers(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(serverId);
+            return newSet;
+          });
+          return;
+        }
+        result = await serverService.deleteServer(serverId);
+      } else {
+        // Handle start/stop with timeout
+        const operationPromise = action === "start" 
+          ? serverService.startServer(serverId)
+          : serverService.stopServer(serverId);
+          
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error("Operation timeout")), 30000);
+        });
+        
+        try {
+          result = await Promise.race([operationPromise, timeoutPromise]);
+        } catch {
+          // Create a proper Result type for timeout errors
+          result = { isOk: () => false, isErr: () => true, error: { message: "操作がタイムアウトしました。サーバーの状態を確認してください。" } } as any;
+        }
       }
 
       if (result.isOk()) {
@@ -212,7 +226,34 @@ export function ServerDashboard() {
           logout();
           return;
         }
-        setError(result.error.message);
+        
+        // Add more context to the error message
+        const actionText = action === "start" ? "start" : action === "stop" ? "stop" : "delete";
+        let errorMessage = `Failed to ${actionText} server: ${result.error.message}`;
+        
+        // Handle specific error cases for server operations
+        if (result.error.status === 409) {
+          if (action === "start") {
+            errorMessage = "サーバーは既に起動しているか、起動処理中です。";
+          } else if (action === "stop") {
+            errorMessage = "サーバーは既に停止しているか、停止処理中です。";
+          }
+        } else if (result.error.status === 404) {
+          errorMessage = "サーバーが見つかりません。ページを更新してください。";
+        }
+        
+        // Debug logging for server action errors
+        if (process.env.NODE_ENV === 'development') {
+          console.log("[DEBUG] Server action failed:", action, "Server ID:", serverId);
+          console.log("[DEBUG] Error details:", result.error);
+        }
+        
+        setError(errorMessage);
+        
+        // If it's a state conflict, refresh the server data to show current state
+        if (result.error.status === 409) {
+          await updateServerStatus(serverId);
+        }
       }
     } catch {
       setError("Action failed");

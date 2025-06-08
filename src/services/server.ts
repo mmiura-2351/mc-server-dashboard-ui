@@ -88,6 +88,12 @@ async function fetchWithErrorHandling<T>(
           errorMessage = "認証が失敗しました。再度ログインしてください。";
         } else if (response.status === 403) {
           errorMessage = "この操作を実行する権限がありません。";
+        } else if (response.status === 404) {
+          errorMessage = "サーバーが見つかりません。";
+        } else if (response.status === 409) {
+          errorMessage = "サーバーの状態により操作を実行できません。";
+        } else if (response.status >= 500) {
+          errorMessage = "サーバーエラーが発生しました。しばらく待ってから再試行してください。";
         }
       } catch {
         errorMessage = errorText || `HTTP ${response.status}`;
