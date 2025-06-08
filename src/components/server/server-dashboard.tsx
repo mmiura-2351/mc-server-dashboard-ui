@@ -12,9 +12,9 @@ import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
 import styles from "./server-dashboard.module.css";
 
 export function ServerDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [servers, setServers] = useState<MinecraftServer[]>([]);
-  const [templates, setTemplates] = useState<ServerTemplate[]>([]);
+  const [, setTemplates] = useState<ServerTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -25,9 +25,9 @@ export function ServerDashboard() {
   // Create server form
   const [createForm, setCreateForm] = useState<CreateServerRequest>({
     name: "",
-    version: "1.21.5",
-    type: ServerType.PAPER,
-    memory: 2048,
+    minecraft_version: "1.21.5",
+    server_type: ServerType.PAPER,
+    max_memory: 2048,
     description: "",
   });
 
@@ -39,6 +39,13 @@ export function ServerDashboard() {
     setIsLoading(true);
     setError(null);
 
+    // Debug authentication status (development only)
+    if (process.env.NODE_ENV === 'development') {
+      const token = localStorage.getItem("access_token");
+      console.log("[DEBUG] Loading servers - Token exists:", !!token);
+      console.log("[DEBUG] User:", user);
+    }
+
     try {
       const [serversResult, templatesResult] = await Promise.all([
         serverService.getServers(),
@@ -48,13 +55,18 @@ export function ServerDashboard() {
       if (serversResult.isOk()) {
         setServers(serversResult.value);
       } else {
+        // Handle authentication errors
+        if (serversResult.error.status === 401) {
+          logout();
+          return;
+        }
         setError(serversResult.error.message);
       }
 
       if (templatesResult.isOk()) {
         setTemplates(templatesResult.value);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load data");
     } finally {
       setIsLoading(false);
@@ -65,25 +77,37 @@ export function ServerDashboard() {
     e.preventDefault();
     setIsLoading(true);
 
+    // Debug authentication status before creating server (development only)
+    if (process.env.NODE_ENV === 'development') {
+      const token = localStorage.getItem("access_token");
+      console.log("[DEBUG] Creating server - Token exists:", !!token);
+      console.log("[DEBUG] Form data:", createForm);
+    }
+
     const result = await serverService.createServer(createForm);
     if (result.isOk()) {
       setServers([...servers, result.value]);
       setShowCreateModal(false);
       setCreateForm({
         name: "",
-        version: "1.21.5",
-        type: ServerType.PAPER,
-        memory: 2048,
+        minecraft_version: "1.21.5",
+        server_type: ServerType.PAPER,
+        max_memory: 2048,
         description: "",
       });
     } else {
+      // Handle authentication errors
+      if (result.error.status === 401) {
+        logout();
+        return;
+      }
       setError(result.error.message);
     }
     setIsLoading(false);
   };
 
   const handleServerAction = async (
-    serverId: string,
+    serverId: number,
     action: "start" | "stop" | "delete"
   ) => {
     setIsLoading(true);
@@ -118,9 +142,14 @@ export function ServerDashboard() {
           await loadData(); // Reload to get updated status
         }
       } else {
+        // Handle authentication errors
+        if (result.error.status === 401) {
+          logout();
+          return;
+        }
         setError(result.error.message);
       }
-    } catch (err) {
+    } catch {
       setError("Action failed");
     } finally {
       setIsLoading(false);
@@ -219,21 +248,21 @@ export function ServerDashboard() {
                   <div className={styles.serverInfo}>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Version:</span>
-                      <span>{server.version}</span>
+                      <span>{server.minecraft_version}</span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Type:</span>
-                      <span className={styles.serverType}>{server.type}</span>
+                      <span className={styles.serverType}>{server.server_type}</span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Players:</span>
                       <span>
-                        {server.players.online}/{server.players.max}
+                        0/{server.max_players}
                       </span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Memory:</span>
-                      <span>{server.memory}MB</span>
+                      <span>{server.max_memory}MB</span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Port:</span>
@@ -320,9 +349,9 @@ export function ServerDashboard() {
                 <label htmlFor="serverVersion">Minecraft Version</label>
                 <select
                   id="serverVersion"
-                  value={createForm.version}
+                  value={createForm.minecraft_version}
                   onChange={(e) =>
-                    setCreateForm({ ...createForm, version: e.target.value })
+                    setCreateForm({ ...createForm, minecraft_version: e.target.value })
                   }
                 >
                   {MINECRAFT_VERSIONS.map((version) => (
@@ -337,11 +366,11 @@ export function ServerDashboard() {
                 <label htmlFor="serverType">Server Type</label>
                 <select
                   id="serverType"
-                  value={createForm.type}
+                  value={createForm.server_type}
                   onChange={(e) =>
                     setCreateForm({
                       ...createForm,
-                      type: e.target.value as ServerType,
+                      server_type: e.target.value as ServerType,
                     })
                   }
                 >
@@ -355,11 +384,11 @@ export function ServerDashboard() {
                 <label htmlFor="serverMemory">Memory (MB)</label>
                 <select
                   id="serverMemory"
-                  value={createForm.memory}
+                  value={createForm.max_memory}
                   onChange={(e) =>
                     setCreateForm({
                       ...createForm,
-                      memory: parseInt(e.target.value),
+                      max_memory: parseInt(e.target.value),
                     })
                   }
                 >
@@ -377,7 +406,7 @@ export function ServerDashboard() {
                 </label>
                 <textarea
                   id="serverDescription"
-                  value={createForm.description}
+                  value={createForm.description || ""}
                   onChange={(e) =>
                     setCreateForm({
                       ...createForm,
