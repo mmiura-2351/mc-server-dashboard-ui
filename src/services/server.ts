@@ -91,16 +91,16 @@ async function fetchWithErrorHandling<T>(
 
         // Handle specific authentication errors
         if (response.status === 401) {
-          errorMessage = "認証が失敗しました。再度ログインしてください。";
+          errorMessage = "Authentication failed. Please log in again.";
         } else if (response.status === 403) {
-          errorMessage = "この操作を実行する権限がありません。";
+          errorMessage = "You do not have permission to perform this operation.";
         } else if (response.status === 404) {
-          errorMessage = "サーバーが見つかりません。";
+          errorMessage = "Server not found.";
         } else if (response.status === 409) {
-          errorMessage = "サーバーの状態により操作を実行できません。";
+          errorMessage = "Operation cannot be performed due to server state.";
         } else if (response.status >= 500) {
           errorMessage =
-            "サーバーエラーが発生しました。しばらく待ってから再試行してください。";
+            "A server error occurred. Please wait and try again.";
         }
       } catch {
         errorMessage = errorText || `HTTP ${response.status}`;
