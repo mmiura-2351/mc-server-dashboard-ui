@@ -1,0 +1,87 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "refresh": "Refresh",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "yes": "Yes",
+        "no": "No",
+        "active": "Active",
+        "inactive": "Inactive",
+        "approved": "Approved",
+        "pending": "Pending",
+        "approve": "Approve",
+        "logout": "Logout"
+    },
+    "navigation": {
+        "servers": "Servers",
+        "templates": "Templates",
+        "backups": "Backups",
+        "files": "Files",
+        "account": "Account",
+        "users": "Users",
+        "management": "Management"
+    },
+    "auth": {
+        "login": "Login",
+        "register": "Register",
+        "username": "Username",
+        "email": "Email",
+        "password": "Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm Password",
+        "confirmNewPassword": "Confirm New Password"
+    },
+    "account": {
+        "title": "Account Settings",
+        "profile": "Profile",
+        "dangerZone": "Danger Zone",
+        "profileInformation": "Profile Information",
+        "changePassword": "Change Password",
+        "deleteAccount": "Delete Account",
+        "enterNewUsername": "Enter new username",
+        "enterNewEmail": "Enter new email",
+        "updating": "Updating...",
+        "updateProfile": "Update Profile",
+        "updatePassword": "Update Password",
+        "deleting": "Deleting...",
+        "profileUpdatedSuccessfully": "Profile updated successfully",
+        "passwordUpdatedSuccessfully": "Password updated successfully",
+        "newPasswordsDoNotMatch": "New passwords do not match",
+        "pleaseTypeDeleteToConfirm": "Please type DELETE to confirm",
+        "onceYouDeleteYourAccount": "Once you delete your account, there is no going back. Please be certain.",
+        "typeDeleteToConfirm": "Type DELETE to confirm"
+    },
+    "userManagement": {
+        "title": "User Management",
+        "accessDenied": "Access Denied",
+        "needAdministratorPrivileges": "You need administrator privileges to access this page.",
+        "loadingUsers": "Loading users...",
+        "id": "ID",
+        "role": "Role",
+        "status": "Status",
+        "actions": "Actions",
+        "userApprovedSuccessfully": "User approved successfully",
+        "userRoleUpdatedSuccessfully": "User role updated successfully",
+        "areYouSureDeleteUser": "Are you sure you want to delete user \"{username}\"? This action cannot be undone.",
+        "userDeletedSuccessfully": "User deleted successfully",
+        "noUsersFound": "No users found."
+    },
+    "layout": {
+        "brandTitle": "MC Server Dashboard",
+        "brandSubtitle": "Minecraft Server Management",
+        "pendingApproval": "Pending Approval",
+        "accountPendingApproval": "Account Pending Approval",
+        "accountPendingApprovalDescription": "Your account is currently pending approval by an administrator. You will have full access to all features once your account is approved.",
+        "accountPendingApprovalNote": "In the meantime, you can view the server overview and manage your account settings."
+    },
+    "language": {
+        "switchLanguage": "Language",
+        "english": "English",
+        "japanese": "日本語",
+        "languageDescription": "Choose your preferred language for the interface."
+    }
+}

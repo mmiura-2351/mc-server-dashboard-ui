@@ -1,0 +1,59 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.container.header {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.container.settings {
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.header .label {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    background: var(--background-secondary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.button:hover {
+    background: var(--background-hover);
+    border-color: var(--border-hover);
+}
+
+.button.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.button.active:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
