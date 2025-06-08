@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ServerDetailPage from "./page";
 import * as serverService from "@/services/server";
 import { ok, err } from "neverthrow";
-import { ServerStatus } from "@/types/server";
+import { ServerStatus, ServerType } from "@/types/server";
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -68,7 +68,7 @@ describe("ServerDetailPage", () => {
     name: "Test Server",
     description: "A test server",
     minecraft_version: "1.21.5",
-    server_type: "vanilla",
+    server_type: ServerType.VANILLA,
     status: "stopped" as ServerStatus,
     directory_path: "servers/test",
     port: 25565,
@@ -84,7 +84,7 @@ describe("ServerDetailPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAuthContext.user = { id: 1, username: "admin", email: "admin@example.com", is_approved: true };
+    (mockAuthContext as any).user = { id: 1, username: "admin", email: "admin@example.com", is_approved: true };
     // Reset all mocks to avoid cross-test interference
     vi.mocked(serverService.getServer).mockReset();
     vi.mocked(serverService.startServer).mockReset();
@@ -327,7 +327,7 @@ describe("ServerDetailPage", () => {
   });
 
   test("should redirect to home if user is not authenticated", () => {
-    mockAuthContext.user = null;
+    (mockAuthContext as any).user = null;
     vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
 
     render(<ServerDetailPage />);
