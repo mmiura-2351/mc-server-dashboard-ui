@@ -148,12 +148,79 @@ The system supports three Minecraft server types:
 - System notifications via WebSocket
 - Console command execution with live feedback
 
-### Internationalization
+### Internationalization (i18n)
+
+**Important**: Always write components with i18n in mind. This project supports Japanese and English languages.
 
 - Uses `next-intl` for i18n support
-- Translation files in `src/i18n/messages/`
+- Translation files in `src/i18n/messages/en.json` and `src/i18n/messages/ja.json`
+- English is the default language
 - Language preference stored in localStorage
-- Components use `t('key')` for translations
+- Components must use `useTranslation()` hook and `t('key')` for all user-facing text
+
+#### i18n Implementation Guidelines
+
+1. **Never hardcode user-facing strings** - Always use translation keys
+2. **Import useTranslation hook** in all components that display text
+3. **Use descriptive translation keys** with dot notation (e.g., `servers.settings.title`)
+4. **Support parameterized translations** for dynamic content (e.g., `t('errors.operationFailed', { action })`)
+5. **Update both en.json and ja.json** when adding new translations
+6. **Test with translation mocks** to ensure proper i18n behavior
+
+```typescript
+// ✅ Good - Using i18n
+import { useTranslation } from "@/contexts/language";
+
+export function MyComponent() {
+  const { t } = useTranslation();
+  
+  return (
+    <div>
+      <h1>{t("servers.title")}</h1>
+      <button>{t("common.save")}</button>
+      <p>{t("errors.operationFailed", { action: "start" })}</p>
+    </div>
+  );
+}
+
+// ❌ Bad - Hardcoded strings
+export function MyComponent() {
+  return (
+    <div>
+      <h1>Servers</h1>
+      <button>Save</button>
+      <p>Failed to start server</p>
+    </div>
+  );
+}
+```
+
+#### Testing with i18n
+
+When writing tests, mock the translation function appropriately:
+
+```typescript
+// For tests, provide translation mocks
+const translations: Record<string, string> = {
+  "servers.title": "Servers",
+  "common.save": "Save",
+  "errors.operationFailed": "Failed to {action} server"
+};
+
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT, locale: "en" }),
+}));
+```
 
 ## Environment Configuration
 
@@ -171,6 +238,15 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
+### API Documentation
+
+When developing with the backend API, you can access the interactive API documentation:
+
+- **Swagger UI**: http://localhost:8000/docs#/ - Interactive API documentation with request/response examples
+- **OpenAPI JSON**: http://localhost:8000/openapi.json - Raw OpenAPI specification for API reference
+
+These endpoints are available when the backend development server is running and provide comprehensive documentation of all available API endpoints, request formats, and response schemas.
+
 ## Common Patterns to Follow
 
 1. **Always use Result types** for async operations - never throw exceptions
@@ -183,3 +259,4 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 8. **API prefixes** - All backend endpoints use `/api/v1/` prefix
 9. **WebSocket auth** - Include JWT token in WebSocket connections
 10. **Error boundaries** - Handle API connection failures gracefully
+11. **Internationalization** - Always use `useTranslation()` hook and `t('key')` for user-facing text - never hardcode strings
