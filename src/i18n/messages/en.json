@@ -83,5 +83,131 @@
     "english": "English",
     "japanese": "日本語",
     "languageDescription": "Choose your preferred language for the interface."
+  },
+  "servers": {
+    "title": "Minecraft Servers",
+    "createServer": "Create Server",
+    "loadingServers": "Loading servers...",
+    "noServersFound": "No servers found",
+    "createFirstServer": "Create your first Minecraft server to get started!",
+    "clickToManage": "Click to manage server",
+    "serverNotFound": "Server not found",
+    "backToDashboard": "← Back to Dashboard",
+    "loadingServerDetails": "Loading server details...",
+    "information": "Information",
+    "settings": "Settings",
+    "properties": "Properties",
+    "serverInformation": "Server Information",
+    "serverActions": "Server Actions",
+    "description": "Description",
+    "deleteConfirmation": "Are you sure you want to delete this server? This action cannot be undone.",
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "starting": "Starting...",
+      "stopping": "Stopping...",
+      "error": "Error",
+      "unknown": "Unknown"
+    },
+    "actions": {
+      "start": "Start Server",
+      "stop": "Stop Server",
+      "restart": "Restart Server",
+      "delete": "Delete Server",
+      "starting": "Starting...",
+      "stopping": "Stopping...",
+      "restarting": "Restarting...",
+      "deleting": "Deleting..."
+    },
+    "fields": {
+      "version": "Minecraft Version",
+      "type": "Server Type",
+      "players": "Players",
+      "maxPlayers": "Max Players",
+      "memory": "Memory",
+      "memoryLimit": "Memory Limit",
+      "port": "Port",
+      "created": "Created"
+    },
+    "create": {
+      "title": "Create New Server",
+      "serverName": "Server Name",
+      "defaultName": "My Minecraft Server",
+      "minecraftVersion": "Minecraft Version",
+      "serverType": "Server Type",
+      "memory": "Memory (MB)",
+      "description": "Description (Optional)",
+      "descriptionPlaceholder": "Describe your server...",
+      "creating": "Creating...",
+      "createButton": "Create Server"
+    },
+    "settings": {
+      "title": "Server Settings",
+      "description": "Configure basic server settings. Changes will take effect after saving.",
+      "note": "Note: Some changes may require a server restart to take full effect.",
+      "basicInformation": "Basic Information",
+      "serverResources": "Server Resources",
+      "readOnlyInformation": "Read-Only Information",
+      "serverName": "Server Name",
+      "enterServerName": "Enter server name",
+      "enterDescription": "Enter server description (optional)",
+      "memoryLimit": "Memory Limit (MB)",
+      "memoryHint": "Minimum: 512MB, Recommended: 2048MB or higher",
+      "maxPlayersHint": "Range: 1-200 players",
+      "resetChanges": "Reset Changes",
+      "saveSettings": "Save Settings",
+      "saving": "Saving...",
+      "updated": "Server settings updated successfully",
+      "validation": {
+        "nameRequired": "Server name is required",
+        "memoryMinimum": "Memory must be at least 512MB",
+        "playersRange": "Max players must be between 1 and 200"
+      }
+    },
+    "properties": {
+      "title": "Server Properties",
+      "description": "Configure your Minecraft server settings. Changes will be applied after server restart.",
+      "fileNotFound": "Properties file was not found, showing default values.",
+      "loadingProperties": "Loading server properties...",
+      "noProperties": "No properties available",
+      "noChanges": "No changes to save",
+      "updated": "Server properties updated successfully",
+      "loadError": "Failed to load server properties",
+      "guidance": "All properties are editable as text values. Boolean values should be \"true\" or \"false\", numbers as digits, and text as-is. Refer to the descriptions for guidance.",
+      "resetChanges": "Reset Changes",
+      "saveProperties": "Save Properties",
+      "createFile": "Create Properties File",
+      "saving": "Saving..."
+    }
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error",
+    "validation": "Validation error",
+    "unauthorized": "Authentication failed. Please log in again.",
+    "forbidden": "You do not have permission to perform this operation.",
+    "notFound": "Server not found.",
+    "conflict": "Operation cannot be performed due to server state.",
+    "serverError": "A server error occurred. Please wait and try again.",
+    "failedToLoad": "Failed to load data",
+    "operationFailed": "Failed to {action} server"
+  },
+  "validation": {
+    "required": "This field is required",
+    "usernamePasswordRequired": "Username and password are required",
+    "allFieldsRequired": "All fields are required",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 6 characters long",
+    "accountPendingApproval": "Your account is pending approval. Please wait for an administrator to approve your account before you can log in."
+  },
+  "messages": {
+    "registrationSuccess": "Registration successful! You can now log in.",
+    "registrationSuccessPending": "Registration successful! Your account is pending approval. Please wait for an administrator to approve your account before you can log in.",
+    "loginInProgress": "Logging in...",
+    "registerInProgress": "Registering...",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "registerHere": "Register here",
+    "loginHere": "Login here"
   }
 }
