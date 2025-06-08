@@ -11,7 +11,7 @@ export interface User extends UserBase {
   id: number;
   is_active: boolean;
   is_approved: boolean;
-  role?: Role;
+  role: Role;
 }
 
 export interface LoginRequest {
