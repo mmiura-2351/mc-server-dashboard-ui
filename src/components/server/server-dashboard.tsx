@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Result } from "neverthrow";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import * as serverService from "@/services/server";
 import type {
@@ -10,22 +10,16 @@ import type {
   CreateServerRequest,
 } from "@/types/server";
 import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
-import type { AuthError } from "@/types/auth";
 import styles from "./server-dashboard.module.css";
 
 export function ServerDashboard() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [servers, setServers] = useState<MinecraftServer[]>([]);
   const [, setTemplates] = useState<ServerTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<MinecraftServer | null>(
-    null
-  );
-  const [actioningServers, setActioningServers] = useState<Set<number>>(
-    new Set()
-  );
   const [isCreating, setIsCreating] = useState(false);
 
   // Create server form
@@ -112,183 +106,8 @@ export function ServerDashboard() {
     setIsCreating(false);
   };
 
-  // Update individual server status
-  const updateServerStatus = async (serverId: number) => {
-    const statusResult = await serverService.getServerStatus(serverId);
-    if (statusResult.isOk()) {
-      const { status } = statusResult.value;
-      setServers((prevServers) =>
-        prevServers.map((server) =>
-          server.id === serverId ? { ...server, status } : server
-        )
-      );
-      return status;
-    }
-    return null;
-  };
-
-  // Poll server status until it reaches a stable state
-  const pollServerStatus = async (
-    serverId: number,
-    expectedStates: string[]
-  ) => {
-    const maxAttempts = 30; // 30 seconds max
-    let attempts = 0;
-
-    const poll = async (): Promise<void> => {
-      attempts++;
-      const status = await updateServerStatus(serverId);
-
-      if (status && expectedStates.includes(status)) {
-        // Reached expected state, remove from actioning servers
-        setActioningServers((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(serverId);
-          return newSet;
-        });
-        return;
-      }
-
-      if (attempts < maxAttempts) {
-        setTimeout(poll, 1000); // Poll every second
-      } else {
-        // Timeout reached, remove from actioning servers
-        setActioningServers((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(serverId);
-          return newSet;
-        });
-      }
-    };
-
-    await poll();
-  };
-
-  const handleServerAction = async (
-    serverId: number,
-    action: "start" | "stop" | "delete"
-  ) => {
-    setActioningServers((prev) => new Set(prev).add(serverId));
-    setError(null);
-
-    try {
-      let result;
-
-      // Handle delete action separately (with confirmation)
-      if (action === "delete") {
-        if (
-          !confirm(
-            "Are you sure you want to delete this server? This action cannot be undone."
-          )
-        ) {
-          setActioningServers((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(serverId);
-            return newSet;
-          });
-          return;
-        }
-        result = await serverService.deleteServer(serverId);
-      } else {
-        // Handle start/stop with timeout
-        const operationPromise =
-          action === "start"
-            ? serverService.startServer(serverId)
-            : serverService.stopServer(serverId);
-
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error("Operation timeout")), 30000);
-        });
-
-        try {
-          result = await Promise.race([operationPromise, timeoutPromise]);
-        } catch {
-          // Create a proper Result type for timeout errors
-          result = {
-            isOk: () => false,
-            isErr: () => true,
-            error: {
-              message:
-                "操作がタイムアウトしました。サーバーの状態を確認してください。",
-            },
-          } as Result<void, AuthError>;
-        }
-      }
-
-      if (result.isOk()) {
-        if (action === "delete") {
-          setServers(servers.filter((s) => s.id !== serverId));
-        } else {
-          // Immediately update to intermediate state
-          const intermediateStatus =
-            action === "start" ? ServerStatus.STARTING : ServerStatus.STOPPING;
-          setServers((prevServers) =>
-            prevServers.map((server) =>
-              server.id === serverId
-                ? { ...server, status: intermediateStatus }
-                : server
-            )
-          );
-
-          // Start polling for final state
-          const expectedStates =
-            action === "start"
-              ? [ServerStatus.RUNNING, ServerStatus.ERROR]
-              : [ServerStatus.STOPPED, ServerStatus.ERROR];
-
-          // Don't await here to avoid blocking the UI
-          pollServerStatus(serverId, expectedStates);
-        }
-      } else {
-        // Handle authentication errors
-        if (result.error.status === 401) {
-          logout();
-          return;
-        }
-
-        // Add more context to the error message
-        const actionText =
-          action === "start" ? "start" : action === "stop" ? "stop" : "delete";
-        let errorMessage = `Failed to ${actionText} server: ${result.error.message}`;
-
-        // Handle specific error cases for server operations
-        if (result.error.status === 409) {
-          if (action === "start") {
-            errorMessage = "サーバーは既に起動しているか、起動処理中です。";
-          } else if (action === "stop") {
-            errorMessage = "サーバーは既に停止しているか、停止処理中です。";
-          }
-        } else if (result.error.status === 404) {
-          errorMessage = "サーバーが見つかりません。ページを更新してください。";
-        }
-
-        // Debug logging for server action errors
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            "[DEBUG] Server action failed:",
-            action,
-            "Server ID:",
-            serverId
-          );
-          console.log("[DEBUG] Error details:", result.error);
-        }
-
-        setError(errorMessage);
-
-        // If it's a state conflict, refresh the server data to show current state
-        if (result.error.status === 409) {
-          await updateServerStatus(serverId);
-        }
-      }
-    } catch {
-      setError("Action failed");
-    } finally {
-      setActioningServers((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(serverId);
-        return newSet;
-      });
-    }
+  const handleServerClick = (serverId: number) => {
+    router.push(`/servers/${serverId}`);
   };
 
   const getStatusColor = (status: ServerStatus) => {
@@ -370,7 +189,11 @@ export function ServerDashboard() {
           ) : (
             <div className={styles.serverGrid}>
               {servers.map((server) => (
-                <div key={server.id} className={styles.serverCard}>
+                <div
+                  key={server.id}
+                  className={styles.serverCard}
+                  onClick={() => handleServerClick(server.id)}
+                >
                   <div className={styles.serverHeader}>
                     <h3 className={styles.serverName}>{server.name}</h3>
                     <span
@@ -411,44 +234,11 @@ export function ServerDashboard() {
                     </p>
                   )}
 
-                  <div className={styles.serverActions}>
-                    {(server.status === ServerStatus.STOPPED ||
-                      server.status === ServerStatus.ERROR) && (
-                      <button
-                        onClick={() => handleServerAction(server.id, "start")}
-                        className={`${styles.actionButton} ${styles.startButton}`}
-                        disabled={actioningServers.has(server.id)}
-                      >
-                        {actioningServers.has(server.id)
-                          ? "Starting..."
-                          : "Start"}
-                      </button>
-                    )}
-                    {(server.status === ServerStatus.RUNNING ||
-                      server.status === ServerStatus.STARTING) && (
-                      <button
-                        onClick={() => handleServerAction(server.id, "stop")}
-                        className={`${styles.actionButton} ${styles.stopButton}`}
-                        disabled={actioningServers.has(server.id)}
-                      >
-                        {actioningServers.has(server.id)
-                          ? "Stopping..."
-                          : "Stop"}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setSelectedServer(server)}
-                      className={`${styles.actionButton} ${styles.manageButton}`}
-                    >
-                      Manage
-                    </button>
-                    <button
-                      onClick={() => handleServerAction(server.id, "delete")}
-                      className={`${styles.actionButton} ${styles.deleteButton}`}
-                      disabled={actioningServers.has(server.id)}
-                    >
-                      Delete
-                    </button>
+                  <div className={styles.serverCardFooter}>
+                    <span className={styles.clickHint}>
+                      Click to manage server
+                    </span>
+                    <span className={styles.arrow}>→</span>
                   </div>
                 </div>
               ))}
@@ -579,34 +369,6 @@ export function ServerDashboard() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Server Management Modal */}
-      {selectedServer && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h2>Manage {selectedServer.name}</h2>
-              <button
-                onClick={() => setSelectedServer(null)}
-                className={styles.closeButton}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className={styles.managementTabs}>
-              <p>Server management features will be implemented here:</p>
-              <ul>
-                <li>Server Properties</li>
-                <li>Player Management (OP/Whitelist)</li>
-                <li>File Manager</li>
-                <li>Backup Management</li>
-                <li>Console</li>
-              </ul>
-            </div>
           </div>
         </div>
       )}

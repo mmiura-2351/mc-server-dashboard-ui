@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/auth";
 import { ServerDashboard } from "@/components/server/server-dashboard";
+import { MainLayout } from "@/components/layout/main-layout";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -39,5 +40,9 @@ export default function DashboardPage() {
     return null; // Will redirect
   }
 
-  return <ServerDashboard />;
+  return (
+    <MainLayout>
+      <ServerDashboard />
+    </MainLayout>
+  );
 }

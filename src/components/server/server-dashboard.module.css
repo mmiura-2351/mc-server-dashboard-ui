@@ -179,61 +179,30 @@
   line-height: 1.4;
 }
 
-.serverActions {
+.serverCardFooter {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
 }
 
-.actionButton {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
+.clickHint {
   font-size: 0.875rem;
+  color: #6b7280;
   font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
-.startButton {
-  background-color: #10b981;
-  color: white;
+.arrow {
+  font-size: 1.25rem;
+  color: #10b981;
+  font-weight: bold;
+  transition: transform 0.2s ease;
 }
 
-.startButton:hover {
-  background-color: #059669;
-}
-
-.stopButton {
-  background-color: #f59e0b;
-  color: white;
-}
-
-.stopButton:hover {
-  background-color: #d97706;
-}
-
-.manageButton {
-  background-color: #3b82f6;
-  color: white;
-}
-
-.manageButton:hover {
-  background-color: #2563eb;
-}
-
-.deleteButton {
-  background-color: #ef4444;
-  color: white;
-}
-
-.deleteButton:hover {
-  background-color: #dc2626;
-}
-
-.actionButton:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
+.serverCard:hover .arrow {
+  transform: translateX(4px);
 }
 
 /* Modal Styles */
