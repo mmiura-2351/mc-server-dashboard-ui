@@ -26,7 +26,7 @@ export function ServerDashboard() {
   const [createForm, setCreateForm] = useState<CreateServerRequest>({
     name: "",
     minecraft_version: "1.21.5",
-    server_type: ServerType.PAPER,
+    server_type: ServerType.VANILLA,
     max_memory: 2048,
     description: "",
   });
@@ -91,7 +91,7 @@ export function ServerDashboard() {
       setCreateForm({
         name: "",
         minecraft_version: "1.21.5",
-        server_type: ServerType.PAPER,
+        server_type: ServerType.VANILLA,
         max_memory: 2048,
         description: "",
       });
