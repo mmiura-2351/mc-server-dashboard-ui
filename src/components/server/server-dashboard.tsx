@@ -21,6 +21,8 @@ export function ServerDashboard() {
   const [selectedServer, setSelectedServer] = useState<MinecraftServer | null>(
     null
   );
+  const [actioningServers, setActioningServers] = useState<Set<number>>(new Set());
+  const [isCreating, setIsCreating] = useState(false);
 
   // Create server form
   const [createForm, setCreateForm] = useState<CreateServerRequest>({
@@ -75,7 +77,7 @@ export function ServerDashboard() {
 
   const handleCreateServer = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsCreating(true);
 
     // Debug authentication status before creating server (development only)
     if (process.env.NODE_ENV === 'development') {
@@ -103,14 +105,63 @@ export function ServerDashboard() {
       }
       setError(result.error.message);
     }
-    setIsLoading(false);
+    setIsCreating(false);
+  };
+
+  // Update individual server status
+  const updateServerStatus = async (serverId: number) => {
+    const statusResult = await serverService.getServerStatus(serverId);
+    if (statusResult.isOk()) {
+      const { status } = statusResult.value;
+      setServers(prevServers => 
+        prevServers.map(server => 
+          server.id === serverId ? { ...server, status } : server
+        )
+      );
+      return status;
+    }
+    return null;
+  };
+
+  // Poll server status until it reaches a stable state
+  const pollServerStatus = async (serverId: number, expectedStates: string[]) => {
+    const maxAttempts = 30; // 30 seconds max
+    let attempts = 0;
+    
+    const poll = async (): Promise<void> => {
+      attempts++;
+      const status = await updateServerStatus(serverId);
+      
+      if (status && expectedStates.includes(status)) {
+        // Reached expected state, remove from actioning servers
+        setActioningServers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(serverId);
+          return newSet;
+        });
+        return;
+      }
+      
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 1000); // Poll every second
+      } else {
+        // Timeout reached, remove from actioning servers
+        setActioningServers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(serverId);
+          return newSet;
+        });
+      }
+    };
+    
+    await poll();
   };
 
   const handleServerAction = async (
     serverId: number,
     action: "start" | "stop" | "delete"
   ) => {
-    setIsLoading(true);
+    setActioningServers(prev => new Set(prev).add(serverId));
     setError(null);
 
     try {
@@ -139,7 +190,21 @@ export function ServerDashboard() {
         if (action === "delete") {
           setServers(servers.filter((s) => s.id !== serverId));
         } else {
-          await loadData(); // Reload to get updated status
+          // Immediately update to intermediate state
+          const intermediateStatus = action === "start" ? ServerStatus.STARTING : ServerStatus.STOPPING;
+          setServers(prevServers => 
+            prevServers.map(server => 
+              server.id === serverId ? { ...server, status: intermediateStatus } : server
+            )
+          );
+          
+          // Start polling for final state
+          const expectedStates = action === "start" 
+            ? [ServerStatus.RUNNING, ServerStatus.ERROR] 
+            : [ServerStatus.STOPPED, ServerStatus.ERROR];
+          
+          // Don't await here to avoid blocking the UI
+          pollServerStatus(serverId, expectedStates);
         }
       } else {
         // Handle authentication errors
@@ -152,7 +217,11 @@ export function ServerDashboard() {
     } catch {
       setError("Action failed");
     } finally {
-      setIsLoading(false);
+      setActioningServers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(serverId);
+        return newSet;
+      });
     }
   };
 
@@ -199,7 +268,7 @@ export function ServerDashboard() {
         <button
           onClick={() => setShowCreateModal(true)}
           className={styles.createButton}
-          disabled={isLoading}
+          disabled={isCreating}
         >
           Create Server
         </button>
@@ -277,22 +346,22 @@ export function ServerDashboard() {
                   )}
 
                   <div className={styles.serverActions}>
-                    {server.status === ServerStatus.STOPPED && (
+                    {(server.status === ServerStatus.STOPPED || server.status === ServerStatus.ERROR) && (
                       <button
                         onClick={() => handleServerAction(server.id, "start")}
                         className={`${styles.actionButton} ${styles.startButton}`}
-                        disabled={isLoading}
+                        disabled={actioningServers.has(server.id)}
                       >
-                        Start
+                        {actioningServers.has(server.id) ? "Starting..." : "Start"}
                       </button>
                     )}
-                    {server.status === ServerStatus.RUNNING && (
+                    {(server.status === ServerStatus.RUNNING || server.status === ServerStatus.STARTING) && (
                       <button
                         onClick={() => handleServerAction(server.id, "stop")}
                         className={`${styles.actionButton} ${styles.stopButton}`}
-                        disabled={isLoading}
+                        disabled={actioningServers.has(server.id)}
                       >
-                        Stop
+                        {actioningServers.has(server.id) ? "Stopping..." : "Stop"}
                       </button>
                     )}
                     <button
@@ -304,7 +373,7 @@ export function ServerDashboard() {
                     <button
                       onClick={() => handleServerAction(server.id, "delete")}
                       className={`${styles.actionButton} ${styles.deleteButton}`}
-                      disabled={isLoading}
+                      disabled={actioningServers.has(server.id)}
                     >
                       Delete
                     </button>
@@ -428,10 +497,10 @@ export function ServerDashboard() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isCreating}
                   className={styles.submitButton}
                 >
-                  {isLoading ? "Creating..." : "Create Server"}
+                  {isCreating ? "Creating..." : "Create Server"}
                 </button>
               </div>
             </form>
