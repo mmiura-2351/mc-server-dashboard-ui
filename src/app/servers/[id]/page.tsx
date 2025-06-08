@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
+import { ServerSettings } from "@/components/server/server-settings";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -18,7 +19,7 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "properties">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "properties" | "settings">("info");
 
   const serverId = parseInt(params.id as string);
 
@@ -238,6 +239,12 @@ export default function ServerDetailPage() {
             Information
           </button>
           <button
+            className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("settings")}
+          >
+            Settings
+          </button>
+          <button
             className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
             onClick={() => setActiveTab("properties")}
           >
@@ -330,6 +337,11 @@ export default function ServerDetailPage() {
                 </div>
               </div>
             </>
+          ) : activeTab === "settings" ? (
+            <ServerSettings 
+              server={server} 
+              onUpdate={(updatedServer) => setServer(updatedServer)} 
+            />
           ) : (
             <ServerPropertiesEditor serverId={server.id} />
           )}
