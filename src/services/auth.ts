@@ -132,7 +132,7 @@ export async function login(
   formData.append("username", credentials.username);
   formData.append("password", credentials.password);
 
-  return fetchWithErrorHandling<LoginResponse>(`${API_BASE_URL}/auth/token`, {
+  return fetchWithErrorHandling<LoginResponse>(`${API_BASE_URL}/api/v1/auth/token`, {
     method: "POST",
     headers: {},
     body: formData,
@@ -142,7 +142,7 @@ export async function login(
 export async function register(
   userData: UserCreate
 ): Promise<Result<User, AuthError>> {
-  return fetchWithErrorHandling<User>(`${API_BASE_URL}/users/register`, {
+  return fetchWithErrorHandling<User>(`${API_BASE_URL}/api/v1/users/register`, {
     method: "POST",
     body: JSON.stringify(userData),
   });
@@ -151,7 +151,7 @@ export async function register(
 export async function getCurrentUser(
   token: string
 ): Promise<Result<User, AuthError>> {
-  return fetchWithErrorHandling<User>(`${API_BASE_URL}/users/me`, {
+  return fetchWithErrorHandling<User>(`${API_BASE_URL}/api/v1/users/me`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -163,7 +163,7 @@ export async function updateUserInfo(
   token: string,
   userData: UserUpdate
 ): Promise<Result<UserWithToken, AuthError>> {
-  return fetchWithErrorHandling<UserWithToken>(`${API_BASE_URL}/users/me`, {
+  return fetchWithErrorHandling<UserWithToken>(`${API_BASE_URL}/api/v1/users/me`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -177,7 +177,7 @@ export async function updatePassword(
   passwordData: PasswordUpdate
 ): Promise<Result<UserWithToken, AuthError>> {
   return fetchWithErrorHandling<UserWithToken>(
-    `${API_BASE_URL}/users/me/password`,
+    `${API_BASE_URL}/api/v1/users/me/password`,
     {
       method: "PUT",
       headers: {
@@ -193,7 +193,7 @@ export async function deleteAccount(
   deleteData: UserDelete
 ): Promise<Result<{ message: string }, AuthError>> {
   return fetchWithErrorHandling<{ message: string }>(
-    `${API_BASE_URL}/users/me`,
+    `${API_BASE_URL}/api/v1/users/me`,
     {
       method: "DELETE",
       headers: {
@@ -207,7 +207,7 @@ export async function deleteAccount(
 export async function getAllUsers(
   token: string
 ): Promise<Result<User[], AuthError>> {
-  return fetchWithErrorHandling<User[]>(`${API_BASE_URL}/users/`, {
+  return fetchWithErrorHandling<User[]>(`${API_BASE_URL}/api/v1/users/`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -220,7 +220,7 @@ export async function deleteUserByAdmin(
   userId: number
 ): Promise<Result<{ message: string }, AuthError>> {
   return fetchWithErrorHandling<{ message: string }>(
-    `${API_BASE_URL}/users/${userId}`,
+    `${API_BASE_URL}/api/v1/users/${userId}`,
     {
       method: "DELETE",
       headers: {
@@ -235,7 +235,7 @@ export async function approveUser(
   userId: number
 ): Promise<Result<User, AuthError>> {
   return fetchWithErrorHandling<User>(
-    `${API_BASE_URL}/users/approve/${userId}`,
+    `${API_BASE_URL}/api/v1/users/approve/${userId}`,
     {
       method: "POST",
       headers: {
@@ -251,7 +251,7 @@ export async function updateUserRole(
   roleData: RoleUpdate
 ): Promise<Result<User, AuthError>> {
   const bodyString = JSON.stringify(roleData);
-  return fetchWithErrorHandling<User>(`${API_BASE_URL}/users/role/${userId}`, {
+  return fetchWithErrorHandling<User>(`${API_BASE_URL}/api/v1/users/role/${userId}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
