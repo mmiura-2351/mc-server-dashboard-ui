@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type { MinecraftServer, ServerUpdateRequest } from "@/types/server";
 import styles from "./server-settings.module.css";
@@ -13,6 +14,7 @@ interface ServerSettingsProps {
 
 export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   const { logout } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: server.name,
     description: server.description || "",
@@ -47,17 +49,17 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      setError("Server name is required");
+      setError(t("servers.settings.validation.nameRequired"));
       return;
     }
 
     if (formData.max_memory < 512) {
-      setError("Memory must be at least 512MB");
+      setError(t("servers.settings.validation.memoryMinimum"));
       return;
     }
 
     if (formData.max_players < 1 || formData.max_players > 200) {
-      setError("Max players must be between 1 and 200");
+      setError(t("servers.settings.validation.playersRange"));
       return;
     }
 
@@ -74,7 +76,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
 
     const result = await serverService.updateServer(server.id, updateData);
     if (result.isOk()) {
-      setSuccessMessage("Server settings updated successfully");
+      setSuccessMessage(t("servers.settings.updated"));
       onUpdate(result.value);
     } else {
       if (result.error.status === 401) {
@@ -106,10 +108,11 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>Server Settings</h2>
+        <h2>{t("servers.settings.title")}</h2>
         <p className={styles.description}>
-          Configure basic server settings. Changes will take effect after saving.
-          Note: Some changes may require a server restart to take full effect.
+          {t("servers.settings.description")}
+          <br />
+          {t("servers.settings.note")}
         </p>
       </div>
 
@@ -139,11 +142,11 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.section}>
-          <h3>Basic Information</h3>
+          <h3>{t("servers.settings.basicInformation")}</h3>
           
           <div className={styles.field}>
             <label htmlFor="name" className={styles.label}>
-              Server Name *
+              {t("servers.settings.serverName")} *
             </label>
             <input
               id="name"
@@ -153,14 +156,14 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
               onChange={handleInputChange}
               disabled={isSaving}
               className={styles.input}
-              placeholder="Enter server name"
+              placeholder={t("servers.settings.enterServerName")}
               required
             />
           </div>
 
           <div className={styles.field}>
             <label htmlFor="description" className={styles.label}>
-              Description
+              {t("servers.description")}
             </label>
             <textarea
               id="description"
@@ -169,19 +172,19 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
               onChange={handleInputChange}
               disabled={isSaving}
               className={styles.textarea}
-              placeholder="Enter server description (optional)"
+              placeholder={t("servers.settings.enterDescription")}
               rows={3}
             />
           </div>
         </div>
 
         <div className={styles.section}>
-          <h3>Server Resources</h3>
+          <h3>{t("servers.settings.serverResources")}</h3>
           
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label htmlFor="max_memory" className={styles.label}>
-                Memory Limit (MB) *
+                {t("servers.settings.memoryLimit")} *
               </label>
               <input
                 id="max_memory"
@@ -197,13 +200,13 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
                 required
               />
               <span className={styles.fieldHint}>
-                Minimum: 512MB, Recommended: 2048MB or higher
+                {t("servers.settings.memoryHint")}
               </span>
             </div>
 
             <div className={styles.field}>
               <label htmlFor="max_players" className={styles.label}>
-                Max Players *
+                {t("servers.fields.maxPlayers")} *
               </label>
               <input
                 id="max_players"
@@ -218,29 +221,29 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
                 required
               />
               <span className={styles.fieldHint}>
-                Range: 1-200 players
+                {t("servers.settings.maxPlayersHint")}
               </span>
             </div>
           </div>
         </div>
 
         <div className={styles.readOnlySection}>
-          <h3>Read-Only Information</h3>
+          <h3>{t("servers.settings.readOnlyInformation")}</h3>
           <div className={styles.readOnlyGrid}>
             <div className={styles.readOnlyField}>
-              <span className={styles.label}>Minecraft Version:</span>
+              <span className={styles.label}>{t("servers.fields.version")}:</span>
               <span>{server.minecraft_version}</span>
             </div>
             <div className={styles.readOnlyField}>
-              <span className={styles.label}>Server Type:</span>
+              <span className={styles.label}>{t("servers.fields.type")}:</span>
               <span className={styles.serverType}>{server.server_type}</span>
             </div>
             <div className={styles.readOnlyField}>
-              <span className={styles.label}>Port:</span>
+              <span className={styles.label}>{t("servers.fields.port")}:</span>
               <span>{server.port}</span>
             </div>
             <div className={styles.readOnlyField}>
-              <span className={styles.label}>Created:</span>
+              <span className={styles.label}>{t("servers.fields.created")}:</span>
               <span>{new Date(server.created_at).toLocaleDateString()}</span>
             </div>
           </div>
@@ -253,14 +256,14 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
             className={styles.resetButton}
             disabled={isSaving || !hasChanges}
           >
-            Reset Changes
+            {t("servers.settings.resetChanges")}
           </button>
           <button
             type="submit"
             className={styles.saveButton}
             disabled={isSaving || !hasChanges}
           >
-            {isSaving ? "Saving..." : "Save Settings"}
+            {isSaving ? t("servers.settings.saving") : t("servers.settings.saveSettings")}
           </button>
         </div>
       </form>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
@@ -15,6 +16,7 @@ export default function ServerDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [server, setServer] = useState<MinecraftServer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function ServerDetailPage() {
         return;
       }
       if (result.error.status === 404) {
-        setError("Server not found");
+        setError(t("servers.serverNotFound"));
       } else {
         setError(result.error.message);
       }
@@ -84,7 +86,7 @@ export default function ServerDetailPage() {
         setError(result.error.message);
       }
     } catch {
-      setError(`Failed to ${action} server`);
+      setError(t("errors.operationFailed", { action }));
     } finally {
       setIsActioning(false);
     }
@@ -95,7 +97,7 @@ export default function ServerDetailPage() {
 
     if (
       !confirm(
-        "Are you sure you want to delete this server? This action cannot be undone."
+        t("servers.deleteConfirmation")
       )
     ) {
       return;
@@ -136,17 +138,17 @@ export default function ServerDetailPage() {
   const getStatusText = (status: ServerStatus) => {
     switch (status) {
       case ServerStatus.RUNNING:
-        return "Running";
+        return t("servers.status.running");
       case ServerStatus.STOPPED:
-        return "Stopped";
+        return t("servers.status.stopped");
       case ServerStatus.STARTING:
-        return "Starting...";
+        return t("servers.status.starting");
       case ServerStatus.STOPPING:
-        return "Stopping...";
+        return t("servers.status.stopping");
       case ServerStatus.ERROR:
-        return "Error";
+        return t("servers.status.error");
       default:
-        return "Unknown";
+        return t("servers.status.unknown");
     }
   };
 
@@ -156,7 +158,7 @@ export default function ServerDetailPage() {
     return (
       <MainLayout>
         <div className={styles.container}>
-          <div className={styles.loading}>Loading server details...</div>
+          <div className={styles.loading}>{t("servers.loadingServerDetails")}</div>
         </div>
       </MainLayout>
     );
@@ -167,13 +169,13 @@ export default function ServerDetailPage() {
       <MainLayout>
         <div className={styles.container}>
           <div className={styles.error}>
-            <h2>Error</h2>
+            <h2>{t("errors.generic")}</h2>
             <p>{error}</p>
             <button
               onClick={() => router.push("/dashboard")}
               className={styles.backButton}
             >
-              Back to Dashboard
+              {t("servers.backToDashboard")}
             </button>
           </div>
         </div>
@@ -186,12 +188,12 @@ export default function ServerDetailPage() {
       <MainLayout>
         <div className={styles.container}>
           <div className={styles.error}>
-            <h2>Server not found</h2>
+            <h2>{t("servers.serverNotFound")}</h2>
             <button
               onClick={() => router.push("/dashboard")}
               className={styles.backButton}
             >
-              Back to Dashboard
+              {t("servers.backToDashboard")}
             </button>
           </div>
         </div>
@@ -207,7 +209,7 @@ export default function ServerDetailPage() {
             onClick={() => router.push("/dashboard")}
             className={styles.backButton}
           >
-            ← Back to Dashboard
+            {t("servers.backToDashboard")}
           </button>
           <div className={styles.titleSection}>
             <h1 className={styles.title}>{server.name}</h1>
@@ -236,19 +238,19 @@ export default function ServerDetailPage() {
             className={`${styles.tab} ${activeTab === "info" ? styles.activeTab : ""}`}
             onClick={() => setActiveTab("info")}
           >
-            Information
+            {t("servers.information")}
           </button>
           <button
             className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
             onClick={() => setActiveTab("settings")}
           >
-            Settings
+            {t("servers.settings")}
           </button>
           <button
             className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
             onClick={() => setActiveTab("properties")}
           >
-            Properties
+            {t("servers.properties")}
           </button>
         </div>
 
@@ -256,32 +258,32 @@ export default function ServerDetailPage() {
           {activeTab === "info" ? (
             <>
               <div className={styles.infoSection}>
-                <h2>Server Information</h2>
+                <h2>{t("servers.serverInformation")}</h2>
                 <div className={styles.infoGrid}>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>Minecraft Version:</span>
+                    <span className={styles.label}>{t("servers.fields.version")}:</span>
                     <span>{server.minecraft_version}</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>Server Type:</span>
+                    <span className={styles.label}>{t("servers.fields.type")}:</span>
                     <span className={styles.serverType}>
                       {server.server_type}
                     </span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>Max Players:</span>
+                    <span className={styles.label}>{t("servers.fields.maxPlayers")}:</span>
                     <span>{server.max_players}</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>Memory Limit:</span>
+                    <span className={styles.label}>{t("servers.fields.memoryLimit")}:</span>
                     <span>{server.max_memory}MB</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>Port:</span>
+                    <span className={styles.label}>{t("servers.fields.port")}:</span>
                     <span>{server.port}</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>Created:</span>
+                    <span className={styles.label}>{t("servers.fields.created")}:</span>
                     <span>
                       {new Date(server.created_at).toLocaleDateString()}
                     </span>
@@ -289,14 +291,14 @@ export default function ServerDetailPage() {
                 </div>
                 {server.description && (
                   <div className={styles.description}>
-                    <span className={styles.label}>Description:</span>
+                    <span className={styles.label}>{t("servers.description")}:</span>
                     <p>{server.description}</p>
                   </div>
                 )}
               </div>
 
               <div className={styles.actionsSection}>
-                <h2>Server Actions</h2>
+                <h2>{t("servers.serverActions")}</h2>
                 <div className={styles.actionButtons}>
                   {(server.status === ServerStatus.STOPPED ||
                     server.status === ServerStatus.ERROR) && (
@@ -305,7 +307,7 @@ export default function ServerDetailPage() {
                       className={`${styles.actionButton} ${styles.startButton}`}
                       disabled={isActioning}
                     >
-                      {isActioning ? "Starting..." : "Start Server"}
+                      {isActioning ? t("servers.actions.starting") : t("servers.actions.start")}
                     </button>
                   )}
                   {(server.status === ServerStatus.RUNNING ||
@@ -315,7 +317,7 @@ export default function ServerDetailPage() {
                       className={`${styles.actionButton} ${styles.stopButton}`}
                       disabled={isActioning}
                     >
-                      {isActioning ? "Stopping..." : "Stop Server"}
+                      {isActioning ? t("servers.actions.stopping") : t("servers.actions.stop")}
                     </button>
                   )}
                   {server.status === ServerStatus.RUNNING && (
@@ -324,7 +326,7 @@ export default function ServerDetailPage() {
                       className={`${styles.actionButton} ${styles.restartButton}`}
                       disabled={isActioning}
                     >
-                      {isActioning ? "Restarting..." : "Restart Server"}
+                      {isActioning ? t("servers.actions.restarting") : t("servers.actions.restart")}
                     </button>
                   )}
                   <button
@@ -332,7 +334,7 @@ export default function ServerDetailPage() {
                     className={`${styles.actionButton} ${styles.deleteButton}`}
                     disabled={isActioning}
                   >
-                    {isActioning ? "Deleting..." : "Delete Server"}
+                    {isActioning ? t("servers.actions.deleting") : t("servers.actions.delete")}
                   </button>
                 </div>
               </div>
