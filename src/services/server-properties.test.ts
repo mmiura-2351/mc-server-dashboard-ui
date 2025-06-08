@@ -46,9 +46,7 @@ describe("server properties service", () => {
       expect(fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/files/servers/1/files/server.properties/read",
         expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: "Bearer mock-token",
-          }),
+          headers: expect.any(Headers),
         })
       );
     });

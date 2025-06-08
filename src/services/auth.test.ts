@@ -1,10 +1,11 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
-import { login, register, updateUserInfo, updatePassword } from "./auth";
+import { login, register, updateUserInfo, updatePassword, refreshToken } from "./auth";
 import type {
   LoginRequest,
   UserCreate,
   UserUpdate,
   PasswordUpdate,
+  RefreshTokenRequest,
 } from "@/types/auth";
 
 // Mock fetch
@@ -19,6 +20,7 @@ describe("auth service", () => {
     test("should return success result on successful login", async () => {
       const mockResponse = {
         access_token: "test-token",
+        refresh_token: "test-refresh-token",
         token_type: "bearer",
       };
 
@@ -214,6 +216,63 @@ describe("auth service", () => {
           body: JSON.stringify(passwordData),
         })
       );
+    });
+  });
+
+  describe("refreshToken", () => {
+    test("should return success result on successful token refresh", async () => {
+      const mockResponse = {
+        access_token: "new-access-token",
+        refresh_token: "new-refresh-token",
+        token_type: "bearer",
+      };
+
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const refreshData: RefreshTokenRequest = {
+        refresh_token: "old-refresh-token",
+      };
+
+      const result = await refreshToken(refreshData);
+
+      if (result.isErr()) {
+        throw new Error("unreachable");
+      }
+
+      expect(result.value).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/auth/refresh",
+        expect.objectContaining({
+          method: "POST",
+          headers: expect.any(Object),
+          body: JSON.stringify(refreshData),
+        })
+      );
+    });
+
+    test("should return error result on failed token refresh", async () => {
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        text: async () =>
+          JSON.stringify({ detail: "Invalid refresh token" }),
+      });
+
+      const refreshData: RefreshTokenRequest = {
+        refresh_token: "invalid-refresh-token",
+      };
+
+      const result = await refreshToken(refreshData);
+
+      if (result.isOk()) {
+        throw new Error("unreachable");
+      }
+
+      expect(result.error.message).toBe("Invalid refresh token");
+      expect(result.error.status).toBe(401);
     });
   });
 });
