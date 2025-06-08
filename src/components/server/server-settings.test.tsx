@@ -21,6 +21,27 @@ vi.mock("@/contexts/auth", () => ({
   useAuth: () => mockAuthContext,
 }));
 
+// Mock the language context with actual translations
+const translations: Record<string, string> = {
+  "servers.settings.title": "Server Settings",
+  "servers.settings.updated": "Server settings updated successfully",
+  "servers.settings.validation.nameRequired": "Server name is required",
+  "servers.settings.validation.memoryMinimum": "Memory must be at least 512MB",
+  "servers.settings.validation.playersRange": "Max players must be between 1 and 200",
+  "servers.settings.resetChanges": "Reset Changes",
+  "servers.settings.saveSettings": "Save Settings",
+  "servers.settings.saving": "Saving...",
+  "servers.description": "Description",
+};
+
+const mockT = vi.fn((key: string) => translations[key] || key);
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({
+    t: mockT,
+    locale: "en",
+  }),
+}));
+
 // Mock the server service
 vi.mock("@/services/server", () => ({
   updateServer: vi.fn(),
@@ -97,7 +118,7 @@ describe("ServerSettings", () => {
     expect(playersInput).toHaveValue(50);
 
     // Save button should be enabled
-    const saveButton = screen.getByRole("button", { name: /save settings/i });
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
     expect(saveButton).not.toBeDisabled();
   });
 
@@ -105,8 +126,8 @@ describe("ServerSettings", () => {
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
 
     const nameInput = screen.getByDisplayValue("Test Server");
-    const saveButton = screen.getByRole("button", { name: /save settings/i });
-    const resetButton = screen.getByRole("button", { name: /reset changes/i });
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
+    const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
 
     // Initially buttons should be disabled
     expect(saveButton).toBeDisabled();
@@ -135,7 +156,7 @@ describe("ServerSettings", () => {
     await user.clear(memoryInput);
     await user.type(memoryInput, "4096");
 
-    const saveButton = screen.getByRole("button", { name: /save settings/i });
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
     await user.click(saveButton);
 
     await waitFor(() => {
@@ -163,7 +184,7 @@ describe("ServerSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    const saveButton = screen.getByRole("button", { name: /save settings/i });
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
     await user.click(saveButton);
 
     await waitFor(() => {
@@ -186,7 +207,7 @@ describe("ServerSettings", () => {
     await user.type(memoryInput, "4096");
 
     // Reset
-    const resetButton = screen.getByRole("button", { name: /reset changes/i });
+    const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
     await user.click(resetButton);
 
     expect(nameInput).toHaveValue("Test Server");
@@ -194,7 +215,7 @@ describe("ServerSettings", () => {
 
     // Buttons should be disabled again
     expect(resetButton).toBeDisabled();
-    expect(screen.getByRole("button", { name: /save settings/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Save Settings/i })).toBeDisabled();
   });
 
   test("should disable form during save operation", async () => {
@@ -208,11 +229,11 @@ describe("ServerSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    const saveButton = screen.getByRole("button", { name: /save settings/i });
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
     await user.click(saveButton);
 
     // Form should be disabled during save
-    expect(screen.getByRole("button", { name: /saving/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Saving/i })).toBeInTheDocument();
     expect(nameInput).toBeDisabled();
   });
 
@@ -227,7 +248,7 @@ describe("ServerSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    const saveButton = screen.getByRole("button", { name: /save settings/i });
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
     await user.click(saveButton);
 
     await waitFor(() => {

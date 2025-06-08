@@ -33,10 +33,55 @@ vi.mock("@/contexts/auth", () => ({
   useAuth: () => mockAuthContext,
 }));
 
-// Mock the language context
+// Mock the language context with translations
+const translations: Record<string, string> = {
+  "servers.loadingServerDetails": "Loading server details...",
+  "servers.serverNotFound": "Server not found",
+  "servers.backToDashboard": "← Back to Dashboard",
+  "servers.information": "Information",
+  "servers.settings": "Settings",
+  "servers.properties": "Properties",
+  "servers.serverInformation": "Server Information",
+  "servers.serverActions": "Server Actions",
+  "servers.description": "Description",
+  "servers.deleteConfirmation": "Are you sure you want to delete this server? This action cannot be undone.",
+  "servers.status.running": "Running",
+  "servers.status.stopped": "Stopped",
+  "servers.status.starting": "Starting...",
+  "servers.status.stopping": "Stopping...",
+  "servers.status.error": "Error",
+  "servers.status.unknown": "Unknown",
+  "servers.actions.start": "Start Server",
+  "servers.actions.stop": "Stop Server",
+  "servers.actions.restart": "Restart Server",
+  "servers.actions.delete": "Delete Server",
+  "servers.actions.starting": "Starting...",
+  "servers.actions.stopping": "Stopping...",
+  "servers.actions.restarting": "Restarting...",
+  "servers.actions.deleting": "Deleting...",
+  "servers.fields.version": "Minecraft Version",
+  "servers.fields.type": "Server Type",
+  "servers.fields.maxPlayers": "Max Players",
+  "servers.fields.memoryLimit": "Memory Limit",
+  "servers.fields.port": "Port",
+  "servers.fields.created": "Created",
+  "errors.generic": "An error occurred",
+  "errors.operationFailed": "Server {action} failed",
+};
+
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
+
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: mockT,
     locale: "en",
   }),
 }));
@@ -346,7 +391,7 @@ describe("ServerDetailPage", () => {
       expect(screen.getByText("Server not found")).toBeInTheDocument();
     });
 
-    const backButton = screen.getByRole("button", { name: "Back to Dashboard" });
+    const backButton = screen.getByRole("button", { name: "← Back to Dashboard" });
     expect(backButton).toBeInTheDocument();
   });
 
