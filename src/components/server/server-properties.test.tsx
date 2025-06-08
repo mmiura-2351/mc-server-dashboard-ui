@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ServerPropertiesEditor } from "./server-properties";
 import * as serverService from "@/services/server";
@@ -304,7 +304,7 @@ describe("ServerPropertiesEditor", () => {
     expect(maxPlayersInput).not.toBeDisabled();
   });
 
-  test("should handle boolean values as strings", async () => {
+  test("should handle boolean values with select boxes", async () => {
     vi.mocked(serverService.getServerProperties).mockResolvedValueOnce(
       ok(mockServerProperties)
     );
@@ -315,16 +315,16 @@ describe("ServerPropertiesEditor", () => {
       expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
     });
 
-    // Find the pvp field specifically by ID (boolean value should be displayed as string)
-    const pvpInput = document.getElementById("pvp") as HTMLInputElement;
-    expect(pvpInput).toBeInTheDocument();
-    expect(pvpInput.value).toBe("true");
+    // Find the pvp field specifically by ID (boolean value should be displayed as select)
+    const pvpSelect = document.getElementById("pvp") as HTMLSelectElement;
+    expect(pvpSelect).toBeInTheDocument();
+    expect(pvpSelect.tagName).toBe("SELECT");
+    expect(pvpSelect.value).toBe("true");
 
-    // Change to false
-    await user.clear(pvpInput);
-    await user.type(pvpInput, "false");
+    // Change to false using select
+    await user.selectOptions(pvpSelect, "false");
 
-    expect(pvpInput).toHaveValue("false");
+    expect(pvpSelect).toHaveValue("false");
   });
 
   test("should show guidance text for value formats", async () => {
