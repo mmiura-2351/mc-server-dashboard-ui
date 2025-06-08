@@ -12,6 +12,12 @@ import type {
   UserWithToken,
 } from "@/types/auth";
 
+interface ValidationError {
+  loc: string[];
+  msg: string;
+  type: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function fetchWithErrorHandling<T>(
@@ -47,7 +53,7 @@ async function fetchWithErrorHandling<T>(
           if (response.status === 422 && Array.isArray(errorData.detail)) {
             // Extract validation error messages
             const validationErrors = errorData.detail
-              .map((error: any) => {
+              .map((error: ValidationError) => {
                 const field = error.loc ? error.loc.join(".") : "field";
                 return `${field}: ${error.msg}`;
               })
@@ -92,7 +98,7 @@ async function fetchWithErrorHandling<T>(
           if (response.status === 422 && Array.isArray(errorData.detail)) {
             // Extract validation error messages
             const validationErrors = errorData.detail
-              .map((error: any) => {
+              .map((error: ValidationError) => {
                 const field = error.loc ? error.loc.join(".") : "field";
                 return `${field}: ${error.msg}`;
               })
@@ -132,11 +138,14 @@ export async function login(
   formData.append("username", credentials.username);
   formData.append("password", credentials.password);
 
-  return fetchWithErrorHandling<LoginResponse>(`${API_BASE_URL}/api/v1/auth/token`, {
-    method: "POST",
-    headers: {},
-    body: formData,
-  });
+  return fetchWithErrorHandling<LoginResponse>(
+    `${API_BASE_URL}/api/v1/auth/token`,
+    {
+      method: "POST",
+      headers: {},
+      body: formData,
+    }
+  );
 }
 
 export async function register(
@@ -163,13 +172,16 @@ export async function updateUserInfo(
   token: string,
   userData: UserUpdate
 ): Promise<Result<UserWithToken, AuthError>> {
-  return fetchWithErrorHandling<UserWithToken>(`${API_BASE_URL}/api/v1/users/me`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(userData),
-  });
+  return fetchWithErrorHandling<UserWithToken>(
+    `${API_BASE_URL}/api/v1/users/me`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    }
+  );
 }
 
 export async function updatePassword(
@@ -251,11 +263,14 @@ export async function updateUserRole(
   roleData: RoleUpdate
 ): Promise<Result<User, AuthError>> {
   const bodyString = JSON.stringify(roleData);
-  return fetchWithErrorHandling<User>(`${API_BASE_URL}/api/v1/users/role/${userId}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: bodyString,
-  });
+  return fetchWithErrorHandling<User>(
+    `${API_BASE_URL}/api/v1/users/role/${userId}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: bodyString,
+    }
+  );
 }

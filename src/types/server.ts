@@ -13,12 +13,12 @@ export interface MinecraftServer {
   template_id: number | null;
   created_at: string;
   updated_at: string;
-  process_info?: Record<string, any> | null;
+  process_info?: Record<string, unknown> | null;
   configurations?: ServerConfigurationResponse[];
 }
 
 export interface ServerConfigurationResponse {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export enum ServerType {
@@ -29,7 +29,7 @@ export enum ServerType {
 
 export enum ServerStatus {
   STOPPED = "stopped",
-  STARTING = "starting", 
+  STARTING = "starting",
   RUNNING = "running",
   STOPPING = "stopping",
   ERROR = "error",
@@ -45,7 +45,7 @@ export interface ServerListResponse {
 export interface ServerStatusResponse {
   server_id: number;
   status: ServerStatus;
-  process_info?: Record<string, any> | null;
+  process_info?: Record<string, unknown> | null;
 }
 
 export interface ServerLogsResponse {
@@ -63,7 +63,7 @@ export interface CreateServerRequest {
   max_memory?: number;
   max_players?: number;
   template_id?: number | null;
-  server_properties?: Record<string, any> | null;
+  server_properties?: Record<string, unknown> | null;
   attach_groups?: Record<string, number[]> | null;
 }
 
@@ -72,7 +72,7 @@ export interface ServerUpdateRequest {
   description?: string | null;
   max_memory?: number | null;
   max_players?: number | null;
-  server_properties?: Record<string, any> | null;
+  server_properties?: Record<string, unknown> | null;
 }
 
 export interface ServerCommandRequest {

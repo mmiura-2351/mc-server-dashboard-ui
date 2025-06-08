@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { } from "neverthrow";
+import {} from "neverthrow";
 import * as authService from "./auth";
 import { Role } from "@/types/auth";
 import type {
@@ -49,7 +49,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/users/me",
+        "http://localhost:8000/api/v1/users/me",
         expect.objectContaining({
           method: "PUT",
           headers: expect.any(Headers),
@@ -58,7 +58,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
       expect(headers.get("Content-Type")).toBe("application/json");
@@ -108,7 +108,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/users/me/password",
+        "http://localhost:8000/api/v1/users/me/password",
         expect.objectContaining({
           method: "PUT",
           headers: expect.any(Headers),
@@ -117,7 +117,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
       expect(headers.get("Content-Type")).toBe("application/json");
@@ -167,7 +167,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/users/me",
+        "http://localhost:8000/api/v1/users/me",
         expect.objectContaining({
           method: "DELETE",
           headers: expect.any(Headers),
@@ -176,7 +176,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
       expect(headers.get("Content-Type")).toBe("application/json");
@@ -220,7 +220,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/users/",
+        "http://localhost:8000/api/v1/users/",
         expect.objectContaining({
           method: "GET",
           headers: expect.any(Headers),
@@ -228,7 +228,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
     });
@@ -270,7 +270,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        `http://localhost:8000/users/${userId}`,
+        `http://localhost:8000/api/v1/users/${userId}`,
         expect.objectContaining({
           method: "DELETE",
           headers: expect.any(Headers),
@@ -278,7 +278,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
     });
@@ -321,7 +321,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        `http://localhost:8000/users/approve/${userId}`,
+        `http://localhost:8000/api/v1/users/approve/${userId}`,
         expect.objectContaining({
           method: "POST",
           headers: expect.any(Headers),
@@ -329,7 +329,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
     });
@@ -358,7 +358,7 @@ describe("User Management Auth Service", () => {
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        `http://localhost:8000/users/role/${userId}`,
+        `http://localhost:8000/api/v1/users/role/${userId}`,
         expect.objectContaining({
           method: "PUT",
           headers: expect.any(Headers),
@@ -367,7 +367,7 @@ describe("User Management Auth Service", () => {
       );
 
       // Verify headers content separately
-      const call = (fetch as any).mock.calls[0];
+      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
       const headers = call[1].headers as Headers;
       expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
       expect(headers.get("Content-Type")).toBe("application/json");

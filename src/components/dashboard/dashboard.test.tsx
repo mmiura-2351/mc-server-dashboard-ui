@@ -8,15 +8,38 @@ const mockLogout = vi.fn();
 const mockPush = vi.fn();
 
 // Create mock auth context
-let mockAuthContext: any = {
+let mockAuthContext: {
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    is_active: boolean;
+    is_approved: boolean;
+    role: string;
+  } | null;
+  login: ReturnType<typeof vi.fn>;
+  logout: ReturnType<typeof vi.fn>;
+  register: ReturnType<typeof vi.fn>;
+  updateUserInfo: ReturnType<typeof vi.fn>;
+  updatePassword: ReturnType<typeof vi.fn>;
+  deleteAccount: ReturnType<typeof vi.fn>;
+  isLoading: boolean;
+} = {
   user: {
     id: 1,
     username: "testuser",
     email: "test@example.com",
     is_active: true,
     is_approved: true,
+    role: "user",
   },
+  login: vi.fn(),
   logout: mockLogout,
+  register: vi.fn(),
+  updateUserInfo: vi.fn(),
+  updatePassword: vi.fn(),
+  deleteAccount: vi.fn(),
+  isLoading: false,
 };
 
 // Mock modules
@@ -43,8 +66,15 @@ describe("Dashboard", () => {
         email: "test@example.com",
         is_active: true,
         is_approved: true,
+        role: "user",
       },
+      login: vi.fn(),
       logout: mockLogout,
+      register: vi.fn(),
+      updateUserInfo: vi.fn(),
+      updatePassword: vi.fn(),
+      deleteAccount: vi.fn(),
+      isLoading: false,
     };
   });
 
@@ -88,6 +118,7 @@ describe("Dashboard", () => {
       email: "unapproved@example.com",
       is_active: true,
       is_approved: false,
+      role: "user",
     };
 
     render(<Dashboard />);

@@ -132,7 +132,7 @@ describe("LoginForm", () => {
 
   test("shows loading state during login", async () => {
     // Mock login to return a promise that we can control
-    let resolveLogin: (value: any) => void;
+    let resolveLogin: (value: unknown) => void;
     const loginPromise = new Promise((resolve) => {
       resolveLogin = resolve;
     });
@@ -174,7 +174,7 @@ describe("LoginForm", () => {
 
   test("disables form when loading", async () => {
     // Mock login to return a promise that we can control
-    let resolveLogin: (value: any) => void;
+    let resolveLogin: (value: unknown) => void;
     const loginPromise = new Promise((resolve) => {
       resolveLogin = resolve;
     });
