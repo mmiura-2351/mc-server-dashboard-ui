@@ -17,6 +17,19 @@ export interface FileContent {
   modified: string;
 }
 
+export interface FileReadResponse {
+  content: string;
+  encoding: string;
+  file_info: {
+    name: string;
+    size: number;
+    modified: string;
+    permissions: Record<string, boolean>;
+  };
+  is_image?: boolean;
+  image_data?: string | null;
+}
+
 export interface FileUploadRequest {
   content: string;
   encoding?: string;
