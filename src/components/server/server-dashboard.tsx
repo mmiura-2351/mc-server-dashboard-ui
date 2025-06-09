@@ -38,8 +38,8 @@ export function ServerDashboard() {
     // Debug authentication status (development only)
     if (process.env.NODE_ENV === "development") {
       const token = localStorage.getItem("access_token");
-      console.log("[DEBUG] Loading servers - Token exists:", !!token);
-      console.log("[DEBUG] User:", user);
+      console.warn("[DEBUG] Loading servers - Token exists:", !!token);
+      console.warn("[DEBUG] User:", user);
     }
 
     try {
@@ -80,8 +80,8 @@ export function ServerDashboard() {
     // Debug authentication status before creating server (development only)
     if (process.env.NODE_ENV === "development") {
       const token = localStorage.getItem("access_token");
-      console.log("[DEBUG] Creating server - Token exists:", !!token);
-      console.log("[DEBUG] Form data:", createForm);
+      console.warn("[DEBUG] Creating server - Token exists:", !!token);
+      console.warn("[DEBUG] Form data:", createForm);
     }
 
     const result = await serverService.createServer(createForm);
