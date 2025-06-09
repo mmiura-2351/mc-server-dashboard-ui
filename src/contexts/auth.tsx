@@ -57,7 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const refreshToken = localStorage.getItem("refresh_token");
-    
+
     if (!token) {
       setIsLoading(false);
       return;
@@ -69,12 +69,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(result.value);
       } else if (result.error.status === 401 && refreshToken) {
         // Try to refresh the token
-        const refreshResult = await authService.refreshToken({ refresh_token: refreshToken });
+        const refreshResult = await authService.refreshToken({
+          refresh_token: refreshToken,
+        });
         if (refreshResult.isOk()) {
-          const { access_token, refresh_token: newRefreshToken } = refreshResult.value;
+          const { access_token, refresh_token: newRefreshToken } =
+            refreshResult.value;
           localStorage.setItem("access_token", access_token);
           localStorage.setItem("refresh_token", newRefreshToken);
-          
+
           // Try to get user with new token
           const userResult = await authService.getCurrentUser(access_token);
           if (userResult.isOk()) {

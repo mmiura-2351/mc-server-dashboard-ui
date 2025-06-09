@@ -13,10 +13,12 @@ import type {
   RefreshTokenRequest,
   RefreshTokenResponse,
 } from "@/types/auth";
-import { fetchWithErrorHandling, fetchWithErrorHandlingInternal } from "@/services/api";
+import {
+  fetchWithErrorHandling,
+  fetchWithErrorHandlingInternal,
+} from "@/services/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 
 export async function login(
   credentials: LoginRequest
@@ -50,21 +52,28 @@ export async function refreshToken(
 export async function register(
   userData: UserCreate
 ): Promise<Result<User, AuthError>> {
-  return fetchWithErrorHandling<User>(`${API_BASE_URL}/api/v1/users/register`, {
-    method: "POST",
-    body: JSON.stringify(userData),
-  }, true); // Skip auto-refresh for registration
+  return fetchWithErrorHandling<User>(
+    `${API_BASE_URL}/api/v1/users/register`,
+    {
+      method: "POST",
+      body: JSON.stringify(userData),
+    },
+    true
+  ); // Skip auto-refresh for registration
 }
 
 export async function getCurrentUser(
   token: string
 ): Promise<Result<User, AuthError>> {
-  return fetchWithErrorHandlingInternal<User>(`${API_BASE_URL}/api/v1/users/me`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return fetchWithErrorHandlingInternal<User>(
+    `${API_BASE_URL}/api/v1/users/me`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 }
 
 export async function updateUserInfo(
@@ -118,12 +127,15 @@ export async function deleteAccount(
 export async function getAllUsers(
   token: string
 ): Promise<Result<User[], AuthError>> {
-  return fetchWithErrorHandlingInternal<User[]>(`${API_BASE_URL}/api/v1/users/`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return fetchWithErrorHandlingInternal<User[]>(
+    `${API_BASE_URL}/api/v1/users/`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 }
 
 export async function deleteUserByAdmin(

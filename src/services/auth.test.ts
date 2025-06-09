@@ -1,5 +1,11 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
-import { login, register, updateUserInfo, updatePassword, refreshToken } from "./auth";
+import {
+  login,
+  register,
+  updateUserInfo,
+  updatePassword,
+  refreshToken,
+} from "./auth";
 import type {
   LoginRequest,
   UserCreate,
@@ -257,8 +263,7 @@ describe("auth service", () => {
       (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 401,
-        text: async () =>
-          JSON.stringify({ detail: "Invalid refresh token" }),
+        text: async () => JSON.stringify({ detail: "Invalid refresh token" }),
       });
 
       const refreshData: RefreshTokenRequest = {
