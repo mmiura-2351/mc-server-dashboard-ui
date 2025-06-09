@@ -9,6 +9,7 @@ import type { FileSystemItem } from "@/types/files";
 vi.mock("@/services/files", () => ({
   listFiles: vi.fn(),
   readFile: vi.fn(),
+  writeFile: vi.fn(),
   deleteFile: vi.fn(),
   downloadFile: vi.fn(),
 }));
@@ -549,5 +550,280 @@ describe("FileExplorer", () => {
     expect(screen.getByText("protected.txt")).toBeInTheDocument();
 
     confirmSpy.mockRestore();
+  });
+
+  test("allows editing text files", async () => {
+    const user = userEvent.setup();
+    const { listFiles, readFile, writeFile } = await import("@/services/files");
+
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "config.yml",
+        type: "text",
+        is_directory: false,
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/config.yml",
+        permissions: { read: true, write: true, execute: false },
+      },
+    ];
+
+    const mockFileContent = {
+      content: "debug: false\nserver-port: 25565",
+      encoding: "utf-8",
+      file_info: {
+        name: "config.yml",
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        permissions: { read: true, write: true, execute: false },
+      },
+      is_image: false,
+      image_data: null,
+    };
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(readFile).mockResolvedValue(ok(mockFileContent));
+    vi.mocked(writeFile).mockResolvedValue(ok(undefined));
+
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("config.yml")).toBeInTheDocument();
+    });
+
+    // Click on the text file
+    const fileRow = screen.getByText("config.yml").closest("div");
+    expect(fileRow).toBeInTheDocument();
+
+    await user.click(fileRow!);
+
+    // Check that file viewer modal appears
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /config.yml/ })).toBeInTheDocument();
+      expect(screen.getByText("✏️ Edit")).toBeInTheDocument();
+    });
+
+    // Click edit button
+    const editButton = screen.getByText("✏️ Edit");
+    await user.click(editButton);
+
+    // Check that edit mode is active
+    await waitFor(() => {
+      expect(screen.getByDisplayValue(/debug: false/)).toBeInTheDocument();
+      expect(screen.getByText("💾 Save")).toBeInTheDocument();
+      expect(screen.getByText("❌ Cancel")).toBeInTheDocument();
+    });
+
+    // Edit the content
+    const textarea = screen.getByDisplayValue(/debug: false/);
+    await user.clear(textarea);
+    await user.type(textarea, "debug: true\nserver-port: 25566");
+
+    // Save the changes
+    const saveButton = screen.getByText("💾 Save");
+    await user.click(saveButton);
+
+    // Check that save was called with correct content
+    await waitFor(() => {
+      expect(writeFile).toHaveBeenCalledWith(1, "config.yml", {
+        content: "debug: true\nserver-port: 25566",
+        encoding: "utf-8",
+        create_backup: true,
+      });
+    });
+
+    // Check that edit mode is exited
+    await waitFor(() => {
+      expect(screen.getByText("✏️ Edit")).toBeInTheDocument();
+      expect(screen.queryByText("💾 Save")).not.toBeInTheDocument();
+    });
+  });
+
+  test("handles edit cancellation", async () => {
+    const user = userEvent.setup();
+    const { listFiles, readFile } = await import("@/services/files");
+
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "test.txt",
+        type: "text",
+        is_directory: false,
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/test.txt",
+        permissions: { read: true, write: true, execute: false },
+      },
+    ];
+
+    const mockFileContent = {
+      content: "original content",
+      encoding: "utf-8",
+      file_info: {
+        name: "test.txt",
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        permissions: { read: true, write: true, execute: false },
+      },
+      is_image: false,
+      image_data: null,
+    };
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(readFile).mockResolvedValue(ok(mockFileContent));
+
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("test.txt")).toBeInTheDocument();
+    });
+
+    // Click on the text file
+    const fileRow = screen.getByText("test.txt").closest("div");
+    await user.click(fileRow!);
+
+    // Check that file viewer modal appears
+    await waitFor(() => {
+      expect(screen.getByText("✏️ Edit")).toBeInTheDocument();
+    });
+
+    // Click edit button
+    const editButton = screen.getByText("✏️ Edit");
+    await user.click(editButton);
+
+    // Edit the content
+    const textarea = screen.getByDisplayValue("original content");
+    await user.clear(textarea);
+    await user.type(textarea, "modified content");
+
+    // Cancel the changes
+    const cancelButton = screen.getByText("❌ Cancel");
+    await user.click(cancelButton);
+
+    // Check that original content is restored and edit mode is exited
+    await waitFor(() => {
+      expect(screen.getByText("✏️ Edit")).toBeInTheDocument();
+      expect(screen.queryByText("💾 Save")).not.toBeInTheDocument();
+    });
+  });
+
+  test("handles save errors gracefully", async () => {
+    const user = userEvent.setup();
+    const { listFiles, readFile, writeFile } = await import("@/services/files");
+
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "readonly.txt",
+        type: "text",
+        is_directory: false,
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/readonly.txt",
+        permissions: { read: true, write: false, execute: false },
+      },
+    ];
+
+    const mockFileContent = {
+      content: "content to edit",
+      encoding: "utf-8",
+      file_info: {
+        name: "readonly.txt",
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        permissions: { read: true, write: false, execute: false },
+      },
+      is_image: false,
+      image_data: null,
+    };
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(readFile).mockResolvedValue(ok(mockFileContent));
+    vi.mocked(writeFile).mockResolvedValue(
+      err({ message: "Permission denied" })
+    );
+
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("readonly.txt")).toBeInTheDocument();
+    });
+
+    // Click on the text file
+    const fileRow = screen.getByText("readonly.txt").closest("div");
+    await user.click(fileRow!);
+
+    // Click edit button
+    await waitFor(() => {
+      const editButton = screen.getByText("✏️ Edit");
+      return user.click(editButton);
+    });
+
+    // Edit the content
+    const textarea = screen.getByDisplayValue("content to edit");
+    await user.clear(textarea);
+    await user.type(textarea, "new content");
+
+    // Save the changes (should fail)
+    const saveButton = screen.getByText("💾 Save");
+    await user.click(saveButton);
+
+    // Check that error toast appears
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Failed to save file: Permission denied/)
+      ).toBeInTheDocument();
+    });
+
+    // Check that edit mode is still active (didn't exit on error)
+    expect(screen.getByText("💾 Save")).toBeInTheDocument();
+    expect(screen.getByText("❌ Cancel")).toBeInTheDocument();
+  });
+
+  test("does not show edit button for image files", async () => {
+    const user = userEvent.setup();
+    const { listFiles, readFile } = await import("@/services/files");
+
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "image.png",
+        type: "binary",
+        is_directory: false,
+        size: 2048,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/image.png",
+        permissions: { read: true, write: true, execute: false },
+      },
+    ];
+
+    const mockImageContent = {
+      content: "",
+      encoding: "binary",
+      file_info: {
+        name: "image.png",
+        size: 2048,
+        modified: "2023-01-01T00:00:00Z",
+        permissions: { read: true, write: true, execute: false },
+      },
+      is_image: true,
+      image_data: "base64encodedimagedata",
+    };
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(readFile).mockResolvedValue(ok(mockImageContent));
+
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("image.png")).toBeInTheDocument();
+    });
+
+    // Click on the image file
+    const fileRow = screen.getByText("image.png").closest("div");
+    await user.click(fileRow!);
+
+    // Check that image modal appears but no edit button
+    await waitFor(() => {
+      expect(screen.getByText(/🖼️ image.png/)).toBeInTheDocument();
+      expect(screen.queryByText("✏️ Edit")).not.toBeInTheDocument();
+    });
   });
 });

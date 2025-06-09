@@ -63,6 +63,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     type: "error" | "info";
   } | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const loadFiles = useCallback(
     async (path: string = currentPath) => {
@@ -96,7 +99,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     return extension ? VIEWABLE_IMAGE_EXTENSIONS.includes(extension) : false;
   };
 
-  const _isTextFile = (fileName: string): boolean => {
+  const isTextFile = (fileName: string): boolean => {
     const extension = fileName.split(".").pop()?.toLowerCase();
     return extension ? VIEWABLE_TEXT_EXTENSIONS.includes(extension) : false;
   };
@@ -108,6 +111,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     setSelectedFile(null);
     setFileContent("");
     setIsLoadingFile(false);
+    setIsEditing(false);
+    setEditedContent("");
+    setIsSaving(false);
   };
 
   const showToast = (message: string, type: "error" | "info" = "info") => {
@@ -158,6 +164,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       } else {
         // For text files, use content
         setFileContent(result.value.content);
+        setEditedContent(result.value.content);
       }
     } else {
       showToast(`Failed to load file: ${result.error.message}`, "error");
@@ -206,6 +213,40 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     } else {
       showToast(`Failed to download file: ${result.error.message}`, "error");
     }
+  };
+
+  const handleEditFile = () => {
+    if (!selectedFile || !isTextFile(selectedFile.name)) return;
+    setIsEditing(true);
+    setEditedContent(fileContent);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedContent(fileContent);
+  };
+
+  const handleSaveFile = async () => {
+    if (!selectedFile || !isTextFile(selectedFile.name)) return;
+    
+    setIsSaving(true);
+    const filePath = currentPath === "/" ? selectedFile.name : `${currentPath}/${selectedFile.name}`;
+    
+    const result = await fileService.writeFile(serverId, filePath, {
+      content: editedContent,
+      encoding: "utf-8",
+      create_backup: true,
+    });
+
+    if (result.isOk()) {
+      setFileContent(editedContent);
+      setIsEditing(false);
+      showToast(`Successfully saved ${selectedFile.name}`, "info");
+    } else {
+      showToast(`Failed to save file: ${result.error.message}`, "error");
+    }
+    
+    setIsSaving(false);
   };
 
   const navigateUp = () => {
@@ -444,19 +485,60 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                     <div className={styles.fileLoading}>Loading image...</div>
                   )}
                 </div>
+              ) : isEditing ? (
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className={styles.fileEditor}
+                  disabled={isSaving}
+                />
               ) : (
                 <pre className={styles.fileContentDisplay}>{fileContent}</pre>
               )}
             </div>
             <div className={styles.modalFooter}>
+              {isTextFile(selectedFile.name) && !isImageFile(selectedFile.name) && (
+                <>
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleSaveFile}
+                        className={`${styles.modalButton} ${styles.primaryButton}`}
+                        disabled={isSaving || isLoadingFile}
+                      >
+                        {isSaving ? "💾 Saving..." : "💾 Save"}
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className={styles.modalButton}
+                        disabled={isSaving}
+                      >
+                        ❌ Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleEditFile}
+                      className={styles.modalButton}
+                      disabled={isLoadingFile}
+                    >
+                      ✏️ Edit
+                    </button>
+                  )}
+                </>
+              )}
               <button
                 onClick={() => handleDownloadFile(selectedFile)}
                 className={styles.modalButton}
-                disabled={isLoadingFile}
+                disabled={isLoadingFile || isSaving}
               >
                 📥 Download
               </button>
-              <button onClick={closeFileViewer} className={styles.modalButton}>
+              <button 
+                onClick={closeFileViewer} 
+                className={styles.modalButton}
+                disabled={isSaving}
+              >
                 Close
               </button>
             </div>
