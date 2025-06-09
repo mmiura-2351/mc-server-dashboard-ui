@@ -64,6 +64,8 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .breadcrumbItem {
@@ -75,6 +77,11 @@
   padding: 4px 8px;
   border-radius: 4px;
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
+  flex-shrink: 1;
 }
 
 .breadcrumbItem:hover {
@@ -94,6 +101,13 @@
 .breadcrumbSeparator {
   margin: 0 4px;
   color: #666;
+}
+
+.breadcrumbEllipsis {
+  color: #666;
+  padding: 4px 8px;
+  font-size: 14px;
+  user-select: none;
 }
 
 .actions {
@@ -460,6 +474,11 @@
 
   .breadcrumb {
     justify-content: center;
+  }
+
+  .breadcrumbItem {
+    max-width: 100px;
+    font-size: 13px;
   }
 
   .actions {

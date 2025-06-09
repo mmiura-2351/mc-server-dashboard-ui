@@ -994,6 +994,82 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     return new Date(dateString).toLocaleString();
   };
 
+  // Helper function to render breadcrumb with truncation for long paths
+  const renderBreadcrumb = () => {
+    if (currentPath === "/") {
+      return (
+        <button
+          onClick={() => setCurrentPath("/")}
+          className={`${styles.breadcrumbItem} ${styles.active}`}
+        >
+          🏠 Root
+        </button>
+      );
+    }
+
+    const pathParts = currentPath.split("/").filter(Boolean);
+    const maxVisibleParts = 3; // Show root + max 3 parts
+
+    // Always show root
+    const breadcrumbItems = [
+      <button
+        key="root"
+        onClick={() => setCurrentPath("/")}
+        className={styles.breadcrumbItem}
+      >
+        🏠 Root
+      </button>
+    ];
+
+    if (pathParts.length <= maxVisibleParts) {
+      // Show all parts if within limit
+      pathParts.forEach((part, index) => {
+        const path = "/" + pathParts.slice(0, index + 1).join("/");
+        breadcrumbItems.push(
+          <span key={path}>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <button
+              onClick={() => setCurrentPath(path)}
+              className={`${styles.breadcrumbItem} ${path === currentPath ? styles.active : ""}`}
+              title={part} // Show full name on hover
+            >
+              {part}
+            </button>
+          </span>
+        );
+      });
+    } else {
+      // Show root + ellipsis + last few parts
+      breadcrumbItems.push(
+        <span key="ellipsis">
+          <span className={styles.breadcrumbSeparator}>/</span>
+          <span className={styles.breadcrumbEllipsis}>...</span>
+        </span>
+      );
+
+      // Show last few parts
+      const visibleParts = pathParts.slice(-2); // Show last 2 parts
+      visibleParts.forEach((part, index) => {
+        const actualIndex = pathParts.length - 2 + index;
+        const path = "/" + pathParts.slice(0, actualIndex + 1).join("/");
+        breadcrumbItems.push(
+          <span key={path}>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <button
+              onClick={() => setCurrentPath(path)}
+              className={`${styles.breadcrumbItem} ${path === currentPath ? styles.active : ""}`}
+              title={part} // Show full name on hover
+            >
+              {part}
+            </button>
+          </span>
+        );
+      });
+    }
+
+    return breadcrumbItems;
+  };
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -1045,30 +1121,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       <div className={styles.toolbar}>
         <div className={styles.breadcrumb}>
-          <button
-            onClick={() => setCurrentPath("/")}
-            className={`${styles.breadcrumbItem} ${currentPath === "/" ? styles.active : ""}`}
-          >
-            🏠 Root
-          </button>
-          {currentPath !== "/" &&
-            currentPath
-              .split("/")
-              .filter(Boolean)
-              .map((part, index, parts) => {
-                const path = "/" + parts.slice(0, index + 1).join("/");
-                return (
-                  <span key={path}>
-                    <span className={styles.breadcrumbSeparator}>/</span>
-                    <button
-                      onClick={() => setCurrentPath(path)}
-                      className={`${styles.breadcrumbItem} ${path === currentPath ? styles.active : ""}`}
-                    >
-                      {part}
-                    </button>
-                  </span>
-                );
-              })}
+          {renderBreadcrumb()}
         </div>
         <div className={styles.actions}>
           {isSelectionMode && (
