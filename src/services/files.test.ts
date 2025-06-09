@@ -1,10 +1,18 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { listFiles, readTextFile, writeFile, deleteFile, uploadFileWithProgress, uploadFolderStructure } from "./files";
+import {
+  listFiles,
+  readTextFile,
+  writeFile,
+  deleteFile,
+  uploadFileWithProgress,
+  uploadFolderStructure,
+} from "./files";
 import { ok, err } from "neverthrow";
 
 // Mock the API module
 vi.mock("./api", () => ({
-  fetchWithErrorHandling: vi.fn(),
+  fetchJson: vi.fn(),
+  fetchEmpty: vi.fn(),
 }));
 
 // Mock XMLHttpRequest
@@ -25,9 +33,9 @@ const mockXMLHttpRequest = {
 global.XMLHttpRequest = vi.fn(() => mockXMLHttpRequest) as any;
 
 // Mock localStorage
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(window, "localStorage", {
   value: {
-    getItem: vi.fn(() => 'test-token'),
+    getItem: vi.fn(() => "test-token"),
     setItem: vi.fn(),
     removeItem: vi.fn(),
   },
@@ -43,7 +51,7 @@ describe("File service", () => {
 
   describe("listFiles", () => {
     test("should return files for root path", async () => {
-      const { fetchWithErrorHandling } = await import("./api");
+      const { fetchJson } = await import("./api");
       const mockResponse = {
         files: [
           {
@@ -60,7 +68,7 @@ describe("File service", () => {
         total_files: 1,
       };
 
-      vi.mocked(fetchWithErrorHandling).mockResolvedValue(ok(mockResponse));
+      vi.mocked(fetchJson).mockResolvedValue(ok(mockResponse));
 
       const result = await listFiles(1, "/");
 
@@ -72,7 +80,7 @@ describe("File service", () => {
     });
 
     test("should handle subdirectory paths", async () => {
-      const { fetchWithErrorHandling } = await import("./api");
+      const { fetchJson } = await import("./api");
       const mockResponse = {
         files: [
           {
@@ -89,7 +97,7 @@ describe("File service", () => {
         total_files: 1,
       };
 
-      vi.mocked(fetchWithErrorHandling).mockResolvedValue(ok(mockResponse));
+      vi.mocked(fetchJson).mockResolvedValue(ok(mockResponse));
 
       const result = await listFiles(1, "/plugins");
 
@@ -100,15 +108,15 @@ describe("File service", () => {
       }
 
       // Check the URL was called with correct path encoding
-      expect(fetchWithErrorHandling).toHaveBeenCalledWith(
+      expect(fetchJson).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/files/servers/1/files?path=plugins"
       );
     });
 
     test("should handle API errors", async () => {
-      const { fetchWithErrorHandling } = await import("./api");
-      
-      vi.mocked(fetchWithErrorHandling).mockResolvedValue(
+      const { fetchJson } = await import("./api");
+
+      vi.mocked(fetchJson).mockResolvedValue(
         err({ message: "Server error", status: 500 })
       );
 
@@ -123,7 +131,7 @@ describe("File service", () => {
 
   describe("readTextFile", () => {
     test("should read file content", async () => {
-      const { fetchWithErrorHandling } = await import("./api");
+      const { fetchJson } = await import("./api");
       const mockResponse = {
         content: "server-port=25565",
         encoding: "utf-8",
@@ -137,7 +145,7 @@ describe("File service", () => {
         image_data: null,
       };
 
-      vi.mocked(fetchWithErrorHandling).mockResolvedValue(ok(mockResponse));
+      vi.mocked(fetchJson).mockResolvedValue(ok(mockResponse));
 
       const result = await readTextFile(1, "server.properties");
 
@@ -151,9 +159,9 @@ describe("File service", () => {
 
   describe("writeFile", () => {
     test("should write file content", async () => {
-      const { fetchWithErrorHandling } = await import("./api");
-      
-      vi.mocked(fetchWithErrorHandling).mockResolvedValue(ok({}));
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
 
       const result = await writeFile(1, "server.properties", {
         content: "server-port=25566",
@@ -167,9 +175,9 @@ describe("File service", () => {
 
   describe("deleteFile", () => {
     test("should delete file", async () => {
-      const { fetchWithErrorHandling } = await import("./api");
-      
-      vi.mocked(fetchWithErrorHandling).mockResolvedValue(ok({}));
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
 
       const result = await deleteFile(1, "old-file.txt");
 
@@ -179,8 +187,10 @@ describe("File service", () => {
 
   describe("uploadFileWithProgress", () => {
     test("should upload regular file without directory structure", async () => {
-      const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-      
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+
       setTimeout(() => {
         mockXMLHttpRequest.onload?.();
       }, 0);
@@ -199,11 +209,13 @@ describe("File service", () => {
     });
 
     test("should upload file with webkitRelativePath preserving folder structure", async () => {
-      const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-      
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+
       // Mock webkitRelativePath
-      Object.defineProperty(file, 'webkitRelativePath', {
-        value: 'folder/subfolder/test.txt',
+      Object.defineProperty(file, "webkitRelativePath", {
+        value: "folder/subfolder/test.txt",
         writable: false,
         enumerable: true,
         configurable: false,
@@ -220,10 +232,12 @@ describe("File service", () => {
     });
 
     test("should handle upload errors", async () => {
-      const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
       mockXMLHttpRequest.status = 500;
       mockXMLHttpRequest.responseText = '{"detail": "Upload failed"}';
-      
+
       setTimeout(() => {
         mockXMLHttpRequest.onload?.();
       }, 0);
@@ -237,8 +251,10 @@ describe("File service", () => {
     });
 
     test("should handle network errors", async () => {
-      const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-      
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+
       setTimeout(() => {
         mockXMLHttpRequest.onerror?.();
       }, 0);
@@ -254,19 +270,19 @@ describe("File service", () => {
 
   describe("uploadFolderStructure", () => {
     test("should group files by directory structure", async () => {
-      const file1 = new File(['content1'], 'file1.txt', { type: 'text/plain' });
-      const file2 = new File(['content2'], 'file2.txt', { type: 'text/plain' });
-      
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const file2 = new File(["content2"], "file2.txt", { type: "text/plain" });
+
       // Mock webkitRelativePath for folder structure
-      Object.defineProperty(file1, 'webkitRelativePath', {
-        value: 'testfolder/file1.txt',
+      Object.defineProperty(file1, "webkitRelativePath", {
+        value: "testfolder/file1.txt",
         writable: false,
         enumerable: true,
         configurable: false,
       });
-      
-      Object.defineProperty(file2, 'webkitRelativePath', {
-        value: 'testfolder/subdir/file2.txt',
+
+      Object.defineProperty(file2, "webkitRelativePath", {
+        value: "testfolder/subdir/file2.txt",
         writable: false,
         enumerable: true,
         configurable: false,
@@ -292,10 +308,10 @@ describe("File service", () => {
     });
 
     test("should handle individual file upload errors", async () => {
-      const file1 = new File(['content1'], 'file1.txt', { type: 'text/plain' });
-      
-      Object.defineProperty(file1, 'webkitRelativePath', {
-        value: 'testfolder/file1.txt',
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+
+      Object.defineProperty(file1, "webkitRelativePath", {
+        value: "testfolder/file1.txt",
         writable: false,
         enumerable: true,
         configurable: false,

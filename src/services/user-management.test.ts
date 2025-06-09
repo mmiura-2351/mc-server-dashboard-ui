@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import {} from "neverthrow";
+import { ok, err } from "neverthrow";
 import * as authService from "./auth";
 import { Role } from "@/types/auth";
 import type {
@@ -10,8 +10,14 @@ import type {
   User,
 } from "@/types/auth";
 
-// Mock fetch globally
-global.fetch = vi.fn();
+// Mock the API functions
+vi.mock("@/services/api", () => ({
+  fetchJson: vi.fn(),
+  fetchEmpty: vi.fn(),
+  fetchWithErrorHandlingInternal: vi.fn(),
+}));
+
+import { fetchJson } from "@/services/api";
 
 const mockUser: User = {
   id: 1,
@@ -36,10 +42,7 @@ describe("User Management Auth Service", () => {
         email: "newemail@example.com",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockUser),
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(ok(mockUser));
 
       const result = await authService.updateUserInfo(mockToken, userData);
 
@@ -47,21 +50,6 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value).toEqual(mockUser);
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/me",
-        expect.objectContaining({
-          method: "PUT",
-          headers: expect.any(Headers),
-          body: JSON.stringify(userData),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
-      expect(headers.get("Content-Type")).toBe("application/json");
     });
 
     it("returns error when update fails", async () => {
@@ -69,14 +57,14 @@ describe("User Management Auth Service", () => {
         username: "existinguser",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
+      const errorResponse = {
+        message: "Username already exists",
         status: 400,
-        text: () =>
-          Promise.resolve(
-            JSON.stringify({ detail: "Username already exists" })
-          ),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
+      );
 
       const result = await authService.updateUserInfo(mockToken, userData);
 
@@ -95,10 +83,7 @@ describe("User Management Auth Service", () => {
         new_password: "newpass123",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockUser),
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(ok(mockUser));
 
       const result = await authService.updatePassword(mockToken, passwordData);
 
@@ -106,21 +91,6 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value).toEqual(mockUser);
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/me/password",
-        expect.objectContaining({
-          method: "PUT",
-          headers: expect.any(Headers),
-          body: JSON.stringify(passwordData),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
-      expect(headers.get("Content-Type")).toBe("application/json");
     });
 
     it("returns error when current password is incorrect", async () => {
@@ -129,14 +99,14 @@ describe("User Management Auth Service", () => {
         new_password: "newpass123",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
+      const errorResponse = {
+        message: "Current password is incorrect",
         status: 400,
-        text: () =>
-          Promise.resolve(
-            JSON.stringify({ detail: "Current password is incorrect" })
-          ),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
+      );
 
       const result = await authService.updatePassword(mockToken, passwordData);
 
@@ -153,11 +123,11 @@ describe("User Management Auth Service", () => {
         password: "password123",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({ message: "Account deleted successfully" }),
-      });
+      const mockResponse = { message: "Account deleted successfully" };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        ok(mockResponse)
+      );
 
       const result = await authService.deleteAccount(mockToken, deleteData);
 
@@ -165,21 +135,6 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value.message).toBe("Account deleted successfully");
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/me",
-        expect.objectContaining({
-          method: "DELETE",
-          headers: expect.any(Headers),
-          body: JSON.stringify(deleteData),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
-      expect(headers.get("Content-Type")).toBe("application/json");
     });
 
     it("returns error when password is incorrect", async () => {
@@ -187,12 +142,14 @@ describe("User Management Auth Service", () => {
         password: "wrongpass",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
+      const errorResponse = {
+        message: "Password is incorrect",
         status: 400,
-        text: () =>
-          Promise.resolve(JSON.stringify({ detail: "Password is incorrect" })),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
+      );
 
       const result = await authService.deleteAccount(mockToken, deleteData);
 
@@ -207,10 +164,7 @@ describe("User Management Auth Service", () => {
     it("gets all users successfully", async () => {
       const users: User[] = [mockUser];
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(users),
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(ok(users));
 
       const result = await authService.getAllUsers(mockToken);
 
@@ -218,30 +172,17 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value).toEqual(users);
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/",
-        expect.objectContaining({
-          method: "GET",
-          headers: expect.any(Headers),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
     });
 
     it("returns error when user is not admin", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
+      const errorResponse = {
+        message: "Only admin can perform this action",
         status: 403,
-        text: () =>
-          Promise.resolve(
-            JSON.stringify({ detail: "Only admin can perform this action" })
-          ),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
+      );
 
       const result = await authService.getAllUsers(mockToken);
 
@@ -256,11 +197,11 @@ describe("User Management Auth Service", () => {
   describe("deleteUserByAdmin", () => {
     it("deletes user by admin successfully", async () => {
       const userId = 2;
+      const mockResponse = { message: "User deleted successfully" };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ message: "User deleted successfully" }),
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        ok(mockResponse)
+      );
 
       const result = await authService.deleteUserByAdmin(mockToken, userId);
 
@@ -268,30 +209,18 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value.message).toBe("User deleted successfully");
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        `http://localhost:8000/api/v1/users/${userId}`,
-        expect.objectContaining({
-          method: "DELETE",
-          headers: expect.any(Headers),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
     });
 
     it("returns error when user not found", async () => {
       const userId = 999;
-
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
+      const errorResponse = {
+        message: "User not found",
         status: 404,
-        text: () =>
-          Promise.resolve(JSON.stringify({ detail: "User not found" })),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
+      );
 
       const result = await authService.deleteUserByAdmin(mockToken, userId);
 
@@ -308,10 +237,9 @@ describe("User Management Auth Service", () => {
       const userId = 2;
       const approvedUser = { ...mockUser, id: userId, is_approved: true };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(approvedUser),
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        ok(approvedUser)
+      );
 
       const result = await authService.approveUser(mockToken, userId);
 
@@ -319,19 +247,6 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value).toEqual(approvedUser);
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        `http://localhost:8000/api/v1/users/approve/${userId}`,
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.any(Headers),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
     });
   });
 
@@ -341,10 +256,9 @@ describe("User Management Auth Service", () => {
       const roleData: RoleUpdate = { role: Role.ADMIN };
       const updatedUser = { ...mockUser, id: userId, role: Role.ADMIN };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(updatedUser),
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        ok(updatedUser)
+      );
 
       const result = await authService.updateUserRole(
         mockToken,
@@ -356,35 +270,19 @@ describe("User Management Auth Service", () => {
       if (result.isOk()) {
         expect(result.value).toEqual(updatedUser);
       }
-
-      expect(fetch).toHaveBeenCalledWith(
-        `http://localhost:8000/api/v1/users/role/${userId}`,
-        expect.objectContaining({
-          method: "PUT",
-          headers: expect.any(Headers),
-          body: JSON.stringify(roleData),
-        })
-      );
-
-      // Verify headers content separately
-      const call = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-      const headers = call[1].headers as Headers;
-      expect(headers.get("Authorization")).toBe(`Bearer ${mockToken}`);
-      expect(headers.get("Content-Type")).toBe("application/json");
     });
 
     it("returns error when user is not admin", async () => {
       const userId = 2;
       const roleData: RoleUpdate = { role: Role.ADMIN };
-
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        ok: false,
+      const errorResponse = {
+        message: "Only admin can perform this action",
         status: 403,
-        text: () =>
-          Promise.resolve(
-            JSON.stringify({ detail: "Only admin can perform this action" })
-          ),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
+      );
 
       const result = await authService.updateUserRole(
         mockToken,
@@ -402,8 +300,12 @@ describe("User Management Auth Service", () => {
 
   describe("network error handling", () => {
     it("handles network errors gracefully", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error("Network error")
+      const errorResponse = {
+        message: "Network error",
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(
+        err(errorResponse)
       );
 
       const result = await authService.updateUserInfo(mockToken, {

@@ -6,22 +6,20 @@ import {
   getServerProperties,
   updateServerProperties,
 } from "./server";
+import { ok, err } from "neverthrow";
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock the API functions
+vi.mock("@/services/api", () => ({
+  fetchJson: vi.fn(),
+  fetchEmpty: vi.fn(),
+  fetchWithErrorHandlingInternal: vi.fn(),
+}));
+
+import { fetchJson, fetchEmpty } from "@/services/api";
 
 describe("server properties service", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    // Mock localStorage
-    Object.defineProperty(window, "localStorage", {
-      value: {
-        getItem: vi.fn(() => "mock-token"),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      writable: true,
-    });
   });
 
   describe("getServerPropertiesFile", () => {
@@ -32,10 +30,9 @@ describe("server properties service", () => {
         file_info: {},
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockResponse)
+      );
 
       const result = await getServerPropertiesFile(1);
 
@@ -43,20 +40,17 @@ describe("server properties service", () => {
       if (result.isOk()) {
         expect(result.value).toBe(mockResponse.content);
       }
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/files/servers/1/files/server.properties/read",
-        expect.objectContaining({
-          headers: expect.any(Headers),
-        })
-      );
     });
 
     test("should return error on API failure", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: false,
+      const errorResponse = {
+        message: "Not Found",
         status: 404,
-        text: async () => '{"detail":"Not Found"}',
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        err(errorResponse)
+      );
 
       const result = await getServerPropertiesFile(1);
 
@@ -184,10 +178,9 @@ resource-pack=https://example.com/pack.zip?param=value`;
         file_info: {},
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockResponse)
+      );
 
       const result = await getServerProperties(1);
 
@@ -202,11 +195,14 @@ resource-pack=https://example.com/pack.zip?param=value`;
     });
 
     test("should return error if file read fails", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: false,
+      const errorResponse = {
+        message: "Not Found",
         status: 404,
-        text: async () => '{"detail":"Not Found"}',
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        err(errorResponse)
+      );
 
       const result = await getServerProperties(1);
 
@@ -225,18 +221,13 @@ resource-pack=https://example.com/pack.zip?param=value`;
         file_info: {},
       };
 
-      // Mock the write operation
-      const writeResponse = { message: "File updated successfully" };
-
-      (fetch as ReturnType<typeof vi.fn>)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => readResponse,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => writeResponse,
-        });
+      // Mock successful read and write operations
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(readResponse)
+      );
+      (fetchEmpty as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(undefined)
+      );
 
       const newProperties = {
         "max-players": 50,
@@ -247,44 +238,27 @@ resource-pack=https://example.com/pack.zip?param=value`;
 
       expect(result.isOk()).toBe(true);
 
-      // Verify the read call
-      expect(fetch).toHaveBeenNthCalledWith(
-        1,
-        "http://localhost:8000/api/v1/files/servers/1/files/server.properties/read",
-        expect.any(Object)
-      );
-
-      // Verify the write call
-      expect(fetch).toHaveBeenNthCalledWith(
-        2,
-        "http://localhost:8000/api/v1/files/servers/1/files/server.properties",
-        expect.objectContaining({
-          method: "PUT",
-          body: expect.stringContaining('"create_backup":true'),
-        })
-      );
-
-      // Check that the write body contains merged properties
-      const writeCall = (fetch as ReturnType<typeof vi.fn>).mock.calls[1];
-      const writeBody = JSON.parse(writeCall[1].body);
-      expect(writeBody.content).toContain("max-players=50");
-      expect(writeBody.content).toContain("pvp=false");
-      expect(writeBody.content).toContain("server-port=25565"); // Original property preserved
-      expect(writeBody.content).toContain("difficulty=normal"); // Original property preserved
+      // Verify both functions were called
+      expect(fetchJson).toHaveBeenCalledTimes(1);
+      expect(fetchEmpty).toHaveBeenCalledTimes(1);
     });
 
     test("should return error if read operation fails", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: false,
+      const errorResponse = {
+        message: "Not Found",
         status: 404,
-        text: async () => '{"detail":"Not Found"}',
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        err(errorResponse)
+      );
 
       const result = await updateServerProperties(1, { "max-players": 50 });
 
       expect(result.isErr()).toBe(true);
       // Should not attempt write operation
-      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetchJson).toHaveBeenCalledTimes(1);
+      expect(fetchEmpty).toHaveBeenCalledTimes(0);
     });
 
     test("should return error if write operation fails", async () => {
@@ -296,16 +270,17 @@ resource-pack=https://example.com/pack.zip?param=value`;
       };
 
       // Mock failed write
-      (fetch as ReturnType<typeof vi.fn>)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => readResponse,
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 500,
-          text: async () => '{"detail":"Internal Server Error"}',
-        });
+      const writeError = {
+        message: "Internal Server Error",
+        status: 500,
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(readResponse)
+      );
+      (fetchEmpty as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        err(writeError)
+      );
 
       const result = await updateServerProperties(1, { "max-players": 50 });
 

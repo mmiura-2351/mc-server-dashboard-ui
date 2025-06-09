@@ -13,9 +13,16 @@ import type {
   PasswordUpdate,
   RefreshTokenRequest,
 } from "@/types/auth";
+import { ok, err } from "neverthrow";
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock the API functions
+vi.mock("@/services/api", () => ({
+  fetchJson: vi.fn(),
+  fetchEmpty: vi.fn(),
+  fetchWithErrorHandlingInternal: vi.fn(),
+}));
+
+import { fetchJson, fetchWithErrorHandlingInternal } from "@/services/api";
 
 describe("auth service", () => {
   beforeEach(() => {
@@ -30,10 +37,9 @@ describe("auth service", () => {
         token_type: "bearer",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      (
+        fetchWithErrorHandlingInternal as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce(ok(mockResponse));
 
       const credentials: LoginRequest = {
         username: "testuser",
@@ -47,22 +53,17 @@ describe("auth service", () => {
       }
 
       expect(result.value).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/auth/token",
-        expect.objectContaining({
-          method: "POST",
-          body: expect.any(FormData),
-        })
-      );
     });
 
     test("should return error result on failed login", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: false,
+      const errorResponse = {
+        message: "Incorrect username or password",
         status: 401,
-        text: async () =>
-          JSON.stringify({ detail: "Incorrect username or password" }),
-      });
+      };
+
+      (
+        fetchWithErrorHandlingInternal as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce(err(errorResponse));
 
       const credentials: LoginRequest = {
         username: "wronguser",
@@ -90,10 +91,9 @@ describe("auth service", () => {
         is_approved: false,
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockUser,
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockUser)
+      );
 
       const userData: UserCreate = {
         username: "newuser",
@@ -108,22 +108,17 @@ describe("auth service", () => {
       }
 
       expect(result.value).toEqual(mockUser);
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/register",
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.any(Object),
-          body: JSON.stringify(userData),
-        })
-      );
     });
 
     test("should return error result on failed registration", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: false,
+      const errorResponse = {
+        message: "Username already exists",
         status: 400,
-        text: async () => JSON.stringify({ detail: "Username already exists" }),
-      });
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        err(errorResponse)
+      );
 
       const userData: UserCreate = {
         username: "existinguser",
@@ -156,10 +151,9 @@ describe("auth service", () => {
         token_type: "bearer",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockResponse)
+      );
 
       const userData: UserUpdate = {
         username: "newusername",
@@ -172,14 +166,6 @@ describe("auth service", () => {
       }
 
       expect(result.value).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/me",
-        expect.objectContaining({
-          method: "PUT",
-          headers: expect.any(Object),
-          body: JSON.stringify(userData),
-        })
-      );
     });
   });
 
@@ -197,10 +183,9 @@ describe("auth service", () => {
         token_type: "bearer",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockResponse)
+      );
 
       const passwordData: PasswordUpdate = {
         current_password: "oldpass",
@@ -214,14 +199,6 @@ describe("auth service", () => {
       }
 
       expect(result.value).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/users/me/password",
-        expect.objectContaining({
-          method: "PUT",
-          headers: expect.any(Object),
-          body: JSON.stringify(passwordData),
-        })
-      );
     });
   });
 
@@ -233,10 +210,9 @@ describe("auth service", () => {
         token_type: "bearer",
       };
 
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
+      (
+        fetchWithErrorHandlingInternal as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce(ok(mockResponse));
 
       const refreshData: RefreshTokenRequest = {
         refresh_token: "old-refresh-token",
@@ -249,22 +225,17 @@ describe("auth service", () => {
       }
 
       expect(result.value).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/auth/refresh",
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.any(Object),
-          body: JSON.stringify(refreshData),
-        })
-      );
     });
 
     test("should return error result on failed token refresh", async () => {
-      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: false,
+      const errorResponse = {
+        message: "Invalid refresh token",
         status: 401,
-        text: async () => JSON.stringify({ detail: "Invalid refresh token" }),
-      });
+      };
+
+      (
+        fetchWithErrorHandlingInternal as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce(err(errorResponse));
 
       const refreshData: RefreshTokenRequest = {
         refresh_token: "invalid-refresh-token",

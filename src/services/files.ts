@@ -6,7 +6,7 @@ import type {
   FileError,
   FileReadResponse,
 } from "@/types/files";
-import { fetchWithErrorHandling } from "@/services/api";
+import { fetchJson, fetchEmpty } from "@/services/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -26,7 +26,7 @@ export async function listFiles(
   const params = cleanPath ? `?path=${encodeURIComponent(cleanPath)}` : "";
   const url = `${API_BASE_URL}/api/v1/files/servers/${serverId}/files${params}`;
 
-  const result = await fetchWithErrorHandling<FileListResponse>(url);
+  const result = await fetchJson<FileListResponse>(url);
 
   if (result.isErr()) {
     console.error("File listing failed:", {
@@ -61,7 +61,7 @@ export async function readFile(
   // Add image parameter if requested
   const params = isImage ? "?image=true" : "";
 
-  const result = await fetchWithErrorHandling<FileReadResponse>(
+  const result = await fetchJson<FileReadResponse>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/read${params}`
   );
 
@@ -104,7 +104,7 @@ export async function writeFile(
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
 
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
+  const result = await fetchEmpty(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}`,
     {
       method: "PUT",
@@ -130,7 +130,7 @@ export async function deleteFile(
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
 
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
+  const result = await fetchEmpty(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}`,
     {
       method: "DELETE",
@@ -156,7 +156,7 @@ export async function createDirectory(
   const cleanPath = dirPath.startsWith("/") ? dirPath.slice(1) : dirPath;
   const encodedPath = encodeURIComponent(cleanPath);
 
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
+  const result = await fetchEmpty(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/directories`,
     {
       method: "POST",
@@ -190,7 +190,7 @@ export async function uploadFile(
     formData.append("path", cleanPath);
   }
 
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
+  const result = await fetchEmpty(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`,
     {
       method: "POST",
@@ -222,35 +222,47 @@ export async function uploadMultipleFiles(
   targetPath: string,
   files: File[],
   onProgress?: UploadProgressCallback
-): Promise<Result<{ successful: string[]; failed: { file: string; error: string }[] }, FileError>> {
+): Promise<
+  Result<
+    { successful: string[]; failed: { file: string; error: string }[] },
+    FileError
+  >
+> {
   const successful: string[] = [];
   const failed: { file: string; error: string }[] = [];
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    
+
     try {
       // Create progress callback for this specific file
-      const fileProgressCallback = onProgress ? (loaded: number, total: number) => {
-        onProgress({
-          loaded,
-          total,
-          percentage: Math.round((loaded / total) * 100),
-          filename: file.name,
-        });
-      } : undefined;
+      const fileProgressCallback = onProgress
+        ? (loaded: number, total: number) => {
+            onProgress({
+              loaded,
+              total,
+              percentage: Math.round((loaded / total) * 100),
+              filename: file.name,
+            });
+          }
+        : undefined;
 
-      const result = await uploadFileWithProgress(serverId, targetPath, file, fileProgressCallback);
-      
+      const result = await uploadFileWithProgress(
+        serverId,
+        targetPath,
+        file,
+        fileProgressCallback
+      );
+
       if (result.isOk()) {
         successful.push(file.name);
       } else {
         failed.push({ file: file.name, error: result.error.message });
       }
     } catch (error) {
-      failed.push({ 
-        file: file.name, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      failed.push({
+        file: file.name,
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -267,10 +279,11 @@ export async function uploadFileWithProgress(
 ): Promise<Result<void, FileError>> {
   return new Promise((resolve) => {
     const formData = new FormData();
-    
+
     // For files with webkitRelativePath, send the file with the relative path as filename
-    const fileWebkitPath = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
-    if (fileWebkitPath && fileWebkitPath.includes('/')) {
+    const fileWebkitPath = (file as File & { webkitRelativePath?: string })
+      .webkitRelativePath;
+    if (fileWebkitPath && fileWebkitPath.includes("/")) {
       // Create new file with relative path as name to preserve folder structure
       const fileWithPath = new File([file], fileWebkitPath, {
         type: file.type,
@@ -293,7 +306,7 @@ export async function uploadFileWithProgress(
 
     // Track upload progress
     if (onProgress) {
-      xhr.upload.addEventListener('progress', (e) => {
+      xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable) {
           onProgress(e.loaded, e.total);
         }
@@ -311,22 +324,29 @@ export async function uploadFileWithProgress(
         } catch {
           errorMessage = xhr.responseText || `HTTP ${xhr.status}`;
         }
-        
-        resolve(err({
-          message: errorMessage,
-          status: xhr.status,
-        }));
+
+        resolve(
+          err({
+            message: errorMessage,
+            status: xhr.status,
+          })
+        );
       }
     };
 
     xhr.onerror = () => {
-      resolve(err({
-        message: "Network error during upload",
-      }));
+      resolve(
+        err({
+          message: "Network error during upload",
+        })
+      );
     };
 
     // Open the request first
-    xhr.open("POST", `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`);
+    xhr.open(
+      "POST",
+      `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`
+    );
 
     // Add authorization header after opening
     const token = localStorage.getItem("access_token");
@@ -344,7 +364,12 @@ export async function uploadFolderStructure(
   targetPath: string,
   files: File[],
   onProgress?: UploadProgressCallback
-): Promise<Result<{ successful: string[]; failed: { file: string; error: string }[] }, FileError>> {
+): Promise<
+  Result<
+    { successful: string[]; failed: { file: string; error: string }[] },
+    FileError
+  >
+> {
   const successful: string[] = [];
   const failed: { file: string; error: string }[] = [];
 
@@ -354,23 +379,26 @@ export async function uploadFolderStructure(
 
   for (const file of files) {
     // Extract directory path from file.webkitRelativePath
-    const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
-    const pathParts = relativePath.split('/');
-    
+    const relativePath =
+      (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
+      file.name;
+    const pathParts = relativePath.split("/");
+
     if (pathParts.length > 1) {
       // This file is in a subdirectory
-      const dirPath = pathParts.slice(0, -1).join('/');
+      const dirPath = pathParts.slice(0, -1).join("/");
       directories.add(dirPath);
-      
+
       // Build nested directory paths
-      let currentPath = '';
+      let currentPath = "";
       for (const part of pathParts.slice(0, -1)) {
         currentPath = currentPath ? `${currentPath}/${part}` : part;
         directories.add(currentPath);
       }
     }
 
-    const fileDir = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : '';
+    const fileDir =
+      pathParts.length > 1 ? pathParts.slice(0, -1).join("/") : "";
     if (!filesByDir.has(fileDir)) {
       filesByDir.set(fileDir, []);
     }
@@ -380,7 +408,8 @@ export async function uploadFolderStructure(
   // Create directories first (API might auto-create, but this ensures proper structure)
   for (const _dirPath of Array.from(directories).sort()) {
     try {
-      const _fullDirPath = targetPath === '/' ? _dirPath : `${targetPath}/${_dirPath}`;
+      const _fullDirPath =
+        targetPath === "/" ? _dirPath : `${targetPath}/${_dirPath}`;
       // Note: createDirectory API might need to be called for each nested directory
       // For now, we'll rely on the upload API to create directories as needed
     } catch {
@@ -391,41 +420,51 @@ export async function uploadFolderStructure(
   // Upload files maintaining directory structure
   for (const [_dirPath, dirFiles] of filesByDir.entries()) {
     for (const file of dirFiles) {
-      const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
-      
+      const relativePath =
+        (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
+        file.name;
+
       // Calculate the correct target path for this file
       let fileTargetPath: string;
-      if (relativePath.includes('/')) {
+      if (relativePath.includes("/")) {
         // File has a directory structure - extract the directory part
-        const pathParts = relativePath.split('/');
-        const fileDir = pathParts.slice(0, -1).join('/');
-        fileTargetPath = targetPath === '/' ? fileDir : `${targetPath}/${fileDir}`;
+        const pathParts = relativePath.split("/");
+        const fileDir = pathParts.slice(0, -1).join("/");
+        fileTargetPath =
+          targetPath === "/" ? fileDir : `${targetPath}/${fileDir}`;
       } else {
         // File is in the root of the uploaded folder
         fileTargetPath = targetPath;
       }
 
       try {
-        const fileProgressCallback = onProgress ? (loaded: number, total: number) => {
-          onProgress({
-            loaded,
-            total,
-            percentage: Math.round((loaded / total) * 100),
-            filename: relativePath,
-          });
-        } : undefined;
+        const fileProgressCallback = onProgress
+          ? (loaded: number, total: number) => {
+              onProgress({
+                loaded,
+                total,
+                percentage: Math.round((loaded / total) * 100),
+                filename: relativePath,
+              });
+            }
+          : undefined;
 
-        const result = await uploadFileWithProgress(serverId, fileTargetPath, file, fileProgressCallback);
-        
+        const result = await uploadFileWithProgress(
+          serverId,
+          fileTargetPath,
+          file,
+          fileProgressCallback
+        );
+
         if (result.isOk()) {
           successful.push(relativePath);
         } else {
           failed.push({ file: relativePath, error: result.error.message });
         }
       } catch (error) {
-        failed.push({ 
-          file: relativePath, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        failed.push({
+          file: relativePath,
+          error: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }

@@ -14,14 +14,14 @@ import type {
   ServerProperties,
 } from "@/types/server";
 import type { AuthError } from "@/types/auth";
-import { fetchWithErrorHandling } from "@/services/api";
+import { fetchEmpty, fetchJson } from "@/services/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getServers(): Promise<
   Result<MinecraftServer[], AuthError>
 > {
-  const result = await fetchWithErrorHandling<ServerListResponse>(
+  const result = await fetchJson<ServerListResponse>(
     `${API_BASE_URL}/api/v1/servers`
   );
   if (result.isErr()) {
@@ -33,98 +33,62 @@ export async function getServers(): Promise<
 export async function getServer(
   id: number
 ): Promise<Result<MinecraftServer, AuthError>> {
-  return fetchWithErrorHandling<MinecraftServer>(
-    `${API_BASE_URL}/api/v1/servers/${id}`
-  );
+  return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers/${id}`);
 }
 
 export async function createServer(
   data: CreateServerRequest
 ): Promise<Result<MinecraftServer, AuthError>> {
-  return fetchWithErrorHandling<MinecraftServer>(
-    `${API_BASE_URL}/api/v1/servers`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    }
-  );
+  return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function updateServer(
   id: number,
   data: ServerUpdateRequest
 ): Promise<Result<MinecraftServer, AuthError>> {
-  return fetchWithErrorHandling<MinecraftServer>(
-    `${API_BASE_URL}/api/v1/servers/${id}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }
-  );
+  return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteServer(
   id: number
 ): Promise<Result<void, AuthError>> {
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
-    `${API_BASE_URL}/api/v1/servers/${id}`,
-    {
-      method: "DELETE",
-    }
-  );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export async function startServer(
   id: number
 ): Promise<Result<void, AuthError>> {
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
-    `${API_BASE_URL}/api/v1/servers/${id}/start`,
-    {
-      method: "POST",
-    }
-  );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/start`, {
+    method: "POST",
+  });
 }
 
 export async function stopServer(id: number): Promise<Result<void, AuthError>> {
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
-    `${API_BASE_URL}/api/v1/servers/${id}/stop`,
-    {
-      method: "POST",
-    }
-  );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/stop`, {
+    method: "POST",
+  });
 }
 
 export async function restartServer(
   id: number
 ): Promise<Result<void, AuthError>> {
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
-    `${API_BASE_URL}/api/v1/servers/${id}/restart`,
-    {
-      method: "POST",
-    }
-  );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/restart`, {
+    method: "POST",
+  });
 }
 
 export async function getServerStatus(
   id: number
 ): Promise<Result<ServerStatusResponse, AuthError>> {
-  return fetchWithErrorHandling<ServerStatusResponse>(
+  return fetchJson<ServerStatusResponse>(
     `${API_BASE_URL}/api/v1/servers/${id}/status`
   );
 }
@@ -137,7 +101,7 @@ export async function getServerLogs(
   if (lines) {
     url.searchParams.set("lines", lines.toString());
   }
-  return fetchWithErrorHandling<ServerLogsResponse>(url.toString());
+  return fetchJson<ServerLogsResponse>(url.toString());
 }
 
 export async function sendServerCommand(
@@ -145,23 +109,16 @@ export async function sendServerCommand(
   command: string
 ): Promise<Result<void, AuthError>> {
   const data: ServerCommandRequest = { command };
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
-    `${API_BASE_URL}/api/v1/servers/${id}/command`,
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    }
-  );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/command`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function getSupportedVersions(): Promise<
   Result<string[], AuthError>
 > {
-  const result = await fetchWithErrorHandling<{ versions: string[] }>(
+  const result = await fetchJson<{ versions: string[] }>(
     `${API_BASE_URL}/api/v1/servers/versions/supported`
   );
   if (result.isErr()) {
@@ -171,16 +128,9 @@ export async function getSupportedVersions(): Promise<
 }
 
 export async function syncServerStates(): Promise<Result<void, AuthError>> {
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
-    `${API_BASE_URL}/api/v1/servers/sync`,
-    {
-      method: "POST",
-    }
-  );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/sync`, {
+    method: "POST",
+  });
 }
 
 // Legacy functions for templates and backups (to be implemented later with proper API endpoints)
@@ -275,7 +225,7 @@ export async function removeOpPermission(
 export async function getServerPropertiesFile(
   serverId: number
 ): Promise<Result<string, AuthError>> {
-  return fetchWithErrorHandling<{
+  return fetchJson<{
     content: string;
     encoding: string;
     file_info: unknown;
@@ -367,7 +317,7 @@ export async function writeServerPropertiesFile(
   serverId: number,
   content: string
 ): Promise<Result<void, AuthError>> {
-  const result = await fetchWithErrorHandling<Record<string, unknown>>(
+  return fetchEmpty(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/server.properties`,
     {
       method: "PUT",
@@ -378,10 +328,6 @@ export async function writeServerPropertiesFile(
       }),
     }
   );
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  return ok(undefined);
 }
 
 export async function updateServerProperties(
