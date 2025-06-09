@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
 import styles from "./file-explorer.module.css";
+import JSZip from "jszip";
 
 interface FileExplorerProps {
   serverId: number;
@@ -100,6 +101,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     position: { x: 0, y: 0 },
     file: null,
   });
+
+  // Multi-select state
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   // Upload state
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -254,6 +259,67 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     });
   };
 
+  // Multi-select handlers
+  const toggleFileSelection = (fileName: string) => {
+    const newSelection = new Set(selectedFiles);
+    if (newSelection.has(fileName)) {
+      newSelection.delete(fileName);
+    } else {
+      newSelection.add(fileName);
+    }
+    setSelectedFiles(newSelection);
+
+    // Enable selection mode when files are selected
+    setIsSelectionMode(newSelection.size > 0);
+  };
+
+  const selectAllFiles = () => {
+    const allFileNames = files.map((file) => file.name);
+    setSelectedFiles(new Set(allFileNames));
+    setIsSelectionMode(true);
+  };
+
+  const clearSelection = () => {
+    setSelectedFiles(new Set());
+    setIsSelectionMode(false);
+  };
+
+  const getSelectedFileObjects = (): FileSystemItem[] => {
+    return files.filter((file) => selectedFiles.has(file.name));
+  };
+
+  // Recursively get all files in a directory
+  const getAllFilesInDirectory = async (
+    dirPath: string,
+    basePath: string = ""
+  ): Promise<{ path: string; file: FileSystemItem }[]> => {
+    const result = await fileService.listFiles(serverId, dirPath);
+    if (result.isErr()) {
+      console.error(`Failed to list files in ${dirPath}:`, result.error);
+      return [];
+    }
+
+    const allFiles: { path: string; file: FileSystemItem }[] = [];
+    const items = result.value;
+
+    for (const item of items) {
+      const itemPath = basePath ? `${basePath}/${item.name}` : item.name;
+
+      if (item.is_directory) {
+        // Recursively get files from subdirectory
+        const subDirPath =
+          dirPath === "/" ? `/${item.name}` : `${dirPath}/${item.name}`;
+        const subFiles = await getAllFilesInDirectory(subDirPath, itemPath);
+        allFiles.push(...subFiles);
+      } else {
+        // Add file with its relative path
+        allFiles.push({ path: itemPath, file: item });
+      }
+    }
+
+    return allFiles;
+  };
+
   const handleDeleteFile = async (file: FileSystemItem) => {
     hideContextMenu();
     if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
@@ -271,6 +337,47 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     } else {
       showToast(`Failed to delete file: ${result.error.message}`, "error");
     }
+  };
+
+  const handleBulkDelete = async () => {
+    const selected = getSelectedFileObjects();
+    if (selected.length === 0) return;
+
+    const confirmMessage =
+      selected.length === 1
+        ? `Are you sure you want to delete "${selected[0].name}"?`
+        : `Are you sure you want to delete ${selected.length} files?`;
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const file of selected) {
+      const filePath =
+        currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+      const result = await fileService.deleteFile(serverId, filePath);
+
+      if (result.isOk()) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
+      showToast(`Successfully deleted ${successCount} file(s)`, "info");
+    } else {
+      showToast(
+        `Deleted ${successCount} file(s), failed ${failCount}`,
+        "error"
+      );
+    }
+
+    clearSelection();
+    loadFiles();
   };
 
   const handleDownloadFile = async (file: FileSystemItem) => {
@@ -295,6 +402,146 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     } else {
       showToast(`Failed to download file: ${result.error.message}`, "error");
     }
+  };
+
+  const handleBulkDownload = async () => {
+    const selected = getSelectedFileObjects();
+    if (selected.length === 0) return;
+
+    // If only one file is selected and it's not a directory, download it directly
+    if (selected.length === 1 && !selected[0].is_directory) {
+      await handleDownloadFile(selected[0]);
+      clearSelection();
+      return;
+    }
+
+    // For multiple items or directories, create a ZIP
+    showToast(`Preparing download...`, "info");
+
+    const zip = new JSZip();
+    let successCount = 0;
+    let failCount = 0;
+    let totalFiles = 0;
+
+    // Collect all files to download (including from directories)
+    const filesToDownload: { path: string; actualPath: string }[] = [];
+
+    for (const item of selected) {
+      if (item.is_directory) {
+        // Get all files in directory recursively
+        const itemPath =
+          currentPath === "/" ? `/${item.name}` : `${currentPath}/${item.name}`;
+        const dirFiles = await getAllFilesInDirectory(itemPath, item.name);
+
+        for (const dirFile of dirFiles) {
+          const actualPath =
+            currentPath === "/"
+              ? `/${dirFile.path}`
+              : `${currentPath}/${dirFile.path}`;
+          filesToDownload.push({
+            path: dirFile.path,
+            actualPath: actualPath,
+          });
+        }
+      } else {
+        // Regular file
+        const actualPath =
+          currentPath === "/" ? item.name : `${currentPath}/${item.name}`;
+        filesToDownload.push({
+          path: item.name,
+          actualPath: actualPath,
+        });
+      }
+    }
+
+    totalFiles = filesToDownload.length;
+
+    if (totalFiles === 0) {
+      showToast("No files found to download", "error");
+      clearSelection();
+      return;
+    }
+
+    showToast(`Creating ZIP file with ${totalFiles} file(s)...`, "info");
+
+    // Download and add each file to ZIP
+    for (let i = 0; i < filesToDownload.length; i++) {
+      const fileInfo = filesToDownload[i];
+
+      // Update progress
+      if (i % 5 === 0 || i === filesToDownload.length - 1) {
+        showToast(`Processing ${i + 1}/${totalFiles} files...`, "info");
+      }
+
+      const result = await fileService.downloadFile(
+        serverId,
+        fileInfo.actualPath
+      );
+
+      if (result.isOk()) {
+        // Add file to ZIP with its directory structure
+        zip.file(fileInfo.path, result.value);
+        successCount++;
+      } else {
+        console.error(`Failed to download ${fileInfo.path}:`, result.error);
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      try {
+        showToast("Generating ZIP file...", "info");
+
+        // Generate ZIP file
+        const zipBlob = await zip.generateAsync({
+          type: "blob",
+          compression: "DEFLATE",
+          compressionOptions: { level: 6 },
+        });
+
+        // Create download link for ZIP
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement("a");
+        a.href = url;
+
+        // Generate a meaningful filename
+        const selectedNames = selected.map((item) => item.name);
+        const zipName =
+          selected.length === 1
+            ? `${selectedNames[0]}_${new Date().toISOString().split("T")[0]}.zip`
+            : `files_${new Date().toISOString().split("T")[0]}.zip`;
+
+        a.download = zipName;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+
+        if (failCount === 0) {
+          showToast(
+            `Successfully created ZIP with ${successCount} file(s)`,
+            "info"
+          );
+        } else {
+          showToast(
+            `Created ZIP with ${successCount} file(s), failed ${failCount}`,
+            "error"
+          );
+        }
+      } catch (error) {
+        console.error("ZIP generation error:", error);
+        showToast("Failed to create ZIP file", "error");
+      }
+    } else {
+      showToast("No files could be downloaded", "error");
+    }
+
+    clearSelection();
   };
 
   const handleViewFileFromContext = async (file: FileSystemItem) => {
@@ -762,6 +1009,16 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               })}
         </div>
         <div className={styles.actions}>
+          {isSelectionMode && (
+            <>
+              <span className={styles.selectionInfo}>
+                {selectedFiles.size} selected
+              </span>
+              <button onClick={clearSelection} className={styles.actionButton}>
+                ✖️ Clear
+              </button>
+            </>
+          )}
           <button
             onClick={() => fileInputRef.current?.click()}
             className={styles.actionButton}
@@ -791,6 +1048,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       <div className={styles.fileList}>
         <div className={styles.fileListHeader}>
+          <div className={styles.columnCheckbox}>
+            <input
+              type="checkbox"
+              checked={selectedFiles.size === files.length && files.length > 0}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  selectAllFiles();
+                } else {
+                  clearSelection();
+                }
+              }}
+              disabled={files.length === 0}
+            />
+          </div>
           <div className={styles.columnName}>Name</div>
           <div className={styles.columnSize}>Size</div>
           <div className={styles.columnDate}>Modified</div>
@@ -817,11 +1088,29 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             {files.map((file) => (
               <div
                 key={file.name}
-                className={`${styles.fileItem} ${file.is_directory ? styles.directory : styles.file} ${styles.clickable}`}
-                onClick={() => handleFileClick(file)}
+                className={`${styles.fileItem} ${file.is_directory ? styles.directory : styles.file} ${styles.clickable} ${selectedFiles.has(file.name) ? styles.selected : ""}`}
+                onClick={(e) => {
+                  if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    toggleFileSelection(file.name);
+                  } else {
+                    handleFileClick(file);
+                  }
+                }}
                 onContextMenu={(e) => handleContextMenu(e, file)}
                 style={{ cursor: "pointer" }}
               >
+                <div className={styles.columnCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={selectedFiles.has(file.name)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggleFileSelection(file.name);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
                 <div className={styles.fileName}>
                   <span className={styles.fileIcon}>{getFileIcon(file)}</span>
                   <span className={styles.fileNameText}>{file.name}</span>
@@ -1064,7 +1353,35 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             zIndex: 1000,
           }}
         >
-          {contextMenu.file.is_directory ? (
+          {/* Show bulk actions if multiple items are selected or if any folder is selected */}
+          {selectedFiles.size > 1 ||
+          (selectedFiles.size > 0 &&
+            selectedFiles.has(contextMenu.file.name)) ? (
+            <>
+              <div className={styles.contextMenuHeader}>
+                {selectedFiles.size} item(s) selected
+              </div>
+              <button
+                className={styles.contextMenuItem}
+                onClick={() => {
+                  hideContextMenu();
+                  handleBulkDownload();
+                }}
+              >
+                📥 Download as ZIP ({selectedFiles.size})
+              </button>
+              <hr className={styles.contextMenuSeparator} />
+              <button
+                className={`${styles.contextMenuItem} ${styles.danger}`}
+                onClick={() => {
+                  hideContextMenu();
+                  handleBulkDelete();
+                }}
+              >
+                🗑️ Delete Selected ({selectedFiles.size})
+              </button>
+            </>
+          ) : contextMenu.file.is_directory ? (
             <>
               <button
                 className={styles.contextMenuItem}
