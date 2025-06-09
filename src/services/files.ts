@@ -21,28 +21,30 @@ export async function listFiles(
   path: string = "/"
 ): Promise<Result<FileSystemItem[], FileError>> {
   // Use query parameter for path
-  const cleanPath = path === "/" ? "" : path.startsWith("/") ? path.slice(1) : path;
+  const cleanPath =
+    path === "/" ? "" : path.startsWith("/") ? path.slice(1) : path;
   const params = cleanPath ? `?path=${encodeURIComponent(cleanPath)}` : "";
   const url = `${API_BASE_URL}/api/v1/files/servers/${serverId}/files${params}`;
-    
+
   const result = await fetchWithErrorHandling<FileListResponse>(url);
-  
+
   if (result.isErr()) {
     console.error("File listing failed:", {
       status: result.error.status,
       message: result.error.message,
-      url
+      url,
     });
     // Return a more user-friendly error message
-    const errorMessage = result.error.message === "Failed to fetch" 
-      ? "Unable to connect to file service. Please check if the server is running."
-      : result.error.message;
+    const errorMessage =
+      result.error.message === "Failed to fetch"
+        ? "Unable to connect to file service. Please check if the server is running."
+        : result.error.message;
     return err({
       message: errorMessage,
       status: result.error.status,
     });
   }
-  
+
   // Return files array directly or empty array if not provided
   return ok(result.value.files || []);
 }
@@ -55,21 +57,21 @@ export async function readFile(
   // Remove leading slash and encode path
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
-  
+
   // Add image parameter if requested
   const params = isImage ? "?image=true" : "";
-  
+
   const result = await fetchWithErrorHandling<FileReadResponse>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/read${params}`
   );
-  
+
   if (result.isErr()) {
     return err({
       message: result.error.message,
       status: result.error.status,
     });
   }
-  
+
   return ok(result.value);
 }
 
@@ -79,11 +81,11 @@ export async function readTextFile(
   filePath: string
 ): Promise<Result<FileContent, FileError>> {
   const result = await readFile(serverId, filePath, false);
-  
+
   if (result.isErr()) {
     return err(result.error);
   }
-  
+
   // Transform to match legacy FileContent interface
   return ok({
     content: result.value.content,
@@ -101,7 +103,7 @@ export async function writeFile(
   // Remove leading slash and encode path
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
-  
+
   const result = await fetchWithErrorHandling<Record<string, unknown>>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}`,
     {
@@ -109,14 +111,14 @@ export async function writeFile(
       body: JSON.stringify(fileData),
     }
   );
-  
+
   if (result.isErr()) {
     return err({
       message: result.error.message,
       status: result.error.status,
     });
   }
-  
+
   return ok(undefined);
 }
 
@@ -127,24 +129,23 @@ export async function deleteFile(
   // Remove leading slash and encode path
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
-  
+
   const result = await fetchWithErrorHandling<Record<string, unknown>>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}`,
     {
       method: "DELETE",
     }
   );
-  
+
   if (result.isErr()) {
     return err({
       message: result.error.message,
       status: result.error.status,
     });
   }
-  
+
   return ok(undefined);
 }
-
 
 export async function createDirectory(
   serverId: number,
@@ -154,7 +155,7 @@ export async function createDirectory(
   // Remove leading slash and encode path
   const cleanPath = dirPath.startsWith("/") ? dirPath.slice(1) : dirPath;
   const encodedPath = encodeURIComponent(cleanPath);
-  
+
   const result = await fetchWithErrorHandling<Record<string, unknown>>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/directories`,
     {
@@ -162,14 +163,14 @@ export async function createDirectory(
       body: JSON.stringify({ name: dirName }),
     }
   );
-  
+
   if (result.isErr()) {
     return err({
       message: result.error.message,
       status: result.error.status,
     });
   }
-  
+
   return ok(undefined);
 }
 
@@ -180,13 +181,15 @@ export async function uploadFile(
 ): Promise<Result<void, FileError>> {
   const formData = new FormData();
   formData.append("file", file);
-  
+
   // Add path parameter if not root
   if (targetPath && targetPath !== "/") {
-    const cleanPath = targetPath.startsWith("/") ? targetPath.slice(1) : targetPath;
+    const cleanPath = targetPath.startsWith("/")
+      ? targetPath.slice(1)
+      : targetPath;
     formData.append("path", cleanPath);
   }
-  
+
   const result = await fetchWithErrorHandling<Record<string, unknown>>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`,
     {
@@ -194,14 +197,14 @@ export async function uploadFile(
       body: formData,
     }
   );
-  
+
   if (result.isErr()) {
     return err({
       message: result.error.message,
       status: result.error.status,
     });
   }
-  
+
   return ok(undefined);
 }
 
@@ -212,7 +215,7 @@ export async function downloadFile(
   // Remove leading slash and encode path
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
-  
+
   try {
     const token = localStorage.getItem("access_token");
     const headers: HeadersInit = {};
@@ -228,7 +231,7 @@ export async function downloadFile(
     if (!response.ok) {
       const errorText = await response.text();
       let errorMessage = "Download failed";
-      
+
       try {
         const errorData = JSON.parse(errorText);
         errorMessage = errorData.detail || errorMessage;

@@ -1,5 +1,9 @@
 import { ok, err, type Result } from "neverthrow";
-import type { AuthError, RefreshTokenRequest, RefreshTokenResponse } from "@/types/auth";
+import type {
+  AuthError,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+} from "@/types/auth";
 
 interface ValidationError {
   loc: string[];
@@ -72,7 +76,10 @@ async function fetchWithErrorHandlingInternal<T>(
       // For FormData, use original headers without modification
       const requestOptions: RequestInit = {
         ...options,
-        headers: headers instanceof Headers ? headers : new Headers(headers as HeadersInit),
+        headers:
+          headers instanceof Headers
+            ? headers
+            : new Headers(headers as HeadersInit),
       };
 
       const response = await fetch(url, requestOptions);
@@ -141,7 +148,7 @@ export async function fetchWithErrorHandling<T>(
 ): Promise<Result<T, AuthError>> {
   // Get auth token from localStorage and add it to headers
   const token = localStorage.getItem("access_token");
-  
+
   const headers: HeadersInit = { ...options?.headers };
   if (token) {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
@@ -153,35 +160,38 @@ export async function fetchWithErrorHandling<T>(
   };
 
   const result = await fetchWithErrorHandlingInternal<T>(url, requestOptions);
-  
+
   // If the request failed with 401 and we have a refresh token, try to refresh
   if (
-    !skipAutoRefresh && 
-    result.isErr() && 
+    !skipAutoRefresh &&
+    result.isErr() &&
     result.error.status === 401 &&
     token
   ) {
     const refreshTokenValue = localStorage.getItem("refresh_token");
     if (refreshTokenValue) {
-      const refreshResult = await refreshToken({ refresh_token: refreshTokenValue });
-      
+      const refreshResult = await refreshToken({
+        refresh_token: refreshTokenValue,
+      });
+
       if (refreshResult.isOk()) {
         // Update stored tokens
-        const { access_token, refresh_token: newRefreshToken } = refreshResult.value;
+        const { access_token, refresh_token: newRefreshToken } =
+          refreshResult.value;
         localStorage.setItem("access_token", access_token);
         localStorage.setItem("refresh_token", newRefreshToken);
-        
+
         // Retry the original request with new token
         const newHeaders = {
           ...headers,
           Authorization: `Bearer ${access_token}`,
         };
-        
+
         const newOptions = {
           ...options,
           headers: newHeaders,
         };
-        
+
         return fetchWithErrorHandlingInternal<T>(url, newOptions);
       } else {
         // Refresh failed, clear tokens
@@ -191,7 +201,7 @@ export async function fetchWithErrorHandling<T>(
       }
     }
   }
-  
+
   return result;
 }
 
