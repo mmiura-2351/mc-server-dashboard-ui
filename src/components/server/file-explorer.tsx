@@ -31,6 +31,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const [selectedFile, setSelectedFile] = useState<FileSystemItem | null>(null);
   const [showFileViewer, setShowFileViewer] = useState(false);
   const [fileContent, setFileContent] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'info' } | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
 
@@ -56,6 +57,25 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const isFileViewable = (fileName: string): boolean => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     return extension ? VIEWABLE_EXTENSIONS.includes(extension) : false;
+  };
+
+  const isImageFile = (fileName: string): boolean => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    return extension ? VIEWABLE_IMAGE_EXTENSIONS.includes(extension) : false;
+  };
+
+  const isTextFile = (fileName: string): boolean => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    return extension ? VIEWABLE_TEXT_EXTENSIONS.includes(extension) : false;
+  };
+
+  const closeFileViewer = () => {
+    // Clean up state
+    setImageUrl("");
+    setShowFileViewer(false);
+    setSelectedFile(null);
+    setFileContent("");
+    setIsLoadingFile(false);
   };
 
   const showToast = (message: string, type: 'error' | 'info' = 'info') => {
@@ -84,15 +104,27 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     setSelectedFile(file);
     setIsLoadingFile(true);
     setFileContent("");
+    setImageUrl("");
+    setShowFileViewer(true);
     
     const filePath = currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
-    const result = await fileService.readFile(serverId, filePath);
+    const isImage = isImageFile(file.name);
+    
+    // Use new API with image flag
+    const result = await fileService.readFile(serverId, filePath, isImage);
     
     if (result.isOk()) {
-      setFileContent(result.value.content);
-      setShowFileViewer(true);
+      if (isImage && result.value.is_image && result.value.image_data) {
+        // For image files, create data URL from base64 data
+        const imageDataUrl = `data:image/jpeg;base64,${result.value.image_data}`;
+        setImageUrl(imageDataUrl);
+      } else {
+        // For text files, use content
+        setFileContent(result.value.content);
+      }
     } else {
-      showToast(`Failed to read file: ${result.error.message}`, 'error');
+      showToast(`Failed to load file: ${result.error.message}`, 'error');
+      setShowFileViewer(false);
       setSelectedFile(null);
     }
     setIsLoadingFile(false);
@@ -319,14 +351,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h3>📄 {selectedFile.name}</h3>
+              <h3>{isImageFile(selectedFile.name) ? '🖼️' : '📄'} {selectedFile.name}</h3>
               <button
-                onClick={() => {
-                  setShowFileViewer(false);
-                  setSelectedFile(null);
-                  setFileContent("");
-                  setIsLoadingFile(false);
-                }}
+                onClick={closeFileViewer}
                 className={styles.closeButton}
               >
                 ×
@@ -336,6 +363,23 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               {isLoadingFile ? (
                 <div className={styles.fileLoading}>
                   Loading file content...
+                </div>
+              ) : isImageFile(selectedFile.name) ? (
+                <div className={styles.imageContainer}>
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={selectedFile.name}
+                      className={styles.imageDisplay}
+                      onError={() => {
+                        showToast(`Failed to display image: ${selectedFile.name}`, 'error');
+                      }}
+                    />
+                  ) : (
+                    <div className={styles.fileLoading}>
+                      Loading image...
+                    </div>
+                  )}
                 </div>
               ) : (
                 <pre className={styles.fileContentDisplay}>
@@ -352,12 +396,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 📥 Download
               </button>
               <button
-                onClick={() => {
-                  setShowFileViewer(false);
-                  setSelectedFile(null);
-                  setFileContent("");
-                  setIsLoadingFile(false);
-                }}
+                onClick={closeFileViewer}
                 className={styles.modalButton}
               >
                 Close
