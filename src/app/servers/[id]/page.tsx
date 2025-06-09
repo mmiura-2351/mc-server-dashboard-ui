@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -16,13 +16,19 @@ import styles from "./server-detail.module.css";
 export default function ServerDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const searchParams = useSearchParams();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
   const [server, setServer] = useState<MinecraftServer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "properties" | "settings" | "files">("info");
+  
+  // Get tab from URL params or default to "info"
+  const tabFromUrl = searchParams.get('tab') as "info" | "properties" | "settings" | "files" | null;
+  const [activeTab, setActiveTab] = useState<"info" | "properties" | "settings" | "files">(
+    tabFromUrl && ["info", "properties", "settings", "files"].includes(tabFromUrl) ? tabFromUrl : "info"
+  );
 
   const serverId = parseInt(params.id as string);
 
@@ -47,7 +53,18 @@ export default function ServerDetailPage() {
     setIsLoading(false);
   }, [serverId, logout, t]);
 
+  // Function to update tab and URL
+  const handleTabChange = (tab: "info" | "properties" | "settings" | "files") => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
+
   useEffect(() => {
+    // Wait for auth loading to complete
+    if (authLoading) return;
+    
     if (!user) {
       router.push("/");
       return;
@@ -55,7 +72,7 @@ export default function ServerDetailPage() {
 
     loadServerData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverId, user, router]);
+  }, [serverId, user, router, authLoading]);
 
   const handleServerAction = async (action: "start" | "stop" | "restart") => {
     if (!server) return;
@@ -154,6 +171,17 @@ export default function ServerDetailPage() {
     }
   };
 
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <MainLayout>
+        <div className={styles.container}>
+          <div className={styles.loading}>Loading...</div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   if (!user) return null;
 
   if (isLoading) {
@@ -238,25 +266,25 @@ export default function ServerDetailPage() {
         <div className={styles.tabContainer}>
           <button
             className={`${styles.tab} ${activeTab === "info" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("info")}
+            onClick={() => handleTabChange("info")}
           >
             {t("servers.information")}
           </button>
           <button
             className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("settings")}
+            onClick={() => handleTabChange("settings")}
           >
             Settings
           </button>
           <button
             className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("properties")}
+            onClick={() => handleTabChange("properties")}
           >
             Properties
           </button>
           <button
             className={`${styles.tab} ${activeTab === "files" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("files")}
+            onClick={() => handleTabChange("files")}
           >
             Files
           </button>
