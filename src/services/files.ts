@@ -4,6 +4,7 @@ import type {
   FileContent,
   FileUploadRequest,
   FileError,
+  FileReadResponse,
 } from "@/types/files";
 import { fetchWithErrorHandling } from "@/services/api";
 
@@ -48,14 +49,18 @@ export async function listFiles(
 
 export async function readFile(
   serverId: number,
-  filePath: string
-): Promise<Result<FileContent, FileError>> {
+  filePath: string,
+  isImage: boolean = false
+): Promise<Result<FileReadResponse, FileError>> {
   // Remove leading slash and encode path
   const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
   const encodedPath = encodeURIComponent(cleanPath);
   
-  const result = await fetchWithErrorHandling<{ content: string; encoding: string; size: number; modified: string }>(
-    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/read`
+  // Add image parameter if requested
+  const params = isImage ? "?image=true" : "";
+  
+  const result = await fetchWithErrorHandling<FileReadResponse>(
+    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/read${params}`
   );
   
   if (result.isErr()) {
@@ -65,12 +70,26 @@ export async function readFile(
     });
   }
   
-  // Transform to match FileContent interface
+  return ok(result.value);
+}
+
+// Legacy function for backward compatibility with existing code
+export async function readTextFile(
+  serverId: number,
+  filePath: string
+): Promise<Result<FileContent, FileError>> {
+  const result = await readFile(serverId, filePath, false);
+  
+  if (result.isErr()) {
+    return err(result.error);
+  }
+  
+  // Transform to match legacy FileContent interface
   return ok({
     content: result.value.content,
     encoding: result.value.encoding,
-    size: result.value.size || result.value.content.length,
-    modified: result.value.modified || new Date().toISOString(),
+    size: result.value.file_info.size,
+    modified: result.value.file_info.modified,
   });
 }
 
@@ -125,6 +144,7 @@ export async function deleteFile(
   
   return ok(undefined);
 }
+
 
 export async function createDirectory(
   serverId: number,
