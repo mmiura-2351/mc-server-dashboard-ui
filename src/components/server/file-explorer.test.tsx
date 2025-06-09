@@ -601,7 +601,9 @@ describe("FileExplorer", () => {
 
     // Check that file viewer modal appears
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /config.yml/ })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /config.yml/ })
+      ).toBeInTheDocument();
       expect(screen.getByText("✏️ Edit")).toBeInTheDocument();
     });
 
@@ -843,13 +845,17 @@ describe("FileExplorer", () => {
     });
 
     test("handles successful file upload", async () => {
-      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
-      
+      const { listFiles, uploadMultipleFiles } = await import(
+        "@/services/files"
+      );
+
       vi.mocked(listFiles).mockResolvedValue(ok([]));
-      vi.mocked(uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["test.txt"],
-        failed: []
-      }));
+      vi.mocked(uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["test.txt"],
+          failed: [],
+        })
+      );
 
       render(<FileExplorer serverId={1} />);
 
@@ -859,14 +865,18 @@ describe("FileExplorer", () => {
       });
 
       // Create a mock file
-      const file = new File(["test content"], "test.txt", { type: "text/plain" });
-      
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+
       // Get the hidden file input and trigger change
-      const fileInput = document.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = document.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       expect(fileInput).toBeInTheDocument();
 
       // Mock the file input's files property
-      Object.defineProperty(fileInput, 'files', {
+      Object.defineProperty(fileInput, "files", {
         value: [file],
         writable: false,
       });
@@ -886,15 +896,21 @@ describe("FileExplorer", () => {
     });
 
     test("shows upload progress modal during upload", async () => {
-      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
-      
+      const { listFiles, uploadMultipleFiles } = await import(
+        "@/services/files"
+      );
+
       vi.mocked(listFiles).mockResolvedValue(ok([]));
-      
+
       // Mock a slow upload
-      vi.mocked(uploadMultipleFiles).mockImplementation(() => 
-        new Promise(resolve => {
-          setTimeout(() => resolve(ok({ successful: ["test.txt"], failed: [] })), 100);
-        })
+      vi.mocked(uploadMultipleFiles).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(
+              () => resolve(ok({ successful: ["test.txt"], failed: [] })),
+              100
+            );
+          })
       );
 
       render(<FileExplorer serverId={1} />);
@@ -903,10 +919,14 @@ describe("FileExplorer", () => {
         expect(screen.getByText("📁 Upload Files")).toBeInTheDocument();
       });
 
-      const file = new File(["test content"], "test.txt", { type: "text/plain" });
-      const fileInput = document.querySelector('input[type="file"][multiple]') as HTMLInputElement;
-      
-      Object.defineProperty(fileInput, 'files', {
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+      const fileInput = document.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
+
+      Object.defineProperty(fileInput, "files", {
         value: [file],
         writable: false,
       });
@@ -920,13 +940,17 @@ describe("FileExplorer", () => {
     });
 
     test("handles upload errors gracefully", async () => {
-      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
-      
+      const { listFiles, uploadMultipleFiles } = await import(
+        "@/services/files"
+      );
+
       vi.mocked(listFiles).mockResolvedValue(ok([]));
-      vi.mocked(uploadMultipleFiles).mockResolvedValue(ok({
-        successful: [],
-        failed: [{ file: "test.txt", error: "Upload failed" }]
-      }));
+      vi.mocked(uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: [],
+          failed: [{ file: "test.txt", error: "Upload failed" }],
+        })
+      );
 
       render(<FileExplorer serverId={1} />);
 
@@ -934,10 +958,14 @@ describe("FileExplorer", () => {
         expect(screen.getByText("📁 Upload Files")).toBeInTheDocument();
       });
 
-      const file = new File(["test content"], "test.txt", { type: "text/plain" });
-      const fileInput = document.querySelector('input[type="file"][multiple]') as HTMLInputElement;
-      
-      Object.defineProperty(fileInput, 'files', {
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+      const fileInput = document.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
+
+      Object.defineProperty(fileInput, "files", {
         value: [file],
         writable: false,
       });
@@ -951,15 +979,19 @@ describe("FileExplorer", () => {
     });
 
     test("handles folder upload with webkitRelativePath", async () => {
-      const { listFiles, uploadFolderStructure } = await import("@/services/files");
-      
+      const { listFiles, uploadFolderStructure } = await import(
+        "@/services/files"
+      );
+
       vi.mocked(listFiles).mockResolvedValue(ok([]));
-      
+
       // Mock uploadFolderStructure to resolve immediately
-      const uploadPromise = Promise.resolve(ok({
-        successful: ["testfolder/file1.txt", "testfolder/subdir/file2.txt"],
-        failed: []
-      }));
+      const uploadPromise = Promise.resolve(
+        ok({
+          successful: ["testfolder/file1.txt", "testfolder/subdir/file2.txt"],
+          failed: [],
+        })
+      );
       vi.mocked(uploadFolderStructure).mockReturnValue(uploadPromise);
 
       render(<FileExplorer serverId={1} />);
@@ -970,25 +1002,27 @@ describe("FileExplorer", () => {
 
       const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
       const file2 = new File(["content2"], "file2.txt", { type: "text/plain" });
-      
+
       // Mock webkitRelativePath for folder structure
-      Object.defineProperty(file1, 'webkitRelativePath', {
-        value: 'testfolder/file1.txt',
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      });
-      
-      Object.defineProperty(file2, 'webkitRelativePath', {
-        value: 'testfolder/subdir/file2.txt',
+      Object.defineProperty(file1, "webkitRelativePath", {
+        value: "testfolder/file1.txt",
         writable: false,
         enumerable: true,
         configurable: false,
       });
 
-      const folderInput = document.querySelector('input[type="file"]:not([multiple])') as HTMLInputElement;
-      
-      Object.defineProperty(folderInput, 'files', {
+      Object.defineProperty(file2, "webkitRelativePath", {
+        value: "testfolder/subdir/file2.txt",
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      });
+
+      const folderInput = document.querySelector(
+        'input[type="file"]:not([multiple])'
+      ) as HTMLInputElement;
+
+      Object.defineProperty(folderInput, "files", {
         value: [file1, file2],
         writable: false,
       });
@@ -1009,19 +1043,28 @@ describe("FileExplorer", () => {
       await uploadPromise;
 
       // Check success message appears
-      await waitFor(() => {
-        expect(screen.getByText(/Successfully uploaded 2 files/)).toBeInTheDocument();
-      }, { timeout: 2000 });
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/Successfully uploaded 2 files/)
+          ).toBeInTheDocument();
+        },
+        { timeout: 2000 }
+      );
     });
 
     test("handles drag and drop correctly", async () => {
-      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
-      
+      const { listFiles, uploadMultipleFiles } = await import(
+        "@/services/files"
+      );
+
       vi.mocked(listFiles).mockResolvedValue(ok([]));
-      vi.mocked(uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["file.txt"],
-        failed: []
-      }));
+      vi.mocked(uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["file.txt"],
+          failed: [],
+        })
+      );
 
       render(<FileExplorer serverId={1} />);
 
@@ -1029,17 +1072,21 @@ describe("FileExplorer", () => {
         expect(screen.getByText("This directory is empty")).toBeInTheDocument();
       });
 
-      const container = screen.getByText("This directory is empty").closest('div')!;
+      const container = screen
+        .getByText("This directory is empty")
+        .closest("div")!;
 
       // Create a simple file for drag and drop
-      const mockFile = new File(['content'], 'file.txt', { type: 'text/plain' });
+      const mockFile = new File(["content"], "file.txt", {
+        type: "text/plain",
+      });
 
       // Simulate drag and drop with files (not folder)
       fireEvent.drop(container, {
         dataTransfer: {
           items: [],
-          files: [mockFile]
-        }
+          files: [mockFile],
+        },
       });
 
       // Check that file upload was initiated
@@ -1063,18 +1110,22 @@ describe("FileExplorer", () => {
         expect(screen.getByText("This directory is empty")).toBeInTheDocument();
       });
 
-      const container = screen.getByText("This directory is empty").closest('div');
+      const container = screen
+        .getByText("This directory is empty")
+        .closest("div");
       expect(container).toBeTruthy();
 
       // Simulate drag enter
       fireEvent.dragEnter(container!, {
         dataTransfer: {
-          items: [{ kind: 'file' }]
-        }
+          items: [{ kind: "file" }],
+        },
       });
 
       await waitFor(() => {
-        expect(screen.getByText("Drop files or folders here to upload")).toBeInTheDocument();
+        expect(
+          screen.getByText("Drop files or folders here to upload")
+        ).toBeInTheDocument();
       });
     });
   });

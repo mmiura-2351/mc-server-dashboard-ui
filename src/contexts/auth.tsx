@@ -112,12 +112,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
     };
 
-    window.addEventListener('tokenRefresh', handleTokenRefresh as EventListener);
-    window.addEventListener('authLogout', handleAuthLogout);
+    window.addEventListener(
+      "tokenRefresh",
+      handleTokenRefresh as EventListener
+    );
+    window.addEventListener("authLogout", handleAuthLogout);
 
     return () => {
-      window.removeEventListener('tokenRefresh', handleTokenRefresh as EventListener);
-      window.removeEventListener('authLogout', handleAuthLogout);
+      window.removeEventListener(
+        "tokenRefresh",
+        handleTokenRefresh as EventListener
+      );
+      window.removeEventListener("authLogout", handleAuthLogout);
     };
   }, []);
 

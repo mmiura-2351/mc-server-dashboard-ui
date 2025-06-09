@@ -81,7 +81,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Upload state
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
@@ -91,7 +91,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  
+
   // File input refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -257,10 +257,13 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   const handleSaveFile = async () => {
     if (!selectedFile || !isTextFile(selectedFile.name)) return;
-    
+
     setIsSaving(true);
-    const filePath = currentPath === "/" ? selectedFile.name : `${currentPath}/${selectedFile.name}`;
-    
+    const filePath =
+      currentPath === "/"
+        ? selectedFile.name
+        : `${currentPath}/${selectedFile.name}`;
+
     const result = await fileService.writeFile(serverId, filePath, {
       content: editedContent,
       encoding: "utf-8",
@@ -274,7 +277,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     } else {
       showToast(`Failed to save file: ${result.error.message}`, "error");
     }
-    
+
     setIsSaving(false);
   };
 
@@ -288,13 +291,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     });
   };
 
-  const updateUploadProgress = (filename: string, progress: Omit<UploadProgress, 'filename'>) => {
-    setUploadState(prev => ({
+  const updateUploadProgress = (
+    filename: string,
+    progress: Omit<UploadProgress, "filename">
+  ) => {
+    setUploadState((prev) => ({
       ...prev,
-      progress: prev.progress.map(p => 
-        p.filename === filename 
-          ? { ...p, ...progress }
-          : p
+      progress: prev.progress.map((p) =>
+        p.filename === filename ? { ...p, ...progress } : p
       ),
     }));
   };
@@ -305,8 +309,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     // Initialize upload state
     setUploadState({
       isUploading: true,
-      progress: Array.from(files).map(file => ({
-        filename: isFolder ? (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name : file.name,
+      progress: Array.from(files).map((file) => ({
+        filename: isFolder
+          ? (file as File & { webkitRelativePath?: string })
+              .webkitRelativePath || file.name
+          : file.name,
         percentage: 0,
         loaded: 0,
         total: file.size,
@@ -318,7 +325,13 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     try {
       const fileArray = Array.from(files);
-      const progressCallback = (progress: fileService.UploadProgressCallback extends (arg: infer P) => void ? P : never) => {
+      const progressCallback = (
+        progress: fileService.UploadProgressCallback extends (
+          arg: infer P
+        ) => void
+          ? P
+          : never
+      ) => {
         updateUploadProgress(progress.filename, {
           percentage: progress.percentage,
           loaded: progress.loaded,
@@ -344,7 +357,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       }
 
       if (result.isOk()) {
-        setUploadState(prev => ({
+        setUploadState((prev) => ({
           ...prev,
           isUploading: false,
           completed: result.value.successful,
@@ -355,7 +368,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         await loadFiles();
 
         if (result.value.failed.length === 0) {
-          showToast(`Successfully uploaded ${result.value.successful.length} ${isFolder ? 'files' : 'files'}`, "info");
+          showToast(
+            `Successfully uploaded ${result.value.successful.length} ${isFolder ? "files" : "files"}`,
+            "info"
+          );
         } else {
           showToast(
             `Uploaded ${result.value.successful.length} files, ${result.value.failed.length} failed`,
@@ -363,40 +379,52 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           );
         }
       } else {
-        setUploadState(prev => ({
+        setUploadState((prev) => ({
           ...prev,
           isUploading: false,
-          failed: [{ file: 'Upload process', error: result.error.message }],
+          failed: [{ file: "Upload process", error: result.error.message }],
         }));
         showToast(`Upload failed: ${result.error.message}`, "error");
       }
     } catch (error) {
-      setUploadState(prev => ({
+      setUploadState((prev) => ({
         ...prev,
         isUploading: false,
-        failed: [{ file: 'Upload process', error: error instanceof Error ? error.message : 'Unknown error' }],
+        failed: [
+          {
+            file: "Upload process",
+            error: error instanceof Error ? error.message : "Unknown error",
+          },
+        ],
       }));
-      showToast(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`, "error");
+      showToast(
+        `Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "error"
+      );
     }
   };
 
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (files) {
       handleFileUpload(Array.from(files), false);
     }
     // Reset input value to allow re-selecting the same files
-    event.target.value = '';
+    event.target.value = "";
   };
 
-  const handleFolderInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFolderInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (files) {
       const fileArray = Array.from(files);
       handleFileUpload(fileArray, true);
     }
     // Reset input value to allow re-selecting the same folder
-    event.target.value = '';
+    event.target.value = "";
   };
 
   // Drag and drop handlers
@@ -409,12 +437,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Only set drag over to false if we're leaving the container entirely
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX;
     const y = e.clientY;
-    
+
     if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
       setIsDragOver(false);
     }
@@ -445,27 +473,28 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     if (isFolder) {
       // Handle folder drop
       const processEntry = async (entry: FileSystemEntry): Promise<File[]> => {
-        
         if (entry.isFile) {
           return new Promise((resolve) => {
             (entry as FileSystemFileEntry).file((file: File) => {
               // The fullPath already contains the complete path from the root of the dropped folder
               // Remove the leading slash to get the relative path
-              const relativePath = entry.fullPath.startsWith('/') ? entry.fullPath.substring(1) : entry.fullPath;
-              
+              const relativePath = entry.fullPath.startsWith("/")
+                ? entry.fullPath.substring(1)
+                : entry.fullPath;
+
               // Create a new File object with the webkitRelativePath property
               const newFile = new File([file], file.name, {
                 type: file.type,
                 lastModified: file.lastModified,
               });
-              
-              Object.defineProperty(newFile, 'webkitRelativePath', {
+
+              Object.defineProperty(newFile, "webkitRelativePath", {
                 value: relativePath,
                 writable: false,
                 enumerable: true,
                 configurable: false,
               });
-              
+
               resolve([newFile]);
             });
           });
@@ -474,7 +503,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           return new Promise((resolve) => {
             const readAllEntries = async () => {
               let allEntries: FileSystemEntry[] = [];
-              
+
               const readBatch = () => {
                 return new Promise<FileSystemEntry[]>((batchResolve) => {
                   reader.readEntries((entries) => {
@@ -482,34 +511,36 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   });
                 });
               };
-              
+
               // Read entries in batches (directories with many files may require multiple calls)
               let entries = await readBatch();
               while (entries.length > 0) {
                 allEntries = allEntries.concat(entries);
                 entries = await readBatch();
               }
-              
+
               // Process all entries
               const allFiles: File[] = [];
               for (const subEntry of allEntries) {
                 const subFiles = await processEntry(subEntry);
                 allFiles.push(...subFiles);
               }
-              
+
               resolve(allFiles);
             };
-            
+
             readAllEntries();
           });
         }
         return [];
       };
 
-      Promise.all(items.map(item => {
-        const entry = item.webkitGetAsEntry();
-        return entry ? processEntry(entry) : [];
-      })).then(fileArrays => {
+      Promise.all(
+        items.map((item) => {
+          const entry = item.webkitGetAsEntry();
+          return entry ? processEntry(entry) : [];
+        })
+      ).then((fileArrays) => {
         const allFiles = fileArrays.flat();
         if (allFiles.length > 0) {
           handleFileUpload(allFiles, true);
@@ -618,8 +649,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   }
 
   return (
-    <div 
-      className={`${styles.container} ${isDragOver ? styles.dragOver : ''}`}
+    <div
+      className={`${styles.container} ${isDragOver ? styles.dragOver : ""}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -630,14 +661,17 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         ref={fileInputRef}
         type="file"
         multiple
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         onChange={handleFileInputChange}
       />
       <input
         ref={folderInputRef}
         type="file"
-        {...({ webkitdirectory: "", directory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
-        style={{ display: 'none' }}
+        {...({
+          webkitdirectory: "",
+          directory: "",
+        } as React.InputHTMLAttributes<HTMLInputElement>)}
+        style={{ display: "none" }}
         onChange={handleFolderInputChange}
       />
 
@@ -820,36 +854,37 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               )}
             </div>
             <div className={styles.modalFooter}>
-              {isTextFile(selectedFile.name) && !isImageFile(selectedFile.name) && (
-                <>
-                  {isEditing ? (
-                    <>
+              {isTextFile(selectedFile.name) &&
+                !isImageFile(selectedFile.name) && (
+                  <>
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={handleSaveFile}
+                          className={`${styles.modalButton} ${styles.primaryButton}`}
+                          disabled={isSaving || isLoadingFile}
+                        >
+                          {isSaving ? "💾 Saving..." : "💾 Save"}
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className={styles.modalButton}
+                          disabled={isSaving}
+                        >
+                          ❌ Cancel
+                        </button>
+                      </>
+                    ) : (
                       <button
-                        onClick={handleSaveFile}
-                        className={`${styles.modalButton} ${styles.primaryButton}`}
-                        disabled={isSaving || isLoadingFile}
-                      >
-                        {isSaving ? "💾 Saving..." : "💾 Save"}
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
+                        onClick={handleEditFile}
                         className={styles.modalButton}
-                        disabled={isSaving}
+                        disabled={isLoadingFile}
                       >
-                        ❌ Cancel
+                        ✏️ Edit
                       </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={handleEditFile}
-                      className={styles.modalButton}
-                      disabled={isLoadingFile}
-                    >
-                      ✏️ Edit
-                    </button>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
               <button
                 onClick={() => handleDownloadFile(selectedFile)}
                 className={styles.modalButton}
@@ -857,8 +892,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               >
                 📥 Download
               </button>
-              <button 
-                onClick={closeFileViewer} 
+              <button
+                onClick={closeFileViewer}
                 className={styles.modalButton}
                 disabled={isSaving}
               >
@@ -875,8 +910,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h3>📤 Upload Progress</h3>
-              <button 
-                onClick={() => setShowUploadModal(false)} 
+              <button
+                onClick={() => setShowUploadModal(false)}
                 className={styles.closeButton}
                 disabled={uploadState.isUploading}
               >
@@ -888,23 +923,29 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 <div className={styles.uploadOverallProgress}>
                   <p>Uploading files...</p>
                   <div className={styles.overallProgressBar}>
-                    <div 
+                    <div
                       className={styles.overallProgressFill}
-                      style={{ 
+                      style={{
                         width: `${
-                          uploadState.progress.length > 0 
-                            ? uploadState.progress.reduce((sum, p) => sum + p.percentage, 0) / uploadState.progress.length 
+                          uploadState.progress.length > 0
+                            ? uploadState.progress.reduce(
+                                (sum, p) => sum + p.percentage,
+                                0
+                              ) / uploadState.progress.length
                             : 0
-                        }%` 
+                        }%`,
                       }}
                     />
                   </div>
                 </div>
               )}
-              
+
               <div className={styles.uploadFileList}>
                 {uploadState.progress.map((progress) => (
-                  <div key={progress.filename} className={styles.uploadFileItem}>
+                  <div
+                    key={progress.filename}
+                    className={styles.uploadFileItem}
+                  >
                     <div className={styles.uploadFileName}>
                       <span>{progress.filename}</span>
                       <span className={styles.uploadFileProgress}>
@@ -912,22 +953,28 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                       </span>
                     </div>
                     <div className={styles.uploadProgressBar}>
-                      <div 
+                      <div
                         className={styles.uploadProgressFill}
                         style={{ width: `${progress.percentage}%` }}
                       />
                     </div>
                     <div className={styles.uploadFileSize}>
-                      {formatFileSize(progress.loaded)} / {formatFileSize(progress.total)}
+                      {formatFileSize(progress.loaded)} /{" "}
+                      {formatFileSize(progress.total)}
                     </div>
                   </div>
                 ))}
 
                 {uploadState.completed.length > 0 && (
                   <div className={styles.uploadSection}>
-                    <h4 className={styles.uploadSectionTitle}>✅ Completed ({uploadState.completed.length})</h4>
+                    <h4 className={styles.uploadSectionTitle}>
+                      ✅ Completed ({uploadState.completed.length})
+                    </h4>
                     {uploadState.completed.map((filename) => (
-                      <div key={filename} className={styles.uploadCompletedItem}>
+                      <div
+                        key={filename}
+                        className={styles.uploadCompletedItem}
+                      >
                         {filename}
                       </div>
                     ))}
@@ -936,11 +983,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
                 {uploadState.failed.length > 0 && (
                   <div className={styles.uploadSection}>
-                    <h4 className={styles.uploadSectionTitle}>❌ Failed ({uploadState.failed.length})</h4>
+                    <h4 className={styles.uploadSectionTitle}>
+                      ❌ Failed ({uploadState.failed.length})
+                    </h4>
                     {uploadState.failed.map((failure) => (
-                      <div key={failure.file} className={styles.uploadFailedItem}>
-                        <div className={styles.uploadFailedFile}>{failure.file}</div>
-                        <div className={styles.uploadFailedError}>{failure.error}</div>
+                      <div
+                        key={failure.file}
+                        className={styles.uploadFailedItem}
+                      >
+                        <div className={styles.uploadFailedFile}>
+                          {failure.file}
+                        </div>
+                        <div className={styles.uploadFailedError}>
+                          {failure.error}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -949,7 +1005,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             </div>
             <div className={styles.modalFooter}>
               {!uploadState.isUploading && (
-                <button 
+                <button
                   onClick={() => {
                     resetUploadState();
                     setShowUploadModal(false);
