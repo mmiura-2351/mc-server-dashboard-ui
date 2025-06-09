@@ -267,7 +267,19 @@ export async function uploadFileWithProgress(
 ): Promise<Result<void, FileError>> {
   return new Promise((resolve) => {
     const formData = new FormData();
-    formData.append("file", file);
+    
+    // For files with webkitRelativePath, send the file with the relative path as filename
+    const fileWebkitPath = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
+    if (fileWebkitPath && fileWebkitPath.includes('/')) {
+      // Create new file with relative path as name to preserve folder structure
+      const fileWithPath = new File([file], fileWebkitPath, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+      formData.append("file", fileWithPath);
+    } else {
+      formData.append("file", file);
+    }
 
     // Add path parameter if not root
     if (targetPath && targetPath !== "/") {
@@ -343,7 +355,6 @@ export async function uploadFolderStructure(
   for (const file of files) {
     // Extract directory path from file.webkitRelativePath
     const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
-    console.log(`Processing file: ${file.name}, webkitRelativePath: ${relativePath}`);
     const pathParts = relativePath.split('/');
     
     if (pathParts.length > 1) {
@@ -367,9 +378,9 @@ export async function uploadFolderStructure(
   }
 
   // Create directories first (API might auto-create, but this ensures proper structure)
-  for (const dirPath of Array.from(directories).sort()) {
+  for (const _dirPath of Array.from(directories).sort()) {
     try {
-      const _fullDirPath = targetPath === '/' ? dirPath : `${targetPath}/${dirPath}`;
+      const _fullDirPath = targetPath === '/' ? _dirPath : `${targetPath}/${_dirPath}`;
       // Note: createDirectory API might need to be called for each nested directory
       // For now, we'll rely on the upload API to create directories as needed
     } catch {
@@ -378,11 +389,11 @@ export async function uploadFolderStructure(
   }
 
   // Upload files maintaining directory structure
-  for (const [dirPath, dirFiles] of filesByDir.entries()) {
+  for (const [_dirPath, dirFiles] of filesByDir.entries()) {
     for (const file of dirFiles) {
       const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
       
-      // Calculate the target path more carefully
+      // Calculate the correct target path for this file
       let fileTargetPath: string;
       if (relativePath.includes('/')) {
         // File has a directory structure - extract the directory part

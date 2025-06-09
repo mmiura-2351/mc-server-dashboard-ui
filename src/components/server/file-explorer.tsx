@@ -392,7 +392,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const handleFolderInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      handleFileUpload(Array.from(files), true);
+      const fileArray = Array.from(files);
+      handleFileUpload(fileArray, true);
     }
     // Reset input value to allow re-selecting the same folder
     event.target.value = '';
@@ -444,13 +445,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     if (isFolder) {
       // Handle folder drop
       const processEntry = async (entry: FileSystemEntry): Promise<File[]> => {
-        const entryFiles: File[] = [];
         
         if (entry.isFile) {
           return new Promise((resolve) => {
             (entry as FileSystemFileEntry).file((file: File) => {
-              // Add webkitRelativePath for folder structure
               // The fullPath already contains the complete path from the root of the dropped folder
+              // Remove the leading slash to get the relative path
               const relativePath = entry.fullPath.startsWith('/') ? entry.fullPath.substring(1) : entry.fullPath;
               
               // Create a new File object with the webkitRelativePath property
@@ -512,11 +512,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       })).then(fileArrays => {
         const allFiles = fileArrays.flat();
         if (allFiles.length > 0) {
-          // Debug: Log the webkitRelativePath of each file to ensure proper structure
-          console.log('Drag & Drop files with paths:', allFiles.map(f => ({
-            name: f.name,
-            webkitRelativePath: (f as File & { webkitRelativePath?: string }).webkitRelativePath
-          })));
           handleFileUpload(allFiles, true);
         }
       });
