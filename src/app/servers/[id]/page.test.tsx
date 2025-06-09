@@ -6,6 +6,7 @@ import * as serverService from "@/services/server";
 import { useAuth } from "@/contexts/auth";
 import { ok, err } from "neverthrow";
 import { ServerStatus, ServerType } from "@/types/server";
+import { Role } from "@/types/auth";
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -107,7 +108,14 @@ describe("ServerDetailPage", () => {
 
   // Default auth context
   const mockAuthContext = {
-    user: { id: 1, username: "admin", email: "admin@example.com", is_approved: true },
+    user: { 
+      id: 1, 
+      username: "admin", 
+      email: "admin@example.com", 
+      is_approved: true,
+      is_active: true,
+      role: Role.ADMIN
+    },
     isLoading: false, // This is for auth loading state
     login: vi.fn(),
     register: vi.fn(),
