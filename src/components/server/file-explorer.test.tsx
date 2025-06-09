@@ -950,6 +950,109 @@ describe("FileExplorer", () => {
       });
     });
 
+    test("handles folder upload with webkitRelativePath", async () => {
+      const { listFiles, uploadFolderStructure } = await import("@/services/files");
+      
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+      
+      // Mock uploadFolderStructure to resolve immediately
+      const uploadPromise = Promise.resolve(ok({
+        successful: ["testfolder/file1.txt", "testfolder/subdir/file2.txt"],
+        failed: []
+      }));
+      vi.mocked(uploadFolderStructure).mockReturnValue(uploadPromise);
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("📂 Upload Folder")).toBeInTheDocument();
+      });
+
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const file2 = new File(["content2"], "file2.txt", { type: "text/plain" });
+      
+      // Mock webkitRelativePath for folder structure
+      Object.defineProperty(file1, 'webkitRelativePath', {
+        value: 'testfolder/file1.txt',
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      });
+      
+      Object.defineProperty(file2, 'webkitRelativePath', {
+        value: 'testfolder/subdir/file2.txt',
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      });
+
+      const folderInput = document.querySelector('input[type="file"]:not([multiple])') as HTMLInputElement;
+      
+      Object.defineProperty(folderInput, 'files', {
+        value: [file1, file2],
+        writable: false,
+      });
+
+      fireEvent.change(folderInput);
+
+      // Wait for the upload to be initiated
+      await waitFor(() => {
+        expect(uploadFolderStructure).toHaveBeenCalledWith(
+          1,
+          "/",
+          [file1, file2],
+          expect.any(Function)
+        );
+      });
+
+      // Wait for the upload promise to resolve
+      await uploadPromise;
+
+      // Check success message appears
+      await waitFor(() => {
+        expect(screen.getByText(/Successfully uploaded 2 files/)).toBeInTheDocument();
+      }, { timeout: 2000 });
+    });
+
+    test("handles drag and drop correctly", async () => {
+      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
+      
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+      vi.mocked(uploadMultipleFiles).mockResolvedValue(ok({
+        successful: ["file.txt"],
+        failed: []
+      }));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("This directory is empty")).toBeInTheDocument();
+      });
+
+      const container = screen.getByText("This directory is empty").closest('div')!;
+
+      // Create a simple file for drag and drop
+      const mockFile = new File(['content'], 'file.txt', { type: 'text/plain' });
+
+      // Simulate drag and drop with files (not folder)
+      fireEvent.drop(container, {
+        dataTransfer: {
+          items: [],
+          files: [mockFile]
+        }
+      });
+
+      // Check that file upload was initiated
+      await waitFor(() => {
+        expect(uploadMultipleFiles).toHaveBeenCalledWith(
+          1,
+          "/",
+          [mockFile],
+          expect.any(Function)
+        );
+      });
+    });
+
     test("shows drag and drop hint when dragging over", async () => {
       const { listFiles } = await import("@/services/files");
       vi.mocked(listFiles).mockResolvedValue(ok([]));
