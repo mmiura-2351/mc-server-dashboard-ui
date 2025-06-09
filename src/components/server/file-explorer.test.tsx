@@ -20,6 +20,7 @@ vi.mock("@/services/files", () => ({
   downloadFile: vi.fn(),
   uploadMultipleFiles: vi.fn(),
   uploadFolderStructure: vi.fn(),
+  renameFile: vi.fn(),
 }));
 
 // Mock JSZip
@@ -1942,6 +1943,411 @@ describe("FileExplorer", () => {
 
       // Note: Full download test requires mocking JSZip and file downloads
       // This test verifies the UI shows correctly for bulk operations
+    });
+  });
+
+  describe("Rename functionality", () => {
+    test("shows rename option in context menu for single file", async () => {
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "config.yml",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/config.yml",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("config.yml")).toBeInTheDocument();
+      });
+
+      // Right click on file
+      const fileRow = screen.getByText("config.yml").closest("div");
+      fireEvent.contextMenu(fileRow!);
+
+      // Check that rename option appears
+      await waitFor(() => {
+        expect(screen.getByText("✏️ Rename")).toBeInTheDocument();
+      });
+    });
+
+    test("shows rename option in context menu for single folder", async () => {
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "plugins",
+          type: "directory",
+          is_directory: true,
+          path: "/plugins",
+          modified: "2023-01-01T00:00:00Z",
+          permissions: { read: true, write: true, execute: true },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("plugins")).toBeInTheDocument();
+      });
+
+      // Right click on folder
+      const folderRow = screen.getByText("plugins").closest("div");
+      fireEvent.contextMenu(folderRow!);
+
+      // Check that rename option appears
+      await waitFor(() => {
+        expect(screen.getByText("✏️ Rename Folder")).toBeInTheDocument();
+      });
+    });
+
+    test("does not show rename option when multiple items selected", async () => {
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "file2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("file2.txt")).toBeInTheDocument();
+      });
+
+      // Select both files
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      const file1Checkbox = checkboxes[1];
+      const file2Checkbox = checkboxes[2];
+
+      fireEvent.click(file1Checkbox);
+      fireEvent.click(file2Checkbox);
+
+      // Right click on first file
+      const file1Row = screen.getByText("file1.txt").closest("div");
+      fireEvent.contextMenu(file1Row!);
+
+      // Check that bulk menu appears without rename option
+      await waitFor(() => {
+        expect(screen.getByText("2 item(s) selected")).toBeInTheDocument();
+        expect(screen.getByText("📥 Download as ZIP (2)")).toBeInTheDocument();
+        expect(screen.queryByText("✏️ Rename")).not.toBeInTheDocument();
+      });
+    });
+
+    test("opens rename modal when rename is clicked", async () => {
+      const user = userEvent.setup();
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "old-name.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/old-name.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("old-name.txt")).toBeInTheDocument();
+      });
+
+      // Right click and select rename
+      const fileRow = screen.getByText("old-name.txt").closest("div");
+      fireEvent.contextMenu(fileRow!);
+
+      await waitFor(() => {
+        expect(screen.getByText("✏️ Rename")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("✏️ Rename"));
+
+      // Check that rename modal appears
+      await waitFor(() => {
+        expect(screen.getByText("✏️ Rename File")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("old-name.txt")).toBeInTheDocument();
+        expect(screen.getByText("✏️ Rename")).toBeInTheDocument();
+        expect(screen.getByText("Cancel")).toBeInTheDocument();
+      });
+    });
+
+    test("successfully renames file", async () => {
+      const user = userEvent.setup();
+      const { listFiles, renameFile } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "old-name.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/old-name.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+      vi.mocked(renameFile).mockResolvedValue(ok(undefined));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("old-name.txt")).toBeInTheDocument();
+      });
+
+      // Open rename modal
+      const fileRow = screen.getByText("old-name.txt").closest("div");
+      fireEvent.contextMenu(fileRow!);
+      await user.click(screen.getByText("✏️ Rename"));
+
+      // Change the name
+      const input = screen.getByDisplayValue("old-name.txt");
+      await user.clear(input);
+      await user.type(input, "new-name.txt");
+
+      // Confirm rename
+      const renameButton = screen.getByRole("button", { name: "✏️ Rename" });
+      await user.click(renameButton);
+
+      // Check that rename was called correctly
+      await waitFor(() => {
+        expect(renameFile).toHaveBeenCalledWith(
+          1,
+          "old-name.txt",
+          "new-name.txt"
+        );
+      });
+
+      // Check success message
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            /Successfully renamed "old-name.txt" to "new-name.txt"/
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    test("handles rename error gracefully", async () => {
+      const user = userEvent.setup();
+      const { listFiles, renameFile } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "readonly.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/readonly.txt",
+          permissions: { read: true, write: false, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+      vi.mocked(renameFile).mockResolvedValue(
+        err({ message: "Permission denied" })
+      );
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("readonly.txt")).toBeInTheDocument();
+      });
+
+      // Open rename modal
+      const fileRow = screen.getByText("readonly.txt").closest("div");
+      fireEvent.contextMenu(fileRow!);
+      await user.click(screen.getByText("✏️ Rename"));
+
+      // Change the name
+      const input = screen.getByDisplayValue("readonly.txt");
+      await user.clear(input);
+      await user.type(input, "new-name.txt");
+
+      // Confirm rename
+      const renameButton = screen.getByRole("button", { name: "✏️ Rename" });
+      await user.click(renameButton);
+
+      // Check error message
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Failed to rename file: Permission denied/)
+        ).toBeInTheDocument();
+      });
+    });
+
+    test("cancels rename with escape key", async () => {
+      const user = userEvent.setup();
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "test.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/test.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("test.txt")).toBeInTheDocument();
+      });
+
+      // Open rename modal
+      const fileRow = screen.getByText("test.txt").closest("div");
+      fireEvent.contextMenu(fileRow!);
+      await user.click(screen.getByText("✏️ Rename"));
+
+      // Check modal is open
+      await waitFor(() => {
+        expect(screen.getByText("✏️ Rename File")).toBeInTheDocument();
+      });
+
+      // Press escape to cancel
+      const input = screen.getByDisplayValue("test.txt");
+      await user.type(input, "{Escape}");
+
+      // Check modal is closed
+      await waitFor(() => {
+        expect(screen.queryByText("✏️ Rename File")).not.toBeInTheDocument();
+      });
+    });
+
+    test("confirms rename with enter key", async () => {
+      const user = userEvent.setup();
+      const { listFiles, renameFile } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "test.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/test.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+      vi.mocked(renameFile).mockResolvedValue(ok(undefined));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("test.txt")).toBeInTheDocument();
+      });
+
+      // Open rename modal
+      const fileRow = screen.getByText("test.txt").closest("div");
+      fireEvent.contextMenu(fileRow!);
+      await user.click(screen.getByText("✏️ Rename"));
+
+      // Change name and press enter
+      const input = screen.getByDisplayValue("test.txt");
+      await user.clear(input);
+      await user.type(input, "renamed.txt{Enter}");
+
+      // Check that rename was called
+      await waitFor(() => {
+        expect(renameFile).toHaveBeenCalledWith(1, "test.txt", "renamed.txt");
+      });
+    });
+
+    test("disables rename button when name is empty or unchanged", async () => {
+      const user = userEvent.setup();
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "test.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/test.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("test.txt")).toBeInTheDocument();
+      });
+
+      // Open rename modal
+      const fileRow = screen.getByText("test.txt").closest("div");
+      fireEvent.contextMenu(fileRow!);
+      await user.click(screen.getByText("✏️ Rename"));
+
+      // Get rename button
+      const renameButton = screen.getByRole("button", { name: "✏️ Rename" });
+
+      // Initially disabled because name is unchanged
+      expect(renameButton).toBeDisabled();
+
+      // Clear input - should remain disabled
+      const input = screen.getByDisplayValue("test.txt");
+      await user.clear(input);
+      expect(renameButton).toBeDisabled();
+
+      // Type new name - should enable
+      await user.type(input, "new-name.txt");
+      expect(renameButton).not.toBeDisabled();
+
+      // Change back to original name - should disable again
+      await user.clear(input);
+      await user.type(input, "test.txt");
+      expect(renameButton).toBeDisabled();
     });
   });
 });

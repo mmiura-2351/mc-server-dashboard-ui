@@ -4,6 +4,7 @@ import {
   readTextFile,
   writeFile,
   deleteFile,
+  renameFile,
   uploadFileWithProgress,
   uploadFolderStructure,
 } from "./files";
@@ -26,11 +27,23 @@ const mockXMLHttpRequest = {
   addEventListener: vi.fn(),
   status: 200,
   responseText: '{"success": true}',
-  onload: null as ((this: XMLHttpRequest, ev: ProgressEvent<XMLHttpRequestEventTarget>) => void) | null,
-  onerror: null as ((this: XMLHttpRequest, ev: ProgressEvent<XMLHttpRequestEventTarget>) => void) | null,
+  onload: null as
+    | ((
+        this: XMLHttpRequest,
+        ev: ProgressEvent<XMLHttpRequestEventTarget>
+      ) => void)
+    | null,
+  onerror: null as
+    | ((
+        this: XMLHttpRequest,
+        ev: ProgressEvent<XMLHttpRequestEventTarget>
+      ) => void)
+    | null,
 };
 
-global.XMLHttpRequest = vi.fn(() => mockXMLHttpRequest) as unknown as typeof XMLHttpRequest;
+global.XMLHttpRequest = vi.fn(
+  () => mockXMLHttpRequest
+) as unknown as typeof XMLHttpRequest;
 
 // Mock localStorage
 Object.defineProperty(window, "localStorage", {
@@ -185,6 +198,83 @@ describe("File service", () => {
     });
   });
 
+  describe("renameFile", () => {
+    test("should rename file successfully", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const result = await renameFile(1, "old-name.txt", "new-name.txt");
+
+      expect(result.isOk()).toBe(true);
+      expect(fetchEmpty).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/old-name.txt/rename",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ new_name: "new-name.txt" }),
+        }
+      );
+    });
+
+    test("should handle file paths with leading slash", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const result = await renameFile(
+        1,
+        "/plugins/config.yml",
+        "new-config.yml"
+      );
+
+      expect(result.isOk()).toBe(true);
+      expect(fetchEmpty).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/plugins%2Fconfig.yml/rename",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ new_name: "new-config.yml" }),
+        }
+      );
+    });
+
+    test("should handle rename errors", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(
+        err({ message: "Permission denied", status: 403 })
+      );
+
+      const result = await renameFile(1, "readonly.txt", "new-name.txt");
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toBe("Permission denied");
+        expect(result.error.status).toBe(403);
+      }
+    });
+
+    test("should encode special characters in file paths", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const result = await renameFile(
+        1,
+        "file with spaces.txt",
+        "new name.txt"
+      );
+
+      expect(result.isOk()).toBe(true);
+      expect(fetchEmpty).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/file%20with%20spaces.txt/rename",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ new_name: "new name.txt" }),
+        }
+      );
+    });
+  });
+
   describe("uploadFileWithProgress", () => {
     test("should upload regular file without directory structure", async () => {
       const file = new File(["test content"], "test.txt", {
@@ -192,7 +282,10 @@ describe("File service", () => {
       });
 
       setTimeout(() => {
-        mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
+        mockXMLHttpRequest.onload?.call(
+          mockXMLHttpRequest as unknown as XMLHttpRequest,
+          {} as ProgressEvent<XMLHttpRequestEventTarget>
+        );
       }, 0);
 
       const result = await uploadFileWithProgress(1, "/", file);
@@ -222,7 +315,10 @@ describe("File service", () => {
       });
 
       setTimeout(() => {
-        mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
+        mockXMLHttpRequest.onload?.call(
+          mockXMLHttpRequest as unknown as XMLHttpRequest,
+          {} as ProgressEvent<XMLHttpRequestEventTarget>
+        );
       }, 0);
 
       const result = await uploadFileWithProgress(1, "folder/subfolder", file);
@@ -239,7 +335,10 @@ describe("File service", () => {
       mockXMLHttpRequest.responseText = '{"detail": "Upload failed"}';
 
       setTimeout(() => {
-        mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
+        mockXMLHttpRequest.onload?.call(
+          mockXMLHttpRequest as unknown as XMLHttpRequest,
+          {} as ProgressEvent<XMLHttpRequestEventTarget>
+        );
       }, 0);
 
       const result = await uploadFileWithProgress(1, "/", file);
@@ -256,7 +355,10 @@ describe("File service", () => {
       });
 
       setTimeout(() => {
-        mockXMLHttpRequest.onerror?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
+        mockXMLHttpRequest.onerror?.call(
+          mockXMLHttpRequest as unknown as XMLHttpRequest,
+          {} as ProgressEvent<XMLHttpRequestEventTarget>
+        );
       }, 0);
 
       const result = await uploadFileWithProgress(1, "/", file);
@@ -294,7 +396,10 @@ describe("File service", () => {
       mockXMLHttpRequest.send = vi.fn(() => {
         setTimeout(() => {
           mockXMLHttpRequest.status = 200;
-          mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
+          mockXMLHttpRequest.onload?.call(
+            mockXMLHttpRequest as unknown as XMLHttpRequest,
+            {} as ProgressEvent<XMLHttpRequestEventTarget>
+          );
         }, 0);
       });
 
@@ -324,7 +429,10 @@ describe("File service", () => {
         setTimeout(() => {
           mockXMLHttpRequest.status = 500;
           mockXMLHttpRequest.responseText = '{"detail": "Permission denied"}';
-          mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
+          mockXMLHttpRequest.onload?.call(
+            mockXMLHttpRequest as unknown as XMLHttpRequest,
+            {} as ProgressEvent<XMLHttpRequestEventTarget>
+          );
         }, 0);
       });
 
