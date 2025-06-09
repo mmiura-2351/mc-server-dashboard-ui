@@ -141,8 +141,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     if (result.isOk()) {
       // Reload files to update the list
       loadFiles();
+      showToast(`Successfully deleted ${file.name}`, 'info');
     } else {
-      setError(`Failed to delete file: ${result.error.message}`);
+      showToast(`Failed to delete file: ${result.error.message}`, 'error');
     }
   };
 
@@ -162,8 +163,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      showToast(`Successfully downloaded ${file.name}`, 'info');
     } else {
-      setError(`Failed to download file: ${result.error.message}`);
+      showToast(`Failed to download file: ${result.error.message}`, 'error');
     }
   };
 
