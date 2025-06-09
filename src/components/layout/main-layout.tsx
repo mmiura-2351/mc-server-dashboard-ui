@@ -44,12 +44,6 @@ export function MainLayout({ children }: MainLayoutProps) {
       icon: "💾",
       active: pathname === "/backups",
     },
-    {
-      label: t("navigation.files"),
-      path: "/files",
-      icon: "📁",
-      active: pathname === "/files",
-    },
   ];
 
   const accountItems = [
