@@ -454,4 +454,85 @@ describe("FileExplorer", () => {
       expect(img).toHaveAttribute("src", expect.stringContaining("data:image/jpeg;base64,"));
     });
   });
+
+  test("shows toast for download errors instead of page error", async () => {
+    const user = userEvent.setup();
+    const { listFiles, downloadFile } = await import("@/services/files");
+    
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "server.jar",
+        type: "binary",
+        is_directory: false,
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/server.jar",
+        permissions: { read: true, write: false, execute: true },
+      },
+    ];
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(downloadFile).mockResolvedValue(err({ message: "Access denied (403)" }));
+    
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("server.jar")).toBeInTheDocument();
+    });
+
+    // Click download button
+    const downloadButton = screen.getByTitle("Download file");
+    await user.click(downloadButton);
+
+    // Check that toast error appears instead of page error
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to download file: Access denied \(403\)/)).toBeInTheDocument();
+    });
+
+    // Ensure file list is still visible (no page error state)
+    expect(screen.getByText("server.jar")).toBeInTheDocument();
+  });
+
+  test("shows toast for delete errors instead of page error", async () => {
+    const user = userEvent.setup();
+    const { listFiles, deleteFile } = await import("@/services/files");
+    
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "protected.txt",
+        type: "text",
+        is_directory: false,
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/protected.txt",
+        permissions: { read: true, write: false, execute: false },
+      },
+    ];
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(deleteFile).mockResolvedValue(err({ message: "Permission denied" }));
+    
+    // Mock window.confirm to return true
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("protected.txt")).toBeInTheDocument();
+    });
+
+    // Click delete button
+    const deleteButton = screen.getByTitle("Delete file");
+    await user.click(deleteButton);
+
+    // Check that toast error appears instead of page error
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to delete file: Permission denied/)).toBeInTheDocument();
+    });
+
+    // Ensure file list is still visible (no page error state)
+    expect(screen.getByText("protected.txt")).toBeInTheDocument();
+    
+    confirmSpy.mockRestore();
+  });
 });
