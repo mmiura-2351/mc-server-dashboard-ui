@@ -7,6 +7,7 @@ import { useTranslation } from "@/contexts/language";
 import { MainLayout } from "@/components/layout/main-layout";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
+import { FileExplorer } from "@/components/server/file-explorer";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -21,7 +22,7 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "properties" | "settings">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "properties" | "settings" | "files">("info");
 
   const serverId = parseInt(params.id as string);
 
@@ -44,7 +45,7 @@ export default function ServerDetailPage() {
       }
     }
     setIsLoading(false);
-  }, [serverId, logout]);
+  }, [serverId, logout, t]);
 
   useEffect(() => {
     if (!user) {
@@ -53,7 +54,8 @@ export default function ServerDetailPage() {
     }
 
     loadServerData();
-  }, [serverId, user, router, loadServerData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverId, user, router]);
 
   const handleServerAction = async (action: "start" | "stop" | "restart") => {
     if (!server) return;
@@ -252,6 +254,12 @@ export default function ServerDetailPage() {
           >
             Properties
           </button>
+          <button
+            className={`${styles.tab} ${activeTab === "files" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("files")}
+          >
+            Files
+          </button>
         </div>
 
         <div className={styles.content}>
@@ -344,8 +352,10 @@ export default function ServerDetailPage() {
               server={server} 
               onUpdate={(updatedServer) => setServer(updatedServer)} 
             />
-          ) : (
+          ) : activeTab === "properties" ? (
             <ServerPropertiesEditor serverId={server.id} />
+          ) : (
+            <FileExplorer serverId={server.id} />
           )}
         </div>
       </div>
