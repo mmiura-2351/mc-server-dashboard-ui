@@ -99,6 +99,14 @@
 .actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.selectionInfo {
+  margin-right: 8px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
 }
 
 .actionButton {
@@ -122,6 +130,16 @@
   cursor: not-allowed;
 }
 
+.actionButton.danger {
+  color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.actionButton.danger:hover:not(:disabled) {
+  background: #ffebee;
+  border-color: #d32f2f;
+}
+
 .fileList {
   flex: 1;
   background: white;
@@ -133,13 +151,24 @@
 
 .fileListHeader {
   display: grid;
-  grid-template-columns: 1fr 100px 180px;
+  grid-template-columns: 40px 1fr 100px 180px;
   padding: 12px 16px;
   background: #fafafa;
   border-bottom: 1px solid #e0e0e0;
   font-weight: 600;
   font-size: 14px;
   color: #333;
+}
+
+.columnCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.columnCheckbox input[type="checkbox"] {
+  cursor: pointer;
+  margin: 0;
 }
 
 .columnName {
@@ -171,7 +200,7 @@
 
 .fileItem {
   display: grid;
-  grid-template-columns: 1fr 100px 180px;
+  grid-template-columns: 40px 1fr 100px 180px;
   padding: 12px 16px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
@@ -180,6 +209,14 @@
 
 .fileItem:hover {
   background: #f9f9f9;
+}
+
+.fileItem.selected {
+  background: #e3f2fd !important;
+}
+
+.fileItem.selected:hover {
+  background: #bbdefb !important;
 }
 
 .fileItem.directory {
@@ -431,7 +468,7 @@
 
   .fileListHeader,
   .fileItem {
-    grid-template-columns: 1fr 80px 100px;
+    grid-template-columns: 40px 1fr 80px 100px;
   }
 
   .columnDate,
@@ -760,4 +797,13 @@
   border: none;
   border-top: 1px solid #e0e0e0;
   margin: 4px 0;
+}
+
+.contextMenuHeader {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 4px;
 }
