@@ -14,7 +14,6 @@ vi.mock("@/services/files", () => ({
 }));
 
 describe("FileExplorer", () => {
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -22,9 +21,9 @@ describe("FileExplorer", () => {
   test("renders loading state initially", async () => {
     const { listFiles } = await import("@/services/files");
     vi.mocked(listFiles).mockReturnValue(new Promise(() => {})); // Never resolves
-    
+
     render(<FileExplorer serverId={1} />);
-    
+
     expect(screen.getByText("Loading files...")).toBeInTheDocument();
   });
 
@@ -51,7 +50,7 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -62,8 +61,10 @@ describe("FileExplorer", () => {
 
   test("renders error state when file loading fails", async () => {
     const { listFiles } = await import("@/services/files");
-    vi.mocked(listFiles).mockResolvedValue(err({ message: "Failed to load files" }));
-    
+    vi.mocked(listFiles).mockResolvedValue(
+      err({ message: "Failed to load files" })
+    );
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -75,7 +76,7 @@ describe("FileExplorer", () => {
   test("shows empty state when directory is empty", async () => {
     const { listFiles } = await import("@/services/files");
     vi.mocked(listFiles).mockResolvedValue(ok([]));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -107,7 +108,7 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -136,7 +137,7 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -146,7 +147,7 @@ describe("FileExplorer", () => {
     // Click on the non-viewable file
     const fileRow = screen.getByText("server.jar").closest("div");
     expect(fileRow).toBeInTheDocument();
-    
+
     await user.click(fileRow!);
 
     // Check that toast notification appears
@@ -158,7 +159,7 @@ describe("FileExplorer", () => {
   test("opens file viewer when clicking viewable text file", async () => {
     const user = userEvent.setup();
     const { listFiles, readFile } = await import("@/services/files");
-    
+
     const mockFiles: FileSystemItem[] = [
       {
         name: "server.properties",
@@ -178,15 +179,15 @@ describe("FileExplorer", () => {
         name: "server.properties",
         size: 1024,
         modified: "2023-01-01T00:00:00Z",
-        permissions: { read: true, write: true, execute: false }
+        permissions: { read: true, write: true, execute: false },
       },
       is_image: false,
-      image_data: null
+      image_data: null,
     };
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
     vi.mocked(readFile).mockResolvedValue(ok(mockFileContent));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -196,7 +197,7 @@ describe("FileExplorer", () => {
     // Click on the viewable file
     const fileRow = screen.getByText("server.properties").closest("div");
     expect(fileRow).toBeInTheDocument();
-    
+
     await user.click(fileRow!);
 
     // Check that file viewer modal appears with content
@@ -209,7 +210,7 @@ describe("FileExplorer", () => {
   test("navigates to directory when clicking folder", async () => {
     const user = userEvent.setup();
     const { listFiles } = await import("@/services/files");
-    
+
     const rootFiles: FileSystemItem[] = [
       {
         name: "plugins",
@@ -236,7 +237,7 @@ describe("FileExplorer", () => {
     vi.mocked(listFiles)
       .mockResolvedValueOnce(ok(rootFiles))
       .mockResolvedValueOnce(ok(pluginFiles));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -246,7 +247,7 @@ describe("FileExplorer", () => {
     // Click on the directory
     const dirRow = screen.getByText("plugins").closest("div");
     expect(dirRow).toBeInTheDocument();
-    
+
     await user.click(dirRow!);
 
     // Check that we navigated to the plugins directory
@@ -309,7 +310,7 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -328,7 +329,7 @@ describe("FileExplorer", () => {
   test("handles file loading errors gracefully", async () => {
     const user = userEvent.setup();
     const { listFiles, readFile } = await import("@/services/files");
-    
+
     const mockFiles: FileSystemItem[] = [
       {
         name: "server.properties",
@@ -342,8 +343,10 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    vi.mocked(readFile).mockResolvedValue(err({ message: "Permission denied" }));
-    
+    vi.mocked(readFile).mockResolvedValue(
+      err({ message: "Permission denied" })
+    );
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -353,7 +356,7 @@ describe("FileExplorer", () => {
     // Click on the file
     const fileRow = screen.getByText("server.properties").closest("div");
     expect(fileRow).toBeInTheDocument();
-    
+
     await user.click(fileRow!);
 
     // Check that error toast appears
@@ -365,7 +368,7 @@ describe("FileExplorer", () => {
   test("shows loading state for file content without affecting main UI", async () => {
     const user = userEvent.setup();
     const { listFiles, readFile } = await import("@/services/files");
-    
+
     const mockFiles: FileSystemItem[] = [
       {
         name: "server.properties",
@@ -380,7 +383,7 @@ describe("FileExplorer", () => {
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
     vi.mocked(readFile).mockReturnValue(new Promise(() => {})); // Never resolves
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -390,12 +393,12 @@ describe("FileExplorer", () => {
     // Click on the file
     const fileRow = screen.getByText("server.properties").closest("div");
     expect(fileRow).toBeInTheDocument();
-    
+
     await user.click(fileRow!);
 
     // Check that file list is still visible (not replaced by loading state)
     expect(screen.getByText("server.properties")).toBeInTheDocument();
-    
+
     // Check that modal shows loading state
     await waitFor(() => {
       expect(screen.getByText(/Loading/i)).toBeInTheDocument();
@@ -405,7 +408,7 @@ describe("FileExplorer", () => {
   test("displays image files correctly", async () => {
     const user = userEvent.setup();
     const { listFiles, readFile } = await import("@/services/files");
-    
+
     const mockFiles: FileSystemItem[] = [
       {
         name: "minecraft.jpg",
@@ -425,15 +428,16 @@ describe("FileExplorer", () => {
         name: "minecraft.jpg",
         size: 6800,
         modified: "2023-01-01T00:00:00Z",
-        permissions: { read: true, write: true, execute: false }
+        permissions: { read: true, write: true, execute: false },
       },
       is_image: true,
-      image_data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGA"
+      image_data:
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGA",
     };
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
     vi.mocked(readFile).mockResolvedValue(ok(mockImageContent));
-    
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -443,7 +447,7 @@ describe("FileExplorer", () => {
     // Click on the image file
     const fileRow = screen.getByText("minecraft.jpg").closest("div");
     expect(fileRow).toBeInTheDocument();
-    
+
     await user.click(fileRow!);
 
     // Check that image modal appears
@@ -451,14 +455,17 @@ describe("FileExplorer", () => {
       expect(screen.getByText(/🖼️ minecraft.jpg/)).toBeInTheDocument();
       const img = screen.getByAltText("minecraft.jpg");
       expect(img).toBeInTheDocument();
-      expect(img).toHaveAttribute("src", expect.stringContaining("data:image/jpeg;base64,"));
+      expect(img).toHaveAttribute(
+        "src",
+        expect.stringContaining("data:image/jpeg;base64,")
+      );
     });
   });
 
   test("shows toast for download errors instead of page error", async () => {
     const user = userEvent.setup();
     const { listFiles, downloadFile } = await import("@/services/files");
-    
+
     const mockFiles: FileSystemItem[] = [
       {
         name: "server.jar",
@@ -472,8 +479,10 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    vi.mocked(downloadFile).mockResolvedValue(err({ message: "Access denied (403)" }));
-    
+    vi.mocked(downloadFile).mockResolvedValue(
+      err({ message: "Access denied (403)" })
+    );
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -486,7 +495,9 @@ describe("FileExplorer", () => {
 
     // Check that toast error appears instead of page error
     await waitFor(() => {
-      expect(screen.getByText(/Failed to download file: Access denied \(403\)/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Failed to download file: Access denied \(403\)/)
+      ).toBeInTheDocument();
     });
 
     // Ensure file list is still visible (no page error state)
@@ -496,7 +507,7 @@ describe("FileExplorer", () => {
   test("shows toast for delete errors instead of page error", async () => {
     const user = userEvent.setup();
     const { listFiles, deleteFile } = await import("@/services/files");
-    
+
     const mockFiles: FileSystemItem[] = [
       {
         name: "protected.txt",
@@ -510,11 +521,13 @@ describe("FileExplorer", () => {
     ];
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
-    vi.mocked(deleteFile).mockResolvedValue(err({ message: "Permission denied" }));
-    
+    vi.mocked(deleteFile).mockResolvedValue(
+      err({ message: "Permission denied" })
+    );
+
     // Mock window.confirm to return true
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
     render(<FileExplorer serverId={1} />);
 
     await waitFor(() => {
@@ -527,12 +540,14 @@ describe("FileExplorer", () => {
 
     // Check that toast error appears instead of page error
     await waitFor(() => {
-      expect(screen.getByText(/Failed to delete file: Permission denied/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Failed to delete file: Permission denied/)
+      ).toBeInTheDocument();
     });
 
     // Ensure file list is still visible (no page error state)
     expect(screen.getByText("protected.txt")).toBeInTheDocument();
-    
+
     confirmSpy.mockRestore();
   });
 });

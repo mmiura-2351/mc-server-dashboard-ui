@@ -11,17 +11,43 @@ interface FileExplorerProps {
 
 // Viewable file extensions (text files)
 const VIEWABLE_TEXT_EXTENSIONS = [
-  'txt', 'properties', 'yml', 'yaml', 'json', 'log', 'sh', 'bat', 'cfg', 'conf',
-  'xml', 'html', 'css', 'js', 'ts', 'md', 'ini', 'toml', 'env'
+  "txt",
+  "properties",
+  "yml",
+  "yaml",
+  "json",
+  "log",
+  "sh",
+  "bat",
+  "cfg",
+  "conf",
+  "xml",
+  "html",
+  "css",
+  "js",
+  "ts",
+  "md",
+  "ini",
+  "toml",
+  "env",
 ];
 
 // Viewable image extensions
 const VIEWABLE_IMAGE_EXTENSIONS = [
-  'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "bmp",
+  "webp",
+  "svg",
 ];
 
 // All viewable extensions
-const VIEWABLE_EXTENSIONS = [...VIEWABLE_TEXT_EXTENSIONS, ...VIEWABLE_IMAGE_EXTENSIONS];
+const VIEWABLE_EXTENSIONS = [
+  ...VIEWABLE_TEXT_EXTENSIONS,
+  ...VIEWABLE_IMAGE_EXTENSIONS,
+];
 
 export function FileExplorer({ serverId }: FileExplorerProps) {
   const [currentPath, setCurrentPath] = useState("/");
@@ -32,40 +58,46 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const [showFileViewer, setShowFileViewer] = useState(false);
   const [fileContent, setFileContent] = useState<string>("");
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [toast, setToast] = useState<{ message: string; type: 'error' | 'info' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "info";
+  } | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
 
-  const loadFiles = useCallback(async (path: string = currentPath) => {
-    setIsLoading(true);
-    setError(null);
+  const loadFiles = useCallback(
+    async (path: string = currentPath) => {
+      setIsLoading(true);
+      setError(null);
 
-    const result = await fileService.listFiles(serverId, path);
-    
-    if (result.isOk()) {
-      setFiles(result.value);
-    } else {
-      setError(result.error.message || "Failed to load files");
-    }
-    
-    setIsLoading(false);
-  }, [serverId, currentPath]);
+      const result = await fileService.listFiles(serverId, path);
+
+      if (result.isOk()) {
+        setFiles(result.value);
+      } else {
+        setError(result.error.message || "Failed to load files");
+      }
+
+      setIsLoading(false);
+    },
+    [serverId, currentPath]
+  );
 
   useEffect(() => {
     loadFiles();
   }, [loadFiles]);
 
   const isFileViewable = (fileName: string): boolean => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+    const extension = fileName.split(".").pop()?.toLowerCase();
     return extension ? VIEWABLE_EXTENSIONS.includes(extension) : false;
   };
 
   const isImageFile = (fileName: string): boolean => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+    const extension = fileName.split(".").pop()?.toLowerCase();
     return extension ? VIEWABLE_IMAGE_EXTENSIONS.includes(extension) : false;
   };
 
   const _isTextFile = (fileName: string): boolean => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+    const extension = fileName.split(".").pop()?.toLowerCase();
     return extension ? VIEWABLE_TEXT_EXTENSIONS.includes(extension) : false;
   };
 
@@ -78,41 +110,46 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     setIsLoadingFile(false);
   };
 
-  const showToast = (message: string, type: 'error' | 'info' = 'info') => {
+  const showToast = (message: string, type: "error" | "info" = "info") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000); // Auto-hide after 3 seconds
   };
 
   const handleFileClick = async (file: FileSystemItem) => {
     if (file.is_directory) {
-      const newPath = currentPath === "/" ? `/${file.name}` : `${currentPath}/${file.name}`;
+      const newPath =
+        currentPath === "/" ? `/${file.name}` : `${currentPath}/${file.name}`;
       setCurrentPath(newPath);
     } else if (isFileViewable(file.name)) {
       // View file content if it's a viewable file type
       await handleViewFile(file);
     } else {
       // Show toast for non-viewable files
-      const extension = file.name.split('.').pop()?.toLowerCase() || 'unknown';
-      showToast(`Cannot preview ${extension.toUpperCase()} files. Use download to save the file.`, 'info');
+      const extension = file.name.split(".").pop()?.toLowerCase() || "unknown";
+      showToast(
+        `Cannot preview ${extension.toUpperCase()} files. Use download to save the file.`,
+        "info"
+      );
     }
   };
 
   const handleViewFile = async (file: FileSystemItem) => {
     if (file.is_directory) return;
-    
+
     // Immediately show modal with loading state
     setSelectedFile(file);
     setIsLoadingFile(true);
     setFileContent("");
     setImageUrl("");
     setShowFileViewer(true);
-    
-    const filePath = currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+
+    const filePath =
+      currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
     const isImage = isImageFile(file.name);
-    
+
     // Use new API with image flag
     const result = await fileService.readFile(serverId, filePath, isImage);
-    
+
     if (result.isOk()) {
       if (isImage && result.value.is_image && result.value.image_data) {
         // For image files, create data URL from base64 data
@@ -123,7 +160,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         setFileContent(result.value.content);
       }
     } else {
-      showToast(`Failed to load file: ${result.error.message}`, 'error');
+      showToast(`Failed to load file: ${result.error.message}`, "error");
       setShowFileViewer(false);
       setSelectedFile(null);
     }
@@ -135,24 +172,26 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       return;
     }
 
-    const filePath = currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+    const filePath =
+      currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
     const result = await fileService.deleteFile(serverId, filePath);
-    
+
     if (result.isOk()) {
       // Reload files to update the list
       loadFiles();
-      showToast(`Successfully deleted ${file.name}`, 'info');
+      showToast(`Successfully deleted ${file.name}`, "info");
     } else {
-      showToast(`Failed to delete file: ${result.error.message}`, 'error');
+      showToast(`Failed to delete file: ${result.error.message}`, "error");
     }
   };
 
   const handleDownloadFile = async (file: FileSystemItem) => {
     if (file.is_directory) return;
 
-    const filePath = currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+    const filePath =
+      currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
     const result = await fileService.downloadFile(serverId, filePath);
-    
+
     if (result.isOk()) {
       // Create download link
       const url = URL.createObjectURL(result.value);
@@ -163,12 +202,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast(`Successfully downloaded ${file.name}`, 'info');
+      showToast(`Successfully downloaded ${file.name}`, "info");
     } else {
-      showToast(`Failed to download file: ${result.error.message}`, 'error');
+      showToast(`Failed to download file: ${result.error.message}`, "error");
     }
   };
-
 
   const navigateUp = () => {
     if (currentPath === "/") return;
@@ -182,24 +220,44 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     if (file.is_directory) {
       return "📁";
     }
-    
+
     switch (file.type) {
-      case "text": return "📝";
-      case "binary": return "💾";
-      case "other": return "📄";
+      case "text":
+        return "📝";
+      case "binary":
+        return "💾";
+      case "other":
+        return "📄";
       default:
         // Enhanced icon detection based on file extension
         const extension = file.name.split(".").pop()?.toLowerCase();
         switch (extension) {
-          case "properties": return "⚙️";
-          case "yml": case "yaml": return "📄";
-          case "json": return "📋";
-          case "txt": case "log": return "📝";
-          case "jar": return "☕";
-          case "zip": case "tar": case "gz": return "📦";
-          case "png": case "jpg": case "jpeg": case "gif": return "🖼️";
-          case "dat": case "nbt": return "🌍";
-          default: return "📄";
+          case "properties":
+            return "⚙️";
+          case "yml":
+          case "yaml":
+            return "📄";
+          case "json":
+            return "📋";
+          case "txt":
+          case "log":
+            return "📝";
+          case "jar":
+            return "☕";
+          case "zip":
+          case "tar":
+          case "gz":
+            return "📦";
+          case "png":
+          case "jpg":
+          case "jpeg":
+          case "gif":
+            return "🖼️";
+          case "dat":
+          case "nbt":
+            return "🌍";
+          default:
+            return "📄";
         }
     }
   };
@@ -253,20 +311,24 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           >
             🏠 Root
           </button>
-          {currentPath !== "/" && currentPath.split("/").filter(Boolean).map((part, index, parts) => {
-            const path = "/" + parts.slice(0, index + 1).join("/");
-            return (
-              <span key={path}>
-                <span className={styles.breadcrumbSeparator}>/</span>
-                <button
-                  onClick={() => setCurrentPath(path)}
-                  className={`${styles.breadcrumbItem} ${path === currentPath ? styles.active : ""}`}
-                >
-                  {part}
-                </button>
-              </span>
-            );
-          })}
+          {currentPath !== "/" &&
+            currentPath
+              .split("/")
+              .filter(Boolean)
+              .map((part, index, parts) => {
+                const path = "/" + parts.slice(0, index + 1).join("/");
+                return (
+                  <span key={path}>
+                    <span className={styles.breadcrumbSeparator}>/</span>
+                    <button
+                      onClick={() => setCurrentPath(path)}
+                      className={`${styles.breadcrumbItem} ${path === currentPath ? styles.active : ""}`}
+                    >
+                      {part}
+                    </button>
+                  </span>
+                );
+              })}
         </div>
         <div className={styles.actions}>
           <button
@@ -276,10 +338,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           >
             ⬆️ Up
           </button>
-          <button
-            onClick={() => loadFiles()}
-            className={styles.actionButton}
-          >
+          <button onClick={() => loadFiles()} className={styles.actionButton}>
             🔄 Refresh
           </button>
         </div>
@@ -304,7 +363,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 key={file.name}
                 className={`${styles.fileItem} ${file.is_directory ? styles.directory : styles.file} ${styles.clickable}`}
                 onClick={() => handleFileClick(file)}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: "pointer" }}
               >
                 <div className={styles.fileName}>
                   <span className={styles.fileIcon}>{getFileIcon(file)}</span>
@@ -353,11 +412,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h3>{isImageFile(selectedFile.name) ? '🖼️' : '📄'} {selectedFile.name}</h3>
-              <button
-                onClick={closeFileViewer}
-                className={styles.closeButton}
-              >
+              <h3>
+                {isImageFile(selectedFile.name) ? "🖼️" : "📄"}{" "}
+                {selectedFile.name}
+              </h3>
+              <button onClick={closeFileViewer} className={styles.closeButton}>
                 ×
               </button>
             </div>
@@ -375,19 +434,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                       alt={selectedFile.name}
                       className={styles.imageDisplay}
                       onError={() => {
-                        showToast(`Failed to display image: ${selectedFile.name}`, 'error');
+                        showToast(
+                          `Failed to display image: ${selectedFile.name}`,
+                          "error"
+                        );
                       }}
                     />
                   ) : (
-                    <div className={styles.fileLoading}>
-                      Loading image...
-                    </div>
+                    <div className={styles.fileLoading}>Loading image...</div>
                   )}
                 </div>
               ) : (
-                <pre className={styles.fileContentDisplay}>
-                  {fileContent}
-                </pre>
+                <pre className={styles.fileContentDisplay}>{fileContent}</pre>
               )}
             </div>
             <div className={styles.modalFooter}>
@@ -398,10 +456,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               >
                 📥 Download
               </button>
-              <button
-                onClick={closeFileViewer}
-                className={styles.modalButton}
-              >
+              <button onClick={closeFileViewer} className={styles.modalButton}>
                 Close
               </button>
             </div>
@@ -411,7 +466,13 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={toast.type === 'info' ? `${styles.toast} ${styles.toastInfo}` : `${styles.toast} ${styles.toastError}`}>
+        <div
+          className={
+            toast.type === "info"
+              ? `${styles.toast} ${styles.toastInfo}`
+              : `${styles.toast} ${styles.toastError}`
+          }
+        >
           {toast.message}
         </div>
       )}
