@@ -26,11 +26,11 @@ const mockXMLHttpRequest = {
   addEventListener: vi.fn(),
   status: 200,
   responseText: '{"success": true}',
-  onload: null as any,
-  onerror: null as any,
+  onload: null as ((this: XMLHttpRequest, ev: ProgressEvent<XMLHttpRequestEventTarget>) => void) | null,
+  onerror: null as ((this: XMLHttpRequest, ev: ProgressEvent<XMLHttpRequestEventTarget>) => void) | null,
 };
 
-global.XMLHttpRequest = vi.fn(() => mockXMLHttpRequest) as any;
+global.XMLHttpRequest = vi.fn(() => mockXMLHttpRequest) as unknown as typeof XMLHttpRequest;
 
 // Mock localStorage
 Object.defineProperty(window, "localStorage", {
@@ -192,7 +192,7 @@ describe("File service", () => {
       });
 
       setTimeout(() => {
-        mockXMLHttpRequest.onload?.();
+        mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
       }, 0);
 
       const result = await uploadFileWithProgress(1, "/", file);
@@ -222,7 +222,7 @@ describe("File service", () => {
       });
 
       setTimeout(() => {
-        mockXMLHttpRequest.onload?.();
+        mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
       }, 0);
 
       const result = await uploadFileWithProgress(1, "folder/subfolder", file);
@@ -239,7 +239,7 @@ describe("File service", () => {
       mockXMLHttpRequest.responseText = '{"detail": "Upload failed"}';
 
       setTimeout(() => {
-        mockXMLHttpRequest.onload?.();
+        mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
       }, 0);
 
       const result = await uploadFileWithProgress(1, "/", file);
@@ -256,7 +256,7 @@ describe("File service", () => {
       });
 
       setTimeout(() => {
-        mockXMLHttpRequest.onerror?.();
+        mockXMLHttpRequest.onerror?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
       }, 0);
 
       const result = await uploadFileWithProgress(1, "/", file);
@@ -294,7 +294,7 @@ describe("File service", () => {
       mockXMLHttpRequest.send = vi.fn(() => {
         setTimeout(() => {
           mockXMLHttpRequest.status = 200;
-          mockXMLHttpRequest.onload?.();
+          mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
         }, 0);
       });
 
@@ -324,7 +324,7 @@ describe("File service", () => {
         setTimeout(() => {
           mockXMLHttpRequest.status = 500;
           mockXMLHttpRequest.responseText = '{"detail": "Permission denied"}';
-          mockXMLHttpRequest.onload?.();
+          mockXMLHttpRequest.onload?.call(mockXMLHttpRequest as unknown as XMLHttpRequest, {} as ProgressEvent<XMLHttpRequestEventTarget>);
         }, 0);
       });
 

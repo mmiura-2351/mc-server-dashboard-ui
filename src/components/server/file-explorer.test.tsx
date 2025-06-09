@@ -1833,7 +1833,7 @@ describe("FileExplorer", () => {
         download: "",
         click: vi.fn(),
         style: { display: "" },
-      } as any;
+      } as unknown as HTMLAnchorElement;
 
       const originalCreateElement = document.createElement;
       const originalAppendChild = document.body.appendChild;
