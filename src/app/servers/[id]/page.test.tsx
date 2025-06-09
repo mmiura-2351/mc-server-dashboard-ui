@@ -3,34 +3,30 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ServerDetailPage from "./page";
 import * as serverService from "@/services/server";
+import { useAuth } from "@/contexts/auth";
 import { ok, err } from "neverthrow";
 import { ServerStatus, ServerType } from "@/types/server";
 
 // Mock Next.js router
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 const mockParams = { id: "1" };
 
 vi.mock("next/navigation", () => ({
   useParams: () => mockParams,
   useRouter: () => ({
     push: mockPush,
+    replace: mockReplace,
   }),
   usePathname: () => "/servers/1",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 // Mock the auth context
 const mockLogout = vi.fn();
-const mockAuthContext = {
-  user: { id: 1, username: "admin", email: "admin@example.com", is_approved: true },
-  isLoading: false,
-  login: vi.fn(),
-  register: vi.fn(),
-  logout: mockLogout,
-  isAuthenticated: true,
-};
 
 vi.mock("@/contexts/auth", () => ({
-  useAuth: () => mockAuthContext,
+  useAuth: vi.fn(),
 }));
 
 // Mock the language context with translations
@@ -108,6 +104,20 @@ vi.mock("@/components/server/server-properties", () => ({
 
 describe("ServerDetailPage", () => {
   const user = userEvent.setup();
+
+  // Default auth context
+  const mockAuthContext = {
+    user: { id: 1, username: "admin", email: "admin@example.com", is_approved: true },
+    isLoading: false, // This is for auth loading state
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: mockLogout,
+    isAuthenticated: true,
+    updateUserInfo: vi.fn(),
+    updatePassword: vi.fn(),
+    deleteAccount: vi.fn(),
+    refreshUser: vi.fn(),
+  };
   const mockServer = {
     id: 1,
     name: "Test Server",
@@ -129,7 +139,8 @@ describe("ServerDetailPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (mockAuthContext as any).user = { id: 1, username: "admin", email: "admin@example.com", is_approved: true };
+    // Reset auth context to default authenticated state
+    vi.mocked(useAuth).mockReturnValue(mockAuthContext);
     // Reset all mocks to avoid cross-test interference
     vi.mocked(serverService.getServer).mockReset();
     vi.mocked(serverService.startServer).mockReset();
@@ -372,7 +383,15 @@ describe("ServerDetailPage", () => {
   });
 
   test("should redirect to home if user is not authenticated", () => {
-    (mockAuthContext as any).user = null;
+    // Create a new auth context with user as null and auth loading as false
+    const unauthenticatedContext = {
+      ...mockAuthContext,
+      user: null,
+      isLoading: false, // Auth loading must be false for redirect to happen
+      isAuthenticated: false,
+    };
+    
+    vi.mocked(useAuth).mockReturnValue(unauthenticatedContext);
     vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
 
     render(<ServerDetailPage />);
