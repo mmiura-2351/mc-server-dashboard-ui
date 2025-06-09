@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ok, err } from "neverthrow";
 import { FileExplorer } from "./file-explorer";
@@ -12,6 +12,8 @@ vi.mock("@/services/files", () => ({
   writeFile: vi.fn(),
   deleteFile: vi.fn(),
   downloadFile: vi.fn(),
+  uploadMultipleFiles: vi.fn(),
+  uploadFolderStructure: vi.fn(),
 }));
 
 describe("FileExplorer", () => {
@@ -824,6 +826,153 @@ describe("FileExplorer", () => {
     await waitFor(() => {
       expect(screen.getByText(/🖼️ image.png/)).toBeInTheDocument();
       expect(screen.queryByText("✏️ Edit")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Upload functionality", () => {
+    test("shows upload buttons in toolbar", async () => {
+      const { listFiles } = await import("@/services/files");
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("📁 Upload Files")).toBeInTheDocument();
+        expect(screen.getByText("📂 Upload Folder")).toBeInTheDocument();
+      });
+    });
+
+    test("handles successful file upload", async () => {
+      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
+      
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+      vi.mocked(uploadMultipleFiles).mockResolvedValue(ok({
+        successful: ["test.txt"],
+        failed: []
+      }));
+
+      render(<FileExplorer serverId={1} />);
+
+      // Wait for initial load
+      await waitFor(() => {
+        expect(screen.getByText("📁 Upload Files")).toBeInTheDocument();
+      });
+
+      // Create a mock file
+      const file = new File(["test content"], "test.txt", { type: "text/plain" });
+      
+      // Get the hidden file input and trigger change
+      const fileInput = document.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      expect(fileInput).toBeInTheDocument();
+
+      // Mock the file input's files property
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+        writable: false,
+      });
+
+      // Trigger the change event
+      fireEvent.change(fileInput);
+
+      // Check that upload was called
+      await waitFor(() => {
+        expect(uploadMultipleFiles).toHaveBeenCalledWith(
+          1,
+          "/",
+          [file],
+          expect.any(Function)
+        );
+      });
+    });
+
+    test("shows upload progress modal during upload", async () => {
+      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
+      
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+      
+      // Mock a slow upload
+      vi.mocked(uploadMultipleFiles).mockImplementation(() => 
+        new Promise(resolve => {
+          setTimeout(() => resolve(ok({ successful: ["test.txt"], failed: [] })), 100);
+        })
+      );
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("📁 Upload Files")).toBeInTheDocument();
+      });
+
+      const file = new File(["test content"], "test.txt", { type: "text/plain" });
+      const fileInput = document.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+        writable: false,
+      });
+
+      fireEvent.change(fileInput);
+
+      // Check that upload modal appears
+      await waitFor(() => {
+        expect(screen.getByText("📤 Upload Progress")).toBeInTheDocument();
+      });
+    });
+
+    test("handles upload errors gracefully", async () => {
+      const { listFiles, uploadMultipleFiles } = await import("@/services/files");
+      
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+      vi.mocked(uploadMultipleFiles).mockResolvedValue(ok({
+        successful: [],
+        failed: [{ file: "test.txt", error: "Upload failed" }]
+      }));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("📁 Upload Files")).toBeInTheDocument();
+      });
+
+      const file = new File(["test content"], "test.txt", { type: "text/plain" });
+      const fileInput = document.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+        writable: false,
+      });
+
+      fireEvent.change(fileInput);
+
+      // Check that error is shown
+      await waitFor(() => {
+        expect(screen.getByText(/0 files, 1 failed/)).toBeInTheDocument();
+      });
+    });
+
+    test("shows drag and drop hint when dragging over", async () => {
+      const { listFiles } = await import("@/services/files");
+      vi.mocked(listFiles).mockResolvedValue(ok([]));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("This directory is empty")).toBeInTheDocument();
+      });
+
+      const container = screen.getByText("This directory is empty").closest('div');
+      expect(container).toBeTruthy();
+
+      // Simulate drag enter
+      fireEvent.dragEnter(container!, {
+        dataTransfer: {
+          items: [{ kind: 'file' }]
+        }
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("Drop files or folders here to upload")).toBeInTheDocument();
+      });
     });
   });
 });

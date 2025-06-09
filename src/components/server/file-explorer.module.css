@@ -534,3 +534,220 @@
     opacity: 1;
   }
 }
+
+/* Upload and drag & drop styles */
+.dragOver {
+  background: rgba(25, 118, 210, 0.05);
+  border: 2px dashed #1976d2;
+  border-radius: 8px;
+}
+
+.dropOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(25, 118, 210, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.dropHint {
+  background: rgba(25, 118, 210, 0.9);
+  color: white;
+  padding: 24px 32px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  animation: bounceIn 0.3s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Upload progress modal styles */
+.uploadOverallProgress {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.uploadOverallProgress p {
+  margin: 0 0 12px 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.overallProgressBar {
+  width: 100%;
+  height: 12px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.overallProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #1976d2, #42a5f5);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.uploadFileList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.uploadFileItem {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: white;
+}
+
+.uploadFileName {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.uploadFileName span:first-child {
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  margin-right: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.uploadFileProgress {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.uploadProgressBar {
+  width: 100%;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.uploadProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #1976d2, #42a5f5);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.uploadFileSize {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+}
+
+.uploadSection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.uploadSectionTitle {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.uploadCompletedItem {
+  padding: 8px 12px;
+  background: #e8f5e8;
+  border: 1px solid #c8e6c9;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #2e7d32;
+}
+
+.uploadFailedItem {
+  padding: 8px 12px;
+  background: #ffeaea;
+  border: 1px solid #ffcdd2;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.uploadFailedFile {
+  font-weight: 500;
+  color: #d32f2f;
+  margin-bottom: 4px;
+}
+
+.uploadFailedError {
+  color: #666;
+  font-size: 12px;
+}
+
+/* Enhanced file list for better upload UX */
+.fileListBody {
+  position: relative;
+}
+
+/* Responsive improvements for upload UI */
+@media (max-width: 768px) {
+  .actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .actionButton {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .uploadFileItem {
+    padding: 8px;
+  }
+
+  .uploadFileName {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .uploadFileProgress {
+    align-self: flex-end;
+  }
+
+  .dropHint {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+}

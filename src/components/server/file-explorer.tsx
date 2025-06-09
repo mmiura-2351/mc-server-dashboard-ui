@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
 import styles from "./file-explorer.module.css";
@@ -49,6 +49,21 @@ const VIEWABLE_EXTENSIONS = [
   ...VIEWABLE_IMAGE_EXTENSIONS,
 ];
 
+// Upload types
+interface UploadProgress {
+  filename: string;
+  percentage: number;
+  loaded: number;
+  total: number;
+}
+
+interface UploadState {
+  isUploading: boolean;
+  progress: UploadProgress[];
+  completed: string[];
+  failed: { file: string; error: string }[];
+}
+
 export function FileExplorer({ serverId }: FileExplorerProps) {
   const [currentPath, setCurrentPath] = useState("/");
   const [files, setFiles] = useState<FileSystemItem[]>([]);
@@ -66,6 +81,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Upload state
+  const [uploadState, setUploadState] = useState<UploadState>({
+    isUploading: false,
+    progress: [],
+    completed: [],
+    failed: [],
+  });
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  
+  // File input refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const loadFiles = useCallback(
     async (path: string = currentPath) => {
@@ -249,6 +278,218 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     setIsSaving(false);
   };
 
+  // Upload handlers
+  const resetUploadState = () => {
+    setUploadState({
+      isUploading: false,
+      progress: [],
+      completed: [],
+      failed: [],
+    });
+  };
+
+  const updateUploadProgress = (filename: string, progress: Omit<UploadProgress, 'filename'>) => {
+    setUploadState(prev => ({
+      ...prev,
+      progress: prev.progress.map(p => 
+        p.filename === filename 
+          ? { ...p, ...progress }
+          : p
+      ),
+    }));
+  };
+
+  const handleFileUpload = async (files: File[], isFolder = false) => {
+    if (files.length === 0) return;
+
+    // Initialize upload state
+    setUploadState({
+      isUploading: true,
+      progress: Array.from(files).map(file => ({
+        filename: isFolder ? (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name : file.name,
+        percentage: 0,
+        loaded: 0,
+        total: file.size,
+      })),
+      completed: [],
+      failed: [],
+    });
+    setShowUploadModal(true);
+
+    try {
+      const fileArray = Array.from(files);
+      const progressCallback = (progress: fileService.UploadProgressCallback extends (arg: infer P) => void ? P : never) => {
+        updateUploadProgress(progress.filename, {
+          percentage: progress.percentage,
+          loaded: progress.loaded,
+          total: progress.total,
+        });
+      };
+
+      let result;
+      if (isFolder) {
+        result = await fileService.uploadFolderStructure(
+          serverId,
+          currentPath,
+          fileArray,
+          progressCallback
+        );
+      } else {
+        result = await fileService.uploadMultipleFiles(
+          serverId,
+          currentPath,
+          fileArray,
+          progressCallback
+        );
+      }
+
+      if (result.isOk()) {
+        setUploadState(prev => ({
+          ...prev,
+          isUploading: false,
+          completed: result.value.successful,
+          failed: result.value.failed,
+        }));
+
+        // Refresh file list
+        await loadFiles();
+
+        if (result.value.failed.length === 0) {
+          showToast(`Successfully uploaded ${result.value.successful.length} ${isFolder ? 'files' : 'files'}`, "info");
+        } else {
+          showToast(
+            `Uploaded ${result.value.successful.length} files, ${result.value.failed.length} failed`,
+            result.value.successful.length > 0 ? "info" : "error"
+          );
+        }
+      } else {
+        setUploadState(prev => ({
+          ...prev,
+          isUploading: false,
+          failed: [{ file: 'Upload process', error: result.error.message }],
+        }));
+        showToast(`Upload failed: ${result.error.message}`, "error");
+      }
+    } catch (error) {
+      setUploadState(prev => ({
+        ...prev,
+        isUploading: false,
+        failed: [{ file: 'Upload process', error: error instanceof Error ? error.message : 'Unknown error' }],
+      }));
+      showToast(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`, "error");
+    }
+  };
+
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      handleFileUpload(Array.from(files), false);
+    }
+    // Reset input value to allow re-selecting the same files
+    event.target.value = '';
+  };
+
+  const handleFolderInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      handleFileUpload(Array.from(files), true);
+    }
+    // Reset input value to allow re-selecting the same folder
+    event.target.value = '';
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only set drag over to false if we're leaving the container entirely
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const items = Array.from(e.dataTransfer.items);
+    let isFolder = false;
+
+    // Check if any items are directories
+    for (const item of items) {
+      if (item.webkitGetAsEntry?.()?.isDirectory) {
+        isFolder = true;
+        break;
+      }
+    }
+
+    // Process files or folders
+    if (isFolder) {
+      // Handle folder drop
+      const processEntry = async (entry: FileSystemEntry): Promise<File[]> => {
+        const entryFiles: File[] = [];
+        
+        if (entry.isFile) {
+          return new Promise((resolve) => {
+            (entry as FileSystemFileEntry).file((file: File) => {
+              // Add webkitRelativePath for folder structure
+              Object.defineProperty(file, 'webkitRelativePath', {
+                value: entry.fullPath.substring(1), // Remove leading slash
+                writable: false,
+              });
+              resolve([file]);
+            });
+          });
+        } else if (entry.isDirectory) {
+          const reader = (entry as FileSystemDirectoryEntry).createReader();
+          return new Promise((resolve) => {
+            reader.readEntries(async (entries: FileSystemEntry[]) => {
+              for (const subEntry of entries) {
+                const subFiles = await processEntry(subEntry);
+                entryFiles.push(...subFiles);
+              }
+              resolve(entryFiles);
+            });
+          });
+        }
+        return [];
+      };
+
+      Promise.all(items.map(item => {
+        const entry = item.webkitGetAsEntry();
+        return entry ? processEntry(entry) : [];
+      })).then(fileArrays => {
+        const allFiles = fileArrays.flat();
+        if (allFiles.length > 0) {
+          handleFileUpload(allFiles, true);
+        }
+      });
+    } else {
+      // Handle file drop
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length > 0) {
+        handleFileUpload(droppedFiles, false);
+      }
+    }
+  };
+
   const navigateUp = () => {
     if (currentPath === "/") return;
     const pathParts = currentPath.split("/").filter(Boolean);
@@ -343,7 +584,29 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   }
 
   return (
-    <div className={styles.container}>
+    <div 
+      className={`${styles.container} ${isDragOver ? styles.dragOver : ''}`}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        style={{ display: 'none' }}
+        onChange={handleFileInputChange}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        {...({ webkitdirectory: "", directory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
+        style={{ display: 'none' }}
+        onChange={handleFolderInputChange}
+      />
+
       <div className={styles.toolbar}>
         <div className={styles.breadcrumb}>
           <button
@@ -373,6 +636,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         </div>
         <div className={styles.actions}>
           <button
+            onClick={() => fileInputRef.current?.click()}
+            className={styles.actionButton}
+            disabled={uploadState.isUploading}
+          >
+            📁 Upload Files
+          </button>
+          <button
+            onClick={() => folderInputRef.current?.click()}
+            className={styles.actionButton}
+            disabled={uploadState.isUploading}
+          >
+            📂 Upload Folder
+          </button>
+          <button
             onClick={navigateUp}
             disabled={currentPath === "/"}
             className={styles.actionButton}
@@ -396,9 +673,21 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         {files.length === 0 ? (
           <div className={styles.emptyState}>
             <p>This directory is empty</p>
+            {isDragOver && (
+              <div className={styles.dropHint}>
+                <p>Drop files or folders here to upload</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className={styles.fileListBody}>
+            {isDragOver && (
+              <div className={styles.dropOverlay}>
+                <div className={styles.dropHint}>
+                  <p>📁 Drop files or folders here to upload</p>
+                </div>
+              </div>
+            )}
             {files.map((file) => (
               <div
                 key={file.name}
@@ -541,6 +830,101 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Progress Modal */}
+      {showUploadModal && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>📤 Upload Progress</h3>
+              <button 
+                onClick={() => setShowUploadModal(false)} 
+                className={styles.closeButton}
+                disabled={uploadState.isUploading}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              {uploadState.isUploading && (
+                <div className={styles.uploadOverallProgress}>
+                  <p>Uploading files...</p>
+                  <div className={styles.overallProgressBar}>
+                    <div 
+                      className={styles.overallProgressFill}
+                      style={{ 
+                        width: `${
+                          uploadState.progress.length > 0 
+                            ? uploadState.progress.reduce((sum, p) => sum + p.percentage, 0) / uploadState.progress.length 
+                            : 0
+                        }%` 
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className={styles.uploadFileList}>
+                {uploadState.progress.map((progress) => (
+                  <div key={progress.filename} className={styles.uploadFileItem}>
+                    <div className={styles.uploadFileName}>
+                      <span>{progress.filename}</span>
+                      <span className={styles.uploadFileProgress}>
+                        {progress.percentage}%
+                      </span>
+                    </div>
+                    <div className={styles.uploadProgressBar}>
+                      <div 
+                        className={styles.uploadProgressFill}
+                        style={{ width: `${progress.percentage}%` }}
+                      />
+                    </div>
+                    <div className={styles.uploadFileSize}>
+                      {formatFileSize(progress.loaded)} / {formatFileSize(progress.total)}
+                    </div>
+                  </div>
+                ))}
+
+                {uploadState.completed.length > 0 && (
+                  <div className={styles.uploadSection}>
+                    <h4 className={styles.uploadSectionTitle}>✅ Completed ({uploadState.completed.length})</h4>
+                    {uploadState.completed.map((filename) => (
+                      <div key={filename} className={styles.uploadCompletedItem}>
+                        {filename}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {uploadState.failed.length > 0 && (
+                  <div className={styles.uploadSection}>
+                    <h4 className={styles.uploadSectionTitle}>❌ Failed ({uploadState.failed.length})</h4>
+                    {uploadState.failed.map((failure) => (
+                      <div key={failure.file} className={styles.uploadFailedItem}>
+                        <div className={styles.uploadFailedFile}>{failure.file}</div>
+                        <div className={styles.uploadFailedError}>{failure.error}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              {!uploadState.isUploading && (
+                <button 
+                  onClick={() => {
+                    resetUploadState();
+                    setShowUploadModal(false);
+                  }}
+                  className={styles.modalButton}
+                >
+                  Close
+                </button>
+              )}
             </div>
           </div>
         </div>
