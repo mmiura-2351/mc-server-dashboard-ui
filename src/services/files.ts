@@ -209,12 +209,12 @@ export async function uploadFile(
   const formData = new FormData();
   formData.append("file", file);
 
-  // Add path parameter if not root
+  // Add destination_path parameter if not root
   if (targetPath && targetPath !== "/") {
     const cleanPath = targetPath.startsWith("/")
       ? targetPath.slice(1)
       : targetPath;
-    formData.append("path", cleanPath);
+    formData.append("destination_path", cleanPath);
   }
 
   const result = await fetchEmpty(
@@ -321,12 +321,12 @@ export async function uploadFileWithProgress(
       formData.append("file", file);
     }
 
-    // Add path parameter if not root
+    // Add destination_path parameter if not root
     if (targetPath && targetPath !== "/") {
       const cleanPath = targetPath.startsWith("/")
         ? targetPath.slice(1)
         : targetPath;
-      formData.append("path", cleanPath);
+      formData.append("destination_path", cleanPath);
     }
 
     const xhr = new XMLHttpRequest();
@@ -451,18 +451,9 @@ export async function uploadFolderStructure(
         (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
         file.name;
 
-      // Calculate the correct target path for this file
-      let fileTargetPath: string;
-      if (relativePath.includes("/")) {
-        // File has a directory structure - extract the directory part
-        const pathParts = relativePath.split("/");
-        const fileDir = pathParts.slice(0, -1).join("/");
-        fileTargetPath =
-          targetPath === "/" ? fileDir : `${targetPath}/${fileDir}`;
-      } else {
-        // File is in the root of the uploaded folder
-        fileTargetPath = targetPath;
-      }
+      // For folder uploads, use the original targetPath as destination
+      // The file structure is preserved via webkitRelativePath in the filename
+      const fileTargetPath = targetPath;
 
       try {
         const fileProgressCallback = onProgress
