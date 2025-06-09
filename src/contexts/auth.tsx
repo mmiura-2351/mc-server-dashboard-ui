@@ -56,54 +56,69 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
+    const cachedUserData = localStorage.getItem("user_data");
 
     if (!token) {
       setIsLoading(false);
       return;
     }
 
+    // Try to restore user from cache first for better UX
+    if (cachedUserData) {
+      try {
+        const parsedUser = JSON.parse(cachedUserData);
+        setUser(parsedUser);
+      } catch {
+        // Invalid cached data, remove it
+        localStorage.removeItem("user_data");
+      }
+    }
+
     const loadUser = async () => {
       const result = await authService.getCurrentUser(token);
       if (result.isOk()) {
         setUser(result.value);
-      } else if (result.error.status === 401 && refreshToken) {
-        // Try to refresh the token
-        const refreshResult = await authService.refreshToken({
-          refresh_token: refreshToken,
-        });
-        if (refreshResult.isOk()) {
-          const { access_token, refresh_token: newRefreshToken } =
-            refreshResult.value;
-          localStorage.setItem("access_token", access_token);
-          localStorage.setItem("refresh_token", newRefreshToken);
-
-          // Try to get user with new token
-          const userResult = await authService.getCurrentUser(access_token);
-          if (userResult.isOk()) {
-            setUser(userResult.value);
-          } else {
-            // Clear all tokens if still failed
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-            localStorage.removeItem("user_data");
-          }
-        } else {
-          // Refresh failed, clear all tokens
+        localStorage.setItem("user_data", JSON.stringify(result.value));
+      } else {
+        // If getCurrentUser fails, the API service will handle token refresh automatically
+        // If refresh fails, it will dispatch authLogout event
+        if (result.error.status === 401) {
+          // Clear local state, but let API service handle the refresh logic
           localStorage.removeItem("access_token");
           localStorage.removeItem("refresh_token");
           localStorage.removeItem("user_data");
+          setUser(null);
         }
-      } else {
-        // Other error, clear tokens
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user_data");
       }
       setIsLoading(false);
     };
 
     loadUser();
+
+    // Listen for automatic token refresh events from API service
+    const handleTokenRefresh = (event: CustomEvent) => {
+      const { access_token } = event.detail;
+      // Refresh user data with new token
+      authService.getCurrentUser(access_token).then((result) => {
+        if (result.isOk()) {
+          setUser(result.value);
+          localStorage.setItem("user_data", JSON.stringify(result.value));
+        }
+      });
+    };
+
+    // Listen for automatic logout events from API service
+    const handleAuthLogout = () => {
+      setUser(null);
+    };
+
+    window.addEventListener('tokenRefresh', handleTokenRefresh as EventListener);
+    window.addEventListener('authLogout', handleAuthLogout);
+
+    return () => {
+      window.removeEventListener('tokenRefresh', handleTokenRefresh as EventListener);
+      window.removeEventListener('authLogout', handleAuthLogout);
+    };
   }, []);
 
   const login = async (

@@ -5,6 +5,9 @@ import type {
   RefreshTokenResponse,
 } from "@/types/auth";
 
+// Global refresh token promise to prevent multiple simultaneous refresh attempts
+let refreshPromise: Promise<Result<RefreshTokenResponse, AuthError>> | null = null;
+
 interface ValidationError {
   loc: string[];
   msg: string;
@@ -128,7 +131,7 @@ async function fetchWithErrorHandlingInternal<T>(
   }
 }
 
-async function refreshToken(
+async function refreshTokenSingle(
   refreshTokenData: RefreshTokenRequest
 ): Promise<Result<RefreshTokenResponse, AuthError>> {
   return fetchWithErrorHandlingInternal<RefreshTokenResponse>(
@@ -138,6 +141,27 @@ async function refreshToken(
       body: JSON.stringify(refreshTokenData),
     }
   );
+}
+
+// Centralized refresh token function that prevents multiple simultaneous refresh attempts
+async function refreshToken(
+  refreshTokenValue: string
+): Promise<Result<RefreshTokenResponse, AuthError>> {
+  // If there's already a refresh in progress, wait for it
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  // Start new refresh
+  refreshPromise = refreshTokenSingle({ refresh_token: refreshTokenValue });
+  
+  // Wait for the result
+  const result = await refreshPromise;
+  
+  // Clear the promise regardless of success/failure
+  refreshPromise = null;
+  
+  return result;
 }
 
 // Enhanced fetch function with automatic token refresh
@@ -170,9 +194,7 @@ export async function fetchWithErrorHandling<T>(
   ) {
     const refreshTokenValue = localStorage.getItem("refresh_token");
     if (refreshTokenValue) {
-      const refreshResult = await refreshToken({
-        refresh_token: refreshTokenValue,
-      });
+      const refreshResult = await refreshToken(refreshTokenValue);
 
       if (refreshResult.isOk()) {
         // Update stored tokens
@@ -180,6 +202,11 @@ export async function fetchWithErrorHandling<T>(
           refreshResult.value;
         localStorage.setItem("access_token", access_token);
         localStorage.setItem("refresh_token", newRefreshToken);
+
+        // Dispatch custom event to notify other parts of the app about token refresh
+        window.dispatchEvent(new CustomEvent('tokenRefresh', {
+          detail: { access_token, refresh_token: newRefreshToken }
+        }));
 
         // Retry the original request with new token
         const newHeaders = {
@@ -194,10 +221,13 @@ export async function fetchWithErrorHandling<T>(
 
         return fetchWithErrorHandlingInternal<T>(url, newOptions);
       } else {
-        // Refresh failed, clear tokens
+        // Refresh failed, clear tokens and notify app
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("user_data");
+        
+        // Dispatch logout event to notify AuthContext
+        window.dispatchEvent(new CustomEvent('authLogout'));
       }
     }
   }
