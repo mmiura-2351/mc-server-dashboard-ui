@@ -450,23 +450,57 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           return new Promise((resolve) => {
             (entry as FileSystemFileEntry).file((file: File) => {
               // Add webkitRelativePath for folder structure
-              Object.defineProperty(file, 'webkitRelativePath', {
-                value: entry.fullPath.substring(1), // Remove leading slash
-                writable: false,
+              // The fullPath already contains the complete path from the root of the dropped folder
+              const relativePath = entry.fullPath.startsWith('/') ? entry.fullPath.substring(1) : entry.fullPath;
+              
+              // Create a new File object with the webkitRelativePath property
+              const newFile = new File([file], file.name, {
+                type: file.type,
+                lastModified: file.lastModified,
               });
-              resolve([file]);
+              
+              Object.defineProperty(newFile, 'webkitRelativePath', {
+                value: relativePath,
+                writable: false,
+                enumerable: true,
+                configurable: false,
+              });
+              
+              resolve([newFile]);
             });
           });
         } else if (entry.isDirectory) {
           const reader = (entry as FileSystemDirectoryEntry).createReader();
           return new Promise((resolve) => {
-            reader.readEntries(async (entries: FileSystemEntry[]) => {
-              for (const subEntry of entries) {
-                const subFiles = await processEntry(subEntry);
-                entryFiles.push(...subFiles);
+            const readAllEntries = async () => {
+              let allEntries: FileSystemEntry[] = [];
+              
+              const readBatch = () => {
+                return new Promise<FileSystemEntry[]>((batchResolve) => {
+                  reader.readEntries((entries) => {
+                    batchResolve(entries);
+                  });
+                });
+              };
+              
+              // Read entries in batches (directories with many files may require multiple calls)
+              let entries = await readBatch();
+              while (entries.length > 0) {
+                allEntries = allEntries.concat(entries);
+                entries = await readBatch();
               }
-              resolve(entryFiles);
-            });
+              
+              // Process all entries
+              const allFiles: File[] = [];
+              for (const subEntry of allEntries) {
+                const subFiles = await processEntry(subEntry);
+                allFiles.push(...subFiles);
+              }
+              
+              resolve(allFiles);
+            };
+            
+            readAllEntries();
           });
         }
         return [];
@@ -478,6 +512,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       })).then(fileArrays => {
         const allFiles = fileArrays.flat();
         if (allFiles.length > 0) {
+          // Debug: Log the webkitRelativePath of each file to ensure proper structure
+          console.log('Drag & Drop files with paths:', allFiles.map(f => ({
+            name: f.name,
+            webkitRelativePath: (f as File & { webkitRelativePath?: string }).webkitRelativePath
+          })));
           handleFileUpload(allFiles, true);
         }
       });

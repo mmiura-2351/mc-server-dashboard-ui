@@ -343,6 +343,7 @@ export async function uploadFolderStructure(
   for (const file of files) {
     // Extract directory path from file.webkitRelativePath
     const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
+    console.log(`Processing file: ${file.name}, webkitRelativePath: ${relativePath}`);
     const pathParts = relativePath.split('/');
     
     if (pathParts.length > 1) {
@@ -380,9 +381,18 @@ export async function uploadFolderStructure(
   for (const [dirPath, dirFiles] of filesByDir.entries()) {
     for (const file of dirFiles) {
       const relativePath = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
-      const fileTargetPath = targetPath === '/' ? 
-        (dirPath ? dirPath : '') : 
-        (dirPath ? `${targetPath}/${dirPath}` : targetPath);
+      
+      // Calculate the target path more carefully
+      let fileTargetPath: string;
+      if (relativePath.includes('/')) {
+        // File has a directory structure - extract the directory part
+        const pathParts = relativePath.split('/');
+        const fileDir = pathParts.slice(0, -1).join('/');
+        fileTargetPath = targetPath === '/' ? fileDir : `${targetPath}/${fileDir}`;
+      } else {
+        // File is in the root of the uploaded folder
+        fileTargetPath = targetPath;
+      }
 
       try {
         const fileProgressCallback = onProgress ? (loaded: number, total: number) => {
