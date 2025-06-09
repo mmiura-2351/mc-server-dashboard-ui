@@ -41,7 +41,8 @@ const translations: Record<string, string> = {
   "servers.serverInformation": "Server Information",
   "servers.serverActions": "Server Actions",
   "servers.description": "Description",
-  "servers.deleteConfirmation": "Are you sure you want to delete this server? This action cannot be undone.",
+  "servers.deleteConfirmation":
+    "Are you sure you want to delete this server? This action cannot be undone.",
   "servers.status.running": "Running",
   "servers.status.stopped": "Stopped",
   "servers.status.starting": "Starting...",
@@ -108,13 +109,13 @@ describe("ServerDetailPage", () => {
 
   // Default auth context
   const mockAuthContext = {
-    user: { 
-      id: 1, 
-      username: "admin", 
-      email: "admin@example.com", 
+    user: {
+      id: 1,
+      username: "admin",
+      email: "admin@example.com",
       is_approved: true,
       is_active: true,
-      role: Role.ADMIN
+      role: Role.ADMIN,
     },
     isLoading: false, // This is for auth loading state
     login: vi.fn(),
@@ -175,7 +176,9 @@ describe("ServerDetailPage", () => {
     // Wait for server data to load and tabs to appear
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Information" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Information" })
+      ).toBeInTheDocument();
     });
 
     // Check that Information tab is active
@@ -198,9 +201,11 @@ describe("ServerDetailPage", () => {
     // Wait for server data to load and tabs to appear
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Properties" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Properties" })
+      ).toBeInTheDocument();
     });
-    
+
     const propertiesTab = screen.getByRole("button", { name: "Properties" });
     await user.click(propertiesTab);
 
@@ -209,7 +214,9 @@ describe("ServerDetailPage", () => {
 
     // Check that properties editor is rendered
     expect(screen.getByTestId("server-properties-editor")).toBeInTheDocument();
-    expect(screen.getByText("Properties Editor for Server 1")).toBeInTheDocument();
+    expect(
+      screen.getByText("Properties Editor for Server 1")
+    ).toBeInTheDocument();
   });
 
   test("should show appropriate action buttons based on server status", async () => {
@@ -224,9 +231,15 @@ describe("ServerDetailPage", () => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: "Start Server" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Stop Server" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Restart Server" })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Start Server" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Stop Server" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Restart Server" })
+    ).not.toBeInTheDocument();
   });
 
   test("should show stop and restart buttons for running server", async () => {
@@ -238,12 +251,20 @@ describe("ServerDetailPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Stop Server" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Stop Server" })
+      ).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole("button", { name: "Start Server" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Stop Server" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Restart Server" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Start Server" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Stop Server" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Restart Server" })
+    ).toBeInTheDocument();
   });
 
   test("should handle start server action", async () => {
@@ -255,7 +276,9 @@ describe("ServerDetailPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Start Server" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Start Server" })
+      ).toBeInTheDocument();
     });
 
     const startButton = screen.getByRole("button", { name: "Start Server" });
@@ -273,7 +296,9 @@ describe("ServerDetailPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Stop Server" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Stop Server" })
+      ).toBeInTheDocument();
     });
 
     const stopButton = screen.getByRole("button", { name: "Stop Server" });
@@ -291,10 +316,14 @@ describe("ServerDetailPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Restart Server" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Restart Server" })
+      ).toBeInTheDocument();
     });
 
-    const restartButton = screen.getByRole("button", { name: "Restart Server" });
+    const restartButton = screen.getByRole("button", {
+      name: "Restart Server",
+    });
     await user.click(restartButton);
 
     expect(serverService.restartServer).toHaveBeenCalledWith(1);
@@ -354,7 +383,7 @@ describe("ServerDetailPage", () => {
     // Clear all previous mocks to avoid interference
     vi.mocked(serverService.getServer).mockReset();
     vi.mocked(serverService.startServer).mockReset();
-    
+
     const stoppedServer = { ...mockServer, status: "stopped" as ServerStatus };
     vi.mocked(serverService.getServer).mockResolvedValue(ok(stoppedServer));
     vi.mocked(serverService.startServer).mockResolvedValue(
@@ -365,7 +394,9 @@ describe("ServerDetailPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Start Server" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Start Server" })
+      ).toBeInTheDocument();
     });
 
     const startButton = screen.getByRole("button", { name: "Start Server" });
@@ -384,7 +415,9 @@ describe("ServerDetailPage", () => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
     });
 
-    const backButton = screen.getByRole("button", { name: "← Back to Dashboard" });
+    const backButton = screen.getByRole("button", {
+      name: "← Back to Dashboard",
+    });
     await user.click(backButton);
 
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
@@ -398,7 +431,7 @@ describe("ServerDetailPage", () => {
       isLoading: false, // Auth loading must be false for redirect to happen
       isAuthenticated: false,
     };
-    
+
     vi.mocked(useAuth).mockReturnValue(unauthenticatedContext);
     vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
 
@@ -418,7 +451,9 @@ describe("ServerDetailPage", () => {
       expect(screen.getByText("Server not found")).toBeInTheDocument();
     });
 
-    const backButton = screen.getByRole("button", { name: "← Back to Dashboard" });
+    const backButton = screen.getByRole("button", {
+      name: "← Back to Dashboard",
+    });
     expect(backButton).toBeInTheDocument();
   });
 
@@ -441,21 +476,26 @@ describe("ServerDetailPage", () => {
     const stoppedServer = { ...mockServer, status: "stopped" as ServerStatus };
     vi.mocked(serverService.getServer).mockResolvedValue(ok(stoppedServer));
     vi.mocked(serverService.startServer).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(ok(undefined)), 100))
+      () =>
+        new Promise((resolve) => setTimeout(() => resolve(ok(undefined)), 100))
     );
 
     render(<ServerDetailPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Start Server" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Start Server" })
+      ).toBeInTheDocument();
     });
 
     const startButton = screen.getByRole("button", { name: "Start Server" });
     await user.click(startButton);
 
     // Button should show loading state and be disabled
-    expect(screen.getByRole("button", { name: "Starting..." })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Starting..." })
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Starting..." })).toBeDisabled();
   });
 });

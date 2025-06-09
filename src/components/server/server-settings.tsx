@@ -35,11 +35,16 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
     });
   }, [server]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === "max_memory" || name === "max_players" ? parseInt(value) || 0 : value,
+      [name]:
+        name === "max_memory" || name === "max_players"
+          ? parseInt(value) || 0
+          : value,
     }));
     setSuccessMessage(null);
     setError(null);
@@ -47,7 +52,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       setError(t("servers.settings.validation.nameRequired"));
       return;
@@ -99,7 +104,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
     setSuccessMessage(null);
   };
 
-  const hasChanges = 
+  const hasChanges =
     formData.name !== server.name ||
     formData.description !== (server.description || "") ||
     formData.max_memory !== server.max_memory ||
@@ -143,7 +148,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.section}>
           <h3>{t("servers.settings.basicInformation")}</h3>
-          
+
           <div className={styles.field}>
             <label htmlFor="name" className={styles.label}>
               {t("servers.settings.serverName")} *
@@ -180,7 +185,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
 
         <div className={styles.section}>
           <h3>{t("servers.settings.serverResources")}</h3>
-          
+
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label htmlFor="max_memory" className={styles.label}>
@@ -231,7 +236,9 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
           <h3>{t("servers.settings.readOnlyInformation")}</h3>
           <div className={styles.readOnlyGrid}>
             <div className={styles.readOnlyField}>
-              <span className={styles.label}>{t("servers.fields.version")}:</span>
+              <span className={styles.label}>
+                {t("servers.fields.version")}:
+              </span>
               <span>{server.minecraft_version}</span>
             </div>
             <div className={styles.readOnlyField}>
@@ -243,7 +250,9 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
               <span>{server.port}</span>
             </div>
             <div className={styles.readOnlyField}>
-              <span className={styles.label}>{t("servers.fields.created")}:</span>
+              <span className={styles.label}>
+                {t("servers.fields.created")}:
+              </span>
               <span>{new Date(server.created_at).toLocaleDateString()}</span>
             </div>
           </div>
@@ -263,7 +272,9 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
             className={styles.saveButton}
             disabled={isSaving || !hasChanges}
           >
-            {isSaving ? t("servers.settings.saving") : t("servers.settings.saveSettings")}
+            {isSaving
+              ? t("servers.settings.saving")
+              : t("servers.settings.saveSettings")}
           </button>
         </div>
       </form>

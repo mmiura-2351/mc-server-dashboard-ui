@@ -23,11 +23,21 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
-  
+
   // Get tab from URL params or default to "info"
-  const tabFromUrl = searchParams.get('tab') as "info" | "properties" | "settings" | "files" | null;
-  const [activeTab, setActiveTab] = useState<"info" | "properties" | "settings" | "files">(
-    tabFromUrl && ["info", "properties", "settings", "files"].includes(tabFromUrl) ? tabFromUrl : "info"
+  const tabFromUrl = searchParams.get("tab") as
+    | "info"
+    | "properties"
+    | "settings"
+    | "files"
+    | null;
+  const [activeTab, setActiveTab] = useState<
+    "info" | "properties" | "settings" | "files"
+  >(
+    tabFromUrl &&
+      ["info", "properties", "settings", "files"].includes(tabFromUrl)
+      ? tabFromUrl
+      : "info"
   );
 
   const serverId = parseInt(params.id as string);
@@ -54,17 +64,19 @@ export default function ServerDetailPage() {
   }, [serverId, logout, t]);
 
   // Function to update tab and URL
-  const handleTabChange = (tab: "info" | "properties" | "settings" | "files") => {
+  const handleTabChange = (
+    tab: "info" | "properties" | "settings" | "files"
+  ) => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
+    url.searchParams.set("tab", tab);
     router.replace(url.pathname + url.search, { scroll: false });
   };
 
   useEffect(() => {
     // Wait for auth loading to complete
     if (authLoading) return;
-    
+
     if (!user) {
       router.push("/");
       return;
@@ -114,11 +126,7 @@ export default function ServerDetailPage() {
   const handleDeleteServer = async () => {
     if (!server) return;
 
-    if (
-      !confirm(
-        t("servers.deleteConfirmation")
-      )
-    ) {
+    if (!confirm(t("servers.deleteConfirmation"))) {
       return;
     }
 
@@ -188,7 +196,9 @@ export default function ServerDetailPage() {
     return (
       <MainLayout>
         <div className={styles.container}>
-          <div className={styles.loading}>{t("servers.loadingServerDetails")}</div>
+          <div className={styles.loading}>
+            {t("servers.loadingServerDetails")}
+          </div>
         </div>
       </MainLayout>
     );
@@ -297,29 +307,41 @@ export default function ServerDetailPage() {
                 <h2>{t("servers.serverInformation")}</h2>
                 <div className={styles.infoGrid}>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>{t("servers.fields.version")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.fields.version")}:
+                    </span>
                     <span>{server.minecraft_version}</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>{t("servers.fields.type")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.fields.type")}:
+                    </span>
                     <span className={styles.serverType}>
                       {server.server_type}
                     </span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>{t("servers.fields.maxPlayers")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.fields.maxPlayers")}:
+                    </span>
                     <span>{server.max_players}</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>{t("servers.fields.memoryLimit")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.fields.memoryLimit")}:
+                    </span>
                     <span>{server.max_memory}MB</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>{t("servers.fields.port")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.fields.port")}:
+                    </span>
                     <span>{server.port}</span>
                   </div>
                   <div className={styles.infoItem}>
-                    <span className={styles.label}>{t("servers.fields.created")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.fields.created")}:
+                    </span>
                     <span>
                       {new Date(server.created_at).toLocaleDateString()}
                     </span>
@@ -327,7 +349,9 @@ export default function ServerDetailPage() {
                 </div>
                 {server.description && (
                   <div className={styles.description}>
-                    <span className={styles.label}>{t("servers.description")}:</span>
+                    <span className={styles.label}>
+                      {t("servers.description")}:
+                    </span>
                     <p>{server.description}</p>
                   </div>
                 )}
@@ -343,7 +367,9 @@ export default function ServerDetailPage() {
                       className={`${styles.actionButton} ${styles.startButton}`}
                       disabled={isActioning}
                     >
-                      {isActioning ? t("servers.actions.starting") : t("servers.actions.start")}
+                      {isActioning
+                        ? t("servers.actions.starting")
+                        : t("servers.actions.start")}
                     </button>
                   )}
                   {(server.status === ServerStatus.RUNNING ||
@@ -353,7 +379,9 @@ export default function ServerDetailPage() {
                       className={`${styles.actionButton} ${styles.stopButton}`}
                       disabled={isActioning}
                     >
-                      {isActioning ? t("servers.actions.stopping") : t("servers.actions.stop")}
+                      {isActioning
+                        ? t("servers.actions.stopping")
+                        : t("servers.actions.stop")}
                     </button>
                   )}
                   {server.status === ServerStatus.RUNNING && (
@@ -362,7 +390,9 @@ export default function ServerDetailPage() {
                       className={`${styles.actionButton} ${styles.restartButton}`}
                       disabled={isActioning}
                     >
-                      {isActioning ? t("servers.actions.restarting") : t("servers.actions.restart")}
+                      {isActioning
+                        ? t("servers.actions.restarting")
+                        : t("servers.actions.restart")}
                     </button>
                   )}
                   <button
@@ -370,16 +400,18 @@ export default function ServerDetailPage() {
                     className={`${styles.actionButton} ${styles.deleteButton}`}
                     disabled={isActioning}
                   >
-                    {isActioning ? t("servers.actions.deleting") : t("servers.actions.delete")}
+                    {isActioning
+                      ? t("servers.actions.deleting")
+                      : t("servers.actions.delete")}
                   </button>
                 </div>
               </div>
             </div>
           ) : activeTab === "settings" ? (
             <div className={styles.fullWidthTabContent}>
-              <ServerSettings 
-                server={server} 
-                onUpdate={(updatedServer) => setServer(updatedServer)} 
+              <ServerSettings
+                server={server}
+                onUpdate={(updatedServer) => setServer(updatedServer)}
               />
             </div>
           ) : activeTab === "properties" ? (

@@ -27,7 +27,8 @@ const translations: Record<string, string> = {
   "servers.settings.updated": "Server settings updated successfully",
   "servers.settings.validation.nameRequired": "Server name is required",
   "servers.settings.validation.memoryMinimum": "Memory must be at least 512MB",
-  "servers.settings.validation.playersRange": "Max players must be between 1 and 200",
+  "servers.settings.validation.playersRange":
+    "Max players must be between 1 and 200",
   "servers.settings.resetChanges": "Reset Changes",
   "servers.settings.saveSettings": "Save Settings",
   "servers.settings.saving": "Saving...",
@@ -143,8 +144,14 @@ describe("ServerSettings", () => {
   });
 
   test("should save settings successfully", async () => {
-    const updatedServer = { ...mockServer, name: "Updated Server", max_memory: 4096 };
-    vi.mocked(serverService.updateServer).mockResolvedValueOnce(ok(updatedServer));
+    const updatedServer = {
+      ...mockServer,
+      name: "Updated Server",
+      max_memory: 4096,
+    };
+    vi.mocked(serverService.updateServer).mockResolvedValueOnce(
+      ok(updatedServer)
+    );
 
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
 
@@ -160,7 +167,9 @@ describe("ServerSettings", () => {
     await user.click(saveButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Server settings updated successfully")).toBeInTheDocument();
+      expect(
+        screen.getByText("Server settings updated successfully")
+      ).toBeInTheDocument();
     });
 
     expect(serverService.updateServer).toHaveBeenCalledWith(1, {
@@ -215,12 +224,15 @@ describe("ServerSettings", () => {
 
     // Buttons should be disabled again
     expect(resetButton).toBeDisabled();
-    expect(screen.getByRole("button", { name: /Save Settings/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /Save Settings/i })
+    ).toBeDisabled();
   });
 
   test("should disable form during save operation", async () => {
     vi.mocked(serverService.updateServer).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(ok(mockServer)), 100))
+      () =>
+        new Promise((resolve) => setTimeout(() => resolve(ok(mockServer)), 100))
     );
 
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -258,14 +270,23 @@ describe("ServerSettings", () => {
 
   test("should handle server without description", () => {
     const serverWithoutDescription = { ...mockServer, description: null };
-    render(<ServerSettings server={serverWithoutDescription} onUpdate={mockOnUpdate} />);
+    render(
+      <ServerSettings
+        server={serverWithoutDescription}
+        onUpdate={mockOnUpdate}
+      />
+    );
 
-    const descriptionInput = screen.getByRole("textbox", { name: /description/i });
+    const descriptionInput = screen.getByRole("textbox", {
+      name: /description/i,
+    });
     expect(descriptionInput).toHaveValue("");
   });
 
   test("should update form when server prop changes", () => {
-    const { rerender } = render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+    const { rerender } = render(
+      <ServerSettings server={mockServer} onUpdate={mockOnUpdate} />
+    );
 
     const updatedServer = { ...mockServer, name: "New Name", max_memory: 4096 };
     rerender(<ServerSettings server={updatedServer} onUpdate={mockOnUpdate} />);
