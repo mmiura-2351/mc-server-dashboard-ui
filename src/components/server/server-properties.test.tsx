@@ -45,13 +45,14 @@ describe("ServerPropertiesEditor", () => {
 
   test("should render loading state initially", () => {
     vi.mocked(serverService.getServerProperties).mockImplementation(
-      () =>
-        new Promise(() => {}) // Never resolves to keep loading state
+      () => new Promise(() => {}) // Never resolves to keep loading state
     );
 
     render(<ServerPropertiesEditor serverId={1} />);
 
-    expect(screen.getByText("Loading server properties...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Loading server properties...")
+    ).toBeInTheDocument();
   });
 
   test("should render properties form after successful load", async () => {
@@ -62,7 +63,9 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Check that form fields are rendered
@@ -80,17 +83,27 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     const labels = screen.getAllByText(/^[A-Z]/, { selector: "label" });
-    const labelTexts = labels.map((label) => label.textContent?.split("(")[0].trim() || "");
-    
+    const labelTexts = labels.map(
+      (label) => label.textContent?.split("(")[0].trim() || ""
+    );
+
     // Check that some properties are in alphabetical order
-    const allowFlightIndex = labelTexts.findIndex(text => text.includes("Allow Flight"));
-    const difficultyIndex = labelTexts.findIndex(text => text.includes("Difficulty"));
-    const maxPlayersIndex = labelTexts.findIndex(text => text.includes("Max Players"));
-    
+    const allowFlightIndex = labelTexts.findIndex((text) =>
+      text.includes("Allow Flight")
+    );
+    const difficultyIndex = labelTexts.findIndex((text) =>
+      text.includes("Difficulty")
+    );
+    const maxPlayersIndex = labelTexts.findIndex((text) =>
+      text.includes("Max Players")
+    );
+
     expect(allowFlightIndex).toBeLessThan(difficultyIndex);
     expect(difficultyIndex).toBeLessThan(maxPlayersIndex);
   });
@@ -103,11 +116,15 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Check for description text
-    expect(screen.getByText(/peaceful\/easy\/normal\/hard or 0\/1\/2\/3/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/peaceful\/easy\/normal\/hard or 0\/1\/2\/3/)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Maximum number of players/)).toBeInTheDocument();
     expect(screen.getByText(/Message of the day/)).toBeInTheDocument();
   });
@@ -120,7 +137,9 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Find and change the max-players field
@@ -139,12 +158,16 @@ describe("ServerPropertiesEditor", () => {
     vi.mocked(serverService.getServerProperties).mockResolvedValueOnce(
       ok(mockServerProperties)
     );
-    vi.mocked(serverService.updateServerProperties).mockResolvedValueOnce(ok(undefined));
+    vi.mocked(serverService.updateServerProperties).mockResolvedValueOnce(
+      ok(undefined)
+    );
 
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Change a property
@@ -157,7 +180,9 @@ describe("ServerPropertiesEditor", () => {
     await user.click(saveButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Server properties updated successfully")).toBeInTheDocument();
+      expect(
+        screen.getByText("Server properties updated successfully")
+      ).toBeInTheDocument();
     });
 
     // Verify the service was called with correct data
@@ -177,7 +202,9 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Change a property
@@ -202,7 +229,9 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Change a property
@@ -219,7 +248,9 @@ describe("ServerPropertiesEditor", () => {
 
     // Check that buttons are disabled again
     expect(resetButton).toBeDisabled();
-    expect(screen.getByRole("button", { name: /save properties/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /save properties/i })
+    ).toBeDisabled();
   });
 
   test("should show error state when properties fail to load", async () => {
@@ -230,7 +261,11 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load server properties.*Internal server error/)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /Failed to load server properties.*Internal server error/
+        )
+      ).toBeInTheDocument();
     });
   });
 
@@ -242,7 +277,11 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/This is normal for new servers that haven't been started yet/)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /This is normal for new servers that haven't been started yet/
+        )
+      ).toBeInTheDocument();
     });
 
     // Should show default properties
@@ -251,7 +290,9 @@ describe("ServerPropertiesEditor", () => {
     });
 
     // Save button should show "Create Properties File"
-    expect(screen.getByRole("button", { name: /create properties file/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /create properties file/i })
+    ).toBeInTheDocument();
   });
 
   test("should handle authentication errors by logging out", async () => {
@@ -270,16 +311,19 @@ describe("ServerPropertiesEditor", () => {
     vi.mocked(serverService.getServerProperties).mockResolvedValueOnce(
       ok(mockServerProperties)
     );
-    
+
     // Mock a slow update operation
     vi.mocked(serverService.updateServerProperties).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(ok(undefined)), 100))
+      () =>
+        new Promise((resolve) => setTimeout(() => resolve(ok(undefined)), 100))
     );
 
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Change a property
@@ -297,7 +341,9 @@ describe("ServerPropertiesEditor", () => {
 
     // Wait for save to complete
     await waitFor(() => {
-      expect(screen.getByText("Server properties updated successfully")).toBeInTheDocument();
+      expect(
+        screen.getByText("Server properties updated successfully")
+      ).toBeInTheDocument();
     });
 
     // Form should be enabled again
@@ -312,7 +358,9 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Find the pvp field specifically by ID (boolean value should be displayed as select)
@@ -335,11 +383,15 @@ describe("ServerPropertiesEditor", () => {
     render(<ServerPropertiesEditor serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading", { name: "Server Properties" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
     });
 
     // Check for guidance text
-    expect(screen.getByText(/Boolean values should be "true" or "false"/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Boolean values should be "true" or "false"/)
+    ).toBeInTheDocument();
     expect(screen.getByText(/numbers as digits/)).toBeInTheDocument();
   });
 });

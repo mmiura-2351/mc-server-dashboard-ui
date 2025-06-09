@@ -68,7 +68,8 @@ const PROPERTY_DESCRIPTIONS: Record<string, string> = {
   "server-port": "Port number for the server (default: 25565)",
   "max-players": "Maximum number of players (default: 20)",
   difficulty: "Difficulty level (peaceful/easy/normal/hard or 0/1/2/3)",
-  gamemode: "Default game mode (survival/creative/adventure/spectator or 0/1/2/3)",
+  gamemode:
+    "Default game mode (survival/creative/adventure/spectator or 0/1/2/3)",
   pvp: "Player vs Player combat (true/false)",
   "spawn-protection": "Spawn protection radius in blocks (default: 16)",
   "view-distance": "View distance in chunks (default: 10)",
@@ -123,14 +124,18 @@ export function ServerPropertiesEditor({
           logout();
           return;
         }
-        
+
         // Check if it's a 404 error (file not found)
-        if (result.error.status === 404 || 
-            result.error.message.toLowerCase().includes("not found") ||
-            result.error.message.toLowerCase().includes("file not found")) {
+        if (
+          result.error.status === 404 ||
+          result.error.message.toLowerCase().includes("not found") ||
+          result.error.message.toLowerCase().includes("file not found")
+        ) {
           setFileNotFound(true);
-          setError("Server properties file not found. This is normal for new servers that haven't been started yet.");
-          
+          setError(
+            "Server properties file not found. This is normal for new servers that haven't been started yet."
+          );
+
           // Create default properties for new servers
           const defaultProperties: ServerProperties = {
             "server-port": 25565,
@@ -155,7 +160,7 @@ export function ServerPropertiesEditor({
             "level-type": "minecraft:normal",
             "generate-structures": true,
           };
-          
+
           setProperties(defaultProperties);
           setEditedProperties(defaultProperties);
         } else {
@@ -167,7 +172,6 @@ export function ServerPropertiesEditor({
 
     loadProperties();
   }, [serverId, logout]);
-
 
   const handleChange = (key: string, value: string) => {
     setEditedProperties((prev) => ({
@@ -205,7 +209,9 @@ export function ServerPropertiesEditor({
     );
     if (result.isOk()) {
       setSuccessMessage("Server properties updated successfully");
-      const updatedProperties = properties ? { ...properties, ...changedProperties } : null;
+      const updatedProperties = properties
+        ? { ...properties, ...changedProperties }
+        : null;
       setProperties(updatedProperties as ServerProperties | null);
     } else {
       if (result.error.status === 401) {
@@ -235,21 +241,31 @@ export function ServerPropertiesEditor({
   }
 
   // Render property input with appropriate control based on initial value type
-  const renderPropertyInput = (key: string, value: string | number | boolean) => {
-    const label = PROPERTY_LABELS[key] || key.replace(/-/g, " ").replace(/\./g, " ").replace(/\b\w/g, l => l.toUpperCase());
+  const renderPropertyInput = (
+    key: string,
+    value: string | number | boolean
+  ) => {
+    const label =
+      PROPERTY_LABELS[key] ||
+      key
+        .replace(/-/g, " ")
+        .replace(/\./g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase());
     const description = PROPERTY_DESCRIPTIONS[key];
-    
+
     // Check if the initial value (from original properties) was a boolean
     const initialValue = properties ? properties[key] : value;
-    const isBooleanProperty = typeof initialValue === 'boolean';
-    
+    const isBooleanProperty = typeof initialValue === "boolean";
+
     return (
       <div key={key} className={styles.property}>
         <label htmlFor={key}>
           {label}
-          {description && <span className={styles.description}>({description})</span>}
+          {description && (
+            <span className={styles.description}>({description})</span>
+          )}
         </label>
-        
+
         {isBooleanProperty ? (
           <select
             id={key}
@@ -299,14 +315,17 @@ export function ServerPropertiesEditor({
           {fileNotFound && (
             <>
               <br />
-              <strong>Note:</strong> Properties file was not found, showing default values.
+              <strong>Note:</strong> Properties file was not found, showing
+              default values.
             </>
           )}
         </p>
       </div>
 
       {error && (
-        <div className={fileNotFound ? styles.warningBanner : styles.errorBanner}>
+        <div
+          className={fileNotFound ? styles.warningBanner : styles.errorBanner}
+        >
           {error}
           <button
             onClick={() => setError(null)}
@@ -333,11 +352,12 @@ export function ServerPropertiesEditor({
         <div className={styles.section}>
           <h3>Server Properties</h3>
           <p className={styles.sectionDescription}>
-            All properties are editable as text values. Boolean values should be &quot;true&quot; or &quot;false&quot;, 
-            numbers as digits, and text as-is. Refer to the descriptions for guidance.
+            All properties are editable as text values. Boolean values should be
+            &quot;true&quot; or &quot;false&quot;, numbers as digits, and text
+            as-is. Refer to the descriptions for guidance.
           </p>
           <div className={styles.propertyGrid}>
-            {propertyKeys.map(key => 
+            {propertyKeys.map((key) =>
               renderPropertyInput(key, editedProperties[key] ?? properties[key])
             )}
           </div>
@@ -357,7 +377,11 @@ export function ServerPropertiesEditor({
             className={styles.saveButton}
             disabled={isSaving || !hasChanges}
           >
-            {isSaving ? "Saving..." : fileNotFound ? "Create Properties File" : "Save Properties"}
+            {isSaving
+              ? "Saving..."
+              : fileNotFound
+                ? "Create Properties File"
+                : "Save Properties"}
           </button>
         </div>
       </form>
