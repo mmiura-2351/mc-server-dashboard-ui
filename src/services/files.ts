@@ -147,6 +147,33 @@ export async function deleteFile(
   return ok(undefined);
 }
 
+export async function renameFile(
+  serverId: number,
+  filePath: string,
+  newName: string
+): Promise<Result<void, FileError>> {
+  // Remove leading slash and encode paths
+  const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+  const encodedPath = encodeURIComponent(cleanPath);
+
+  const result = await fetchEmpty(
+    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/${encodedPath}/rename`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ new_name: newName }),
+    }
+  );
+
+  if (result.isErr()) {
+    return err({
+      message: result.error.message,
+      status: result.error.status,
+    });
+  }
+
+  return ok(undefined);
+}
+
 export async function createDirectory(
   serverId: number,
   dirPath: string,

@@ -807,3 +807,39 @@
   border-bottom: 1px solid #e0e0e0;
   margin-bottom: 4px;
 }
+
+/* Rename Modal Styles */
+.renameForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.renameForm label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.renameInput {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.renameInput:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.renameInput:disabled {
+  background-color: #f5f5f5;
+  color: #666;
+  cursor: not-allowed;
+}

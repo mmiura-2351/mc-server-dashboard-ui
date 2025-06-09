@@ -106,6 +106,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+  // Rename state
+  const [renamingFile, setRenamingFile] = useState<FileSystemItem | null>(null);
+  const [newName, setNewName] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
+
   // Upload state
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
@@ -394,9 +399,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       const a = document.createElement("a");
       a.href = url;
       a.download = file.name;
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+
+      // Immediate cleanup for single file downloads
+      if (document.body.contains(a)) {
+        document.body.removeChild(a);
+      }
       URL.revokeObjectURL(url);
       showToast(`Successfully downloaded ${file.name}`, "info");
     } else {
@@ -518,8 +528,15 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
         // Cleanup
         setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
+          try {
+            if (a && a.parentNode) {
+              a.parentNode.removeChild(a);
+            }
+            URL.revokeObjectURL(url);
+          } catch {
+            // Ignore cleanup errors in test environment
+            // Development debug: cleanup error occurred
+          }
         }, 100);
 
         if (failCount === 0) {
@@ -585,6 +602,51 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     }
 
     setIsSaving(false);
+  };
+
+  // Rename handlers
+  const handleRenameFile = (file: FileSystemItem) => {
+    hideContextMenu();
+    setRenamingFile(file);
+    setNewName(file.name);
+  };
+
+  const handleRenameConfirm = async () => {
+    if (!renamingFile || !newName.trim() || newName === renamingFile.name) {
+      handleRenameCancel();
+      return;
+    }
+
+    setIsRenaming(true);
+    const filePath =
+      currentPath === "/"
+        ? renamingFile.name
+        : `${currentPath}/${renamingFile.name}`;
+
+    const result = await fileService.renameFile(
+      serverId,
+      filePath,
+      newName.trim()
+    );
+
+    if (result.isOk()) {
+      showToast(
+        `Successfully renamed "${renamingFile.name}" to "${newName.trim()}"`,
+        "info"
+      );
+      loadFiles(); // Refresh file list
+      handleRenameCancel();
+    } else {
+      showToast(`Failed to rename file: ${result.error.message}`, "error");
+    }
+
+    setIsRenaming(false);
+  };
+
+  const handleRenameCancel = () => {
+    setRenamingFile(null);
+    setNewName("");
+    setIsRenaming(false);
   };
 
   // Upload handlers
@@ -1342,6 +1404,64 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         </div>
       )}
 
+      {/* Rename Modal */}
+      {renamingFile && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>✏️ Rename {renamingFile.is_directory ? "Folder" : "File"}</h3>
+              <button
+                onClick={handleRenameCancel}
+                className={styles.closeButton}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.renameForm}>
+                <label htmlFor="newName">
+                  New name for &ldquo;{renamingFile.name}&rdquo;:
+                </label>
+                <input
+                  id="newName"
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleRenameConfirm();
+                    } else if (e.key === "Escape") {
+                      handleRenameCancel();
+                    }
+                  }}
+                  disabled={isRenaming}
+                  autoFocus
+                  className={styles.renameInput}
+                />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                onClick={handleRenameConfirm}
+                className={`${styles.modalButton} ${styles.primaryButton}`}
+                disabled={
+                  isRenaming || !newName.trim() || newName === renamingFile.name
+                }
+              >
+                {isRenaming ? "✏️ Renaming..." : "✏️ Rename"}
+              </button>
+              <button
+                onClick={handleRenameCancel}
+                className={styles.modalButton}
+                disabled={isRenaming}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Context Menu */}
       {contextMenu.show && contextMenu.file && (
         <div
@@ -1391,6 +1511,13 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               </button>
               <button
                 className={styles.contextMenuItem}
+                onClick={() => handleRenameFile(contextMenu.file!)}
+              >
+                ✏️ Rename Folder
+              </button>
+              <hr className={styles.contextMenuSeparator} />
+              <button
+                className={`${styles.contextMenuItem} ${styles.danger}`}
                 onClick={() => handleDeleteFile(contextMenu.file!)}
               >
                 🗑️ Delete Folder
@@ -1411,6 +1538,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 onClick={() => handleDownloadFile(contextMenu.file!)}
               >
                 📥 Download
+              </button>
+              <button
+                className={styles.contextMenuItem}
+                onClick={() => handleRenameFile(contextMenu.file!)}
+              >
+                ✏️ Rename
               </button>
               <hr className={styles.contextMenuSeparator} />
               <button
