@@ -176,7 +176,8 @@ resource-pack=https://example.com/pack.zip?param=value`;
 
   describe("getServerProperties", () => {
     test("should return parsed properties on successful file read", async () => {
-      const mockFileContent = "server-port=25565\nmax-players=20\ndifficulty=normal";
+      const mockFileContent =
+        "server-port=25565\nmax-players=20\ndifficulty=normal";
       const mockResponse = {
         content: mockFileContent,
         encoding: "utf-8",
@@ -216,7 +217,8 @@ resource-pack=https://example.com/pack.zip?param=value`;
   describe("updateServerProperties", () => {
     test("should merge new properties with existing ones and save", async () => {
       // Mock the read operation
-      const existingContent = "server-port=25565\nmax-players=20\ndifficulty=normal";
+      const existingContent =
+        "server-port=25565\nmax-players=20\ndifficulty=normal";
       const readResponse = {
         content: existingContent,
         encoding: "utf-8",

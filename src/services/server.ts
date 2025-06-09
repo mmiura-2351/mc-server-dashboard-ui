@@ -18,7 +18,6 @@ import { fetchWithErrorHandling } from "@/services/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-
 export async function getServers(): Promise<
   Result<MinecraftServer[], AuthError>
 > {
@@ -276,7 +275,11 @@ export async function removeOpPermission(
 export async function getServerPropertiesFile(
   serverId: number
 ): Promise<Result<string, AuthError>> {
-  return fetchWithErrorHandling<{ content: string; encoding: string; file_info: unknown }>(
+  return fetchWithErrorHandling<{
+    content: string;
+    encoding: string;
+    file_info: unknown;
+  }>(
     `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/server.properties/read`
   ).then((result) => {
     if (result.isOk()) {
@@ -289,64 +292,66 @@ export async function getServerPropertiesFile(
 // Parse server.properties content into object
 export function parseServerProperties(content: string): ServerProperties {
   const properties: ServerProperties = {};
-  const lines = content.split('\n');
-  
+  const lines = content.split("\n");
+
   for (const line of lines) {
     const trimmedLine = line.trim();
-    
+
     // Skip comments and empty lines
-    if (trimmedLine.startsWith('#') || trimmedLine === '') {
+    if (trimmedLine.startsWith("#") || trimmedLine === "") {
       continue;
     }
-    
+
     // Parse key=value pairs
-    const equalIndex = trimmedLine.indexOf('=');
+    const equalIndex = trimmedLine.indexOf("=");
     if (equalIndex !== -1) {
       const key = trimmedLine.substring(0, equalIndex).trim();
       const value = trimmedLine.substring(equalIndex + 1).trim();
-      
+
       // Convert to appropriate type
-      if (value === 'true' || value === 'false') {
-        properties[key] = value === 'true';
-      } else if (!isNaN(Number(value)) && value !== '') {
+      if (value === "true" || value === "false") {
+        properties[key] = value === "true";
+      } else if (!isNaN(Number(value)) && value !== "") {
         properties[key] = Number(value);
       } else {
         properties[key] = value;
       }
     }
   }
-  
+
   return properties;
 }
 
 // Convert properties object back to file content
-export function stringifyServerProperties(properties: ServerProperties): string {
+export function stringifyServerProperties(
+  properties: ServerProperties
+): string {
   const lines: string[] = [];
-  
+
   // Add header comment
-  lines.push('#Minecraft server properties');
+  lines.push("#Minecraft server properties");
   lines.push(`#${new Date().toString()}`);
-  
+
   // Sort keys for consistency
   const sortedKeys = Object.keys(properties).sort();
-  
+
   for (const key of sortedKeys) {
     const value = properties[key];
     lines.push(`${key}=${value}`);
   }
-  
-  return lines.join('\n');
+
+  return lines.join("\n");
 }
 
 export async function getServerProperties(
   serverId: number
 ): Promise<Result<ServerProperties, AuthError>> {
   const fileResult = await getServerPropertiesFile(serverId);
-  
+
   if (fileResult.isErr()) {
     return err(fileResult.error);
   }
-  
+
   try {
     const properties = parseServerProperties(fileResult.value);
     return ok(properties);
@@ -385,24 +390,26 @@ export async function updateServerProperties(
 ): Promise<Result<void, AuthError>> {
   // First, get the current properties
   const fileResult = await getServerPropertiesFile(serverId);
-  
+
   if (fileResult.isErr()) {
     return err(fileResult.error);
   }
-  
+
   try {
     // Parse current properties
     const currentProperties = parseServerProperties(fileResult.value);
-    
+
     // Merge with new properties
     const updatedProperties = {
       ...currentProperties,
       ...properties,
     };
-    
+
     // Convert to file content
-    const content = stringifyServerProperties(updatedProperties as ServerProperties);
-    
+    const content = stringifyServerProperties(
+      updatedProperties as ServerProperties
+    );
+
     // Write the file
     return writeServerPropertiesFile(serverId, content);
   } catch {
