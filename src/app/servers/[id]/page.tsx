@@ -264,7 +264,7 @@ export default function ServerDetailPage() {
 
         <div className={styles.content}>
           {activeTab === "info" ? (
-            <>
+            <div className={styles.infoTabContent}>
               <div className={styles.infoSection}>
                 <h2>{t("servers.serverInformation")}</h2>
                 <div className={styles.infoGrid}>
@@ -346,16 +346,22 @@ export default function ServerDetailPage() {
                   </button>
                 </div>
               </div>
-            </>
+            </div>
           ) : activeTab === "settings" ? (
-            <ServerSettings 
-              server={server} 
-              onUpdate={(updatedServer) => setServer(updatedServer)} 
-            />
+            <div className={styles.fullWidthTabContent}>
+              <ServerSettings 
+                server={server} 
+                onUpdate={(updatedServer) => setServer(updatedServer)} 
+              />
+            </div>
           ) : activeTab === "properties" ? (
-            <ServerPropertiesEditor serverId={server.id} />
+            <div className={styles.fullWidthTabContent}>
+              <ServerPropertiesEditor serverId={server.id} />
+            </div>
           ) : (
-            <FileExplorer serverId={server.id} />
+            <div className={styles.fullWidthTabContent}>
+              <FileExplorer serverId={server.id} />
+            </div>
           )}
         </div>
       </div>

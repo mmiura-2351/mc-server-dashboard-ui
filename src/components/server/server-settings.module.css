@@ -4,6 +4,8 @@
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header {
@@ -88,8 +90,8 @@
 }
 
 .fieldRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
@@ -158,8 +160,8 @@
 }
 
 .readOnlyGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
 }
 
@@ -236,14 +238,6 @@
 }
 
 @media (max-width: 768px) {
-  .fieldRow {
-    grid-template-columns: 1fr;
-  }
-
-  .readOnlyGrid {
-    grid-template-columns: 1fr;
-  }
-
   .actions {
     flex-direction: column;
   }
