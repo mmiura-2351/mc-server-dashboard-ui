@@ -72,7 +72,7 @@ async function fetchWithErrorHandlingInternal<T>(
       // For FormData, use original headers without modification
       const requestOptions: RequestInit = {
         ...options,
-        headers,
+        headers: headers instanceof Headers ? headers : new Headers(headers as HeadersInit),
       };
 
       const response = await fetch(url, requestOptions);
