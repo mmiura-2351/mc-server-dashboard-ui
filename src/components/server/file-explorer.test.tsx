@@ -174,8 +174,14 @@ describe("FileExplorer", () => {
     const mockFileContent = {
       content: "server-port=25565\nmotd=Welcome to my server",
       encoding: "utf-8",
-      size: 1024,
-      modified: "2023-01-01T00:00:00Z"
+      file_info: {
+        name: "server.properties",
+        size: 1024,
+        modified: "2023-01-01T00:00:00Z",
+        permissions: { read: true, write: true, execute: false }
+      },
+      is_image: false,
+      image_data: null
     };
 
     vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
@@ -393,6 +399,59 @@ describe("FileExplorer", () => {
     // Check that modal shows loading state
     await waitFor(() => {
       expect(screen.getByText(/Loading/i)).toBeInTheDocument();
+    });
+  });
+
+  test("displays image files correctly", async () => {
+    const user = userEvent.setup();
+    const { listFiles, readFile } = await import("@/services/files");
+    
+    const mockFiles: FileSystemItem[] = [
+      {
+        name: "minecraft.jpg",
+        type: "binary",
+        is_directory: false,
+        size: 6800,
+        modified: "2023-01-01T00:00:00Z",
+        path: "/minecraft.jpg",
+        permissions: { read: true, write: true, execute: false },
+      },
+    ];
+
+    const mockImageContent = {
+      content: "",
+      encoding: "binary",
+      file_info: {
+        name: "minecraft.jpg",
+        size: 6800,
+        modified: "2023-01-01T00:00:00Z",
+        permissions: { read: true, write: true, execute: false }
+      },
+      is_image: true,
+      image_data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAGA"
+    };
+
+    vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+    vi.mocked(readFile).mockResolvedValue(ok(mockImageContent));
+    
+    render(<FileExplorer serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("minecraft.jpg")).toBeInTheDocument();
+    });
+
+    // Click on the image file
+    const fileRow = screen.getByText("minecraft.jpg").closest("div");
+    expect(fileRow).toBeInTheDocument();
+    
+    await user.click(fileRow!);
+
+    // Check that image modal appears
+    await waitFor(() => {
+      expect(screen.getByText(/🖼️ minecraft.jpg/)).toBeInTheDocument();
+      const img = screen.getByAltText("minecraft.jpg");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", expect.stringContaining("data:image/jpeg;base64,"));
     });
   });
 });
