@@ -64,6 +64,18 @@ interface UploadState {
   failed: { file: string; error: string }[];
 }
 
+// Context menu types
+interface ContextMenuPosition {
+  x: number;
+  y: number;
+}
+
+interface ContextMenuState {
+  show: boolean;
+  position: ContextMenuPosition;
+  file: FileSystemItem | null;
+}
+
 export function FileExplorer({ serverId }: FileExplorerProps) {
   const [currentPath, setCurrentPath] = useState("/");
   const [files, setFiles] = useState<FileSystemItem[]>([]);
@@ -81,6 +93,13 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+    show: false,
+    position: { x: 0, y: 0 },
+    file: null,
+  });
 
   // Upload state
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -117,6 +136,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   useEffect(() => {
     loadFiles();
   }, [loadFiles]);
+
+  // Hide context menu when clicking elsewhere
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu.show) {
+        hideContextMenu();
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [contextMenu.show]);
 
   const isFileViewable = (fileName: string): boolean => {
     const extension = fileName.split(".").pop()?.toLowerCase();
@@ -203,7 +236,26 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     setIsLoadingFile(false);
   };
 
+  // Context menu handlers
+  const handleContextMenu = (e: React.MouseEvent, file: FileSystemItem) => {
+    e.preventDefault();
+    setContextMenu({
+      show: true,
+      position: { x: e.clientX, y: e.clientY },
+      file,
+    });
+  };
+
+  const hideContextMenu = () => {
+    setContextMenu({
+      show: false,
+      position: { x: 0, y: 0 },
+      file: null,
+    });
+  };
+
   const handleDeleteFile = async (file: FileSystemItem) => {
+    hideContextMenu();
     if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
       return;
     }
@@ -222,6 +274,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   };
 
   const handleDownloadFile = async (file: FileSystemItem) => {
+    hideContextMenu();
     if (file.is_directory) return;
 
     const filePath =
@@ -242,6 +295,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     } else {
       showToast(`Failed to download file: ${result.error.message}`, "error");
     }
+  };
+
+  const handleViewFileFromContext = async (file: FileSystemItem) => {
+    hideContextMenu();
+    if (file.is_directory) return;
+    await handleViewFile(file);
   };
 
   const handleEditFile = () => {
@@ -735,7 +794,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           <div className={styles.columnName}>Name</div>
           <div className={styles.columnSize}>Size</div>
           <div className={styles.columnDate}>Modified</div>
-          <div className={styles.columnActions}>Actions</div>
         </div>
 
         {files.length === 0 ? (
@@ -761,6 +819,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 key={file.name}
                 className={`${styles.fileItem} ${file.is_directory ? styles.directory : styles.file} ${styles.clickable}`}
                 onClick={() => handleFileClick(file)}
+                onContextMenu={(e) => handleContextMenu(e, file)}
                 style={{ cursor: "pointer" }}
               >
                 <div className={styles.fileName}>
@@ -772,32 +831,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 </div>
                 <div className={styles.fileDate}>
                   {file.modified ? formatDate(file.modified) : "—"}
-                </div>
-                <div className={styles.fileActions}>
-                  {!file.is_directory && (
-                    <>
-                      <button
-                        className={styles.actionBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownloadFile(file);
-                        }}
-                        title="Download file"
-                      >
-                        📥
-                      </button>
-                      <button
-                        className={styles.actionBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteFile(file);
-                        }}
-                        title="Delete file"
-                      >
-                        🗑️
-                      </button>
-                    </>
-                  )}
                 </div>
               </div>
             ))}
@@ -1017,6 +1050,60 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Context Menu */}
+      {contextMenu.show && contextMenu.file && (
+        <div
+          className={styles.contextMenu}
+          style={{
+            position: "fixed",
+            top: contextMenu.position.y,
+            left: contextMenu.position.x,
+            zIndex: 1000,
+          }}
+        >
+          {contextMenu.file.is_directory ? (
+            <>
+              <button
+                className={styles.contextMenuItem}
+                onClick={() => handleFileClick(contextMenu.file!)}
+              >
+                📁 Open Folder
+              </button>
+              <button
+                className={styles.contextMenuItem}
+                onClick={() => handleDeleteFile(contextMenu.file!)}
+              >
+                🗑️ Delete Folder
+              </button>
+            </>
+          ) : (
+            <>
+              {isFileViewable(contextMenu.file.name) && (
+                <button
+                  className={styles.contextMenuItem}
+                  onClick={() => handleViewFileFromContext(contextMenu.file!)}
+                >
+                  👁️ View File
+                </button>
+              )}
+              <button
+                className={styles.contextMenuItem}
+                onClick={() => handleDownloadFile(contextMenu.file!)}
+              >
+                📥 Download
+              </button>
+              <hr className={styles.contextMenuSeparator} />
+              <button
+                className={`${styles.contextMenuItem} ${styles.danger}`}
+                onClick={() => handleDeleteFile(contextMenu.file!)}
+              >
+                🗑️ Delete
+              </button>
+            </>
+          )}
         </div>
       )}
 
