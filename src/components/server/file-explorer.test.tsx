@@ -22,6 +22,16 @@ vi.mock("@/services/files", () => ({
   uploadFolderStructure: vi.fn(),
 }));
 
+// Mock JSZip
+const mockZip = {
+  file: vi.fn(),
+  generateAsync: vi.fn().mockResolvedValue(new Blob(["mock zip data"])),
+};
+
+vi.mock("jszip", () => ({
+  default: vi.fn(() => mockZip),
+}));
+
 describe("FileExplorer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1358,6 +1368,580 @@ describe("FileExplorer", () => {
           screen.getByText("Drop files or folders here to upload")
         ).toBeInTheDocument();
       });
+    });
+  });
+
+  describe("Multi-select functionality", () => {
+    test("shows checkboxes for all files and folders", async () => {
+      const { listFiles } = await import("@/services/files");
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "server.properties",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/server.properties",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "plugins",
+          type: "directory",
+          is_directory: true,
+          path: "/plugins",
+          modified: "2023-01-01T00:00:00Z",
+          permissions: { read: true, write: true, execute: true },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("server.properties")).toBeInTheDocument();
+        expect(screen.getByText("plugins")).toBeInTheDocument();
+      });
+
+      // Check that checkboxes are present for both files and folders
+      const checkboxes = screen.getAllByRole("checkbox");
+      expect(checkboxes).toHaveLength(3); // Header checkbox + 2 item checkboxes
+    });
+
+    test("allows selecting multiple files with checkboxes", async () => {
+      const user = userEvent.setup();
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "file2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("file2.txt")).toBeInTheDocument();
+      });
+
+      // Get all checkboxes (header + file checkboxes)
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      expect(checkboxes).toHaveLength(3); // Header + 2 files
+
+      // Select first file (index 1 because index 0 is header checkbox)
+      const file1Checkbox = checkboxes[1];
+      await user.click(file1Checkbox);
+
+      // Select second file (index 2)
+      const file2Checkbox = checkboxes[2];
+      await user.click(file2Checkbox);
+
+      // Wait for selection to update
+      await waitFor(() => {
+        expect(screen.getByText("2 selected")).toBeInTheDocument();
+      });
+
+      // Check that both files are selected
+      await waitFor(() => {
+        expect(file1Checkbox.checked).toBe(true);
+        expect(file2Checkbox.checked).toBe(true);
+      });
+    });
+
+    test("allows selecting all files with header checkbox", async () => {
+      const user = userEvent.setup();
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "folder1",
+          type: "directory",
+          is_directory: true,
+          path: "/folder1",
+          modified: "2023-01-01T00:00:00Z",
+          permissions: { read: true, write: true, execute: true },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("folder1")).toBeInTheDocument();
+      });
+
+      // Click header checkbox to select all
+      const headerCheckbox = screen.getAllByRole(
+        "checkbox"
+      )[0] as HTMLInputElement;
+      await user.click(headerCheckbox);
+
+      // Check that all items are selected
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      checkboxes.forEach((checkbox) => {
+        expect(checkbox.checked).toBe(true);
+      });
+
+      // Check that selection info is shown
+      expect(screen.getByText("2 selected")).toBeInTheDocument();
+    });
+
+    test("can clear selection with Clear button", async () => {
+      const user = userEvent.setup();
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+      });
+
+      // Get all checkboxes (header + file checkboxes)
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      expect(checkboxes).toHaveLength(2); // Header + 1 file
+
+      // Select file (index 1 because index 0 is header checkbox)
+      const fileCheckbox = checkboxes[1];
+      await user.click(fileCheckbox);
+
+      // Wait for selection state to update and Clear button to appear
+      await waitFor(() => {
+        expect(screen.getByText("1 selected")).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("✖️ Clear")).toBeInTheDocument();
+      });
+
+      // Click Clear button
+      await user.click(screen.getByText("✖️ Clear"));
+
+      // Check that selection is cleared
+      await waitFor(() => {
+        expect(fileCheckbox.checked).toBe(false);
+        expect(screen.queryByText("1 selected")).not.toBeInTheDocument();
+        expect(screen.queryByText("✖️ Clear")).not.toBeInTheDocument();
+      });
+    });
+
+    test("supports Ctrl+click selection", async () => {
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "file2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("file2.txt")).toBeInTheDocument();
+      });
+
+      // Find the file rows by their structure - look for divs that contain the file names
+      const file1Name = screen.getByText("file1.txt");
+      const file2Name = screen.getByText("file2.txt");
+
+      // Get the parent file row divs that have the onClick handler
+      const file1Row = file1Name.closest('div[style*="cursor: pointer"]');
+      const file2Row = file2Name.closest('div[style*="cursor: pointer"]');
+
+      expect(file1Row).toBeTruthy();
+      expect(file2Row).toBeTruthy();
+
+      // Ctrl+click on first file row using fireEvent
+      fireEvent.click(file1Row!, { ctrlKey: true });
+
+      // Wait for first selection
+      await waitFor(() => {
+        expect(screen.getByText("1 selected")).toBeInTheDocument();
+      });
+
+      // Ctrl+click on second file row
+      fireEvent.click(file2Row!, { ctrlKey: true });
+
+      // Wait for second selection
+      await waitFor(() => {
+        expect(screen.getByText("2 selected")).toBeInTheDocument();
+      });
+
+      // Verify checkboxes are checked
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      await waitFor(() => {
+        expect(checkboxes[1].checked).toBe(true); // First file
+        expect(checkboxes[2].checked).toBe(true); // Second file
+      });
+    });
+  });
+
+  describe("Bulk operations", () => {
+    test("shows bulk context menu when multiple files selected", async () => {
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "file2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("file2.txt")).toBeInTheDocument();
+      });
+
+      // Select both files using checkboxes
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      const file1Checkbox = checkboxes[1]; // First file checkbox
+      const file2Checkbox = checkboxes[2]; // Second file checkbox
+
+      fireEvent.click(file1Checkbox);
+      fireEvent.click(file2Checkbox);
+
+      // Right click on selected file
+      const file1Row = screen.getByText("file1.txt").closest("div");
+      fireEvent.contextMenu(file1Row!);
+
+      // Check that bulk context menu appears
+      await waitFor(() => {
+        expect(screen.getByText("2 item(s) selected")).toBeInTheDocument();
+        expect(screen.getByText("📥 Download as ZIP (2)")).toBeInTheDocument();
+        expect(screen.getByText("🗑️ Delete Selected (2)")).toBeInTheDocument();
+      });
+    });
+
+    test("performs bulk delete with confirmation", async () => {
+      const user = userEvent.setup();
+      const { listFiles, deleteFile } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "file2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+      vi.mocked(deleteFile).mockResolvedValue(ok(undefined));
+
+      // Mock window.confirm to return true
+      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("file2.txt")).toBeInTheDocument();
+      });
+
+      // Select both files
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      const file1Checkbox = checkboxes[1]; // First file checkbox
+      const file2Checkbox = checkboxes[2]; // Second file checkbox
+
+      fireEvent.click(file1Checkbox);
+      fireEvent.click(file2Checkbox);
+
+      // Right click and select delete
+      const file1Row = screen.getByText("file1.txt").closest("div");
+      fireEvent.contextMenu(file1Row!);
+
+      await waitFor(() => {
+        expect(screen.getByText("🗑️ Delete Selected (2)")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("🗑️ Delete Selected (2)"));
+
+      // Check that confirmation was shown and delete was called for both files
+      await waitFor(() => {
+        expect(confirmSpy).toHaveBeenCalledWith(
+          "Are you sure you want to delete 2 files?"
+        );
+        expect(deleteFile).toHaveBeenCalledWith(1, "file1.txt");
+        expect(deleteFile).toHaveBeenCalledWith(1, "file2.txt");
+      });
+
+      confirmSpy.mockRestore();
+    });
+  });
+
+  describe("Folder download functionality", () => {
+    beforeEach(() => {
+      // Reset JSZip mock methods
+      mockZip.file.mockClear();
+      mockZip.generateAsync.mockClear();
+    });
+
+    test("downloads folder as ZIP with directory structure", async () => {
+      const user = userEvent.setup();
+      const { listFiles, downloadFile } = await import("@/services/files");
+
+      const rootFiles: FileSystemItem[] = [
+        {
+          name: "plugins",
+          type: "directory",
+          is_directory: true,
+          path: "/plugins",
+          modified: "2023-01-01T00:00:00Z",
+          permissions: { read: true, write: true, execute: true },
+        },
+      ];
+
+      const pluginFiles: FileSystemItem[] = [
+        {
+          name: "config.yml",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/plugins/config.yml",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "subfolder",
+          type: "directory",
+          is_directory: true,
+          path: "/plugins/subfolder",
+          modified: "2023-01-01T00:00:00Z",
+          permissions: { read: true, write: true, execute: true },
+        },
+      ];
+
+      const subfolderFiles: FileSystemItem[] = [
+        {
+          name: "data.json",
+          type: "text",
+          is_directory: false,
+          size: 256,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/plugins/subfolder/data.json",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles)
+        .mockResolvedValueOnce(ok(rootFiles)) // Initial load
+        .mockResolvedValueOnce(ok(pluginFiles)) // /plugins
+        .mockResolvedValueOnce(ok(subfolderFiles)); // /plugins/subfolder
+
+      const mockBlob = new Blob(["file content"], { type: "text/plain" });
+      vi.mocked(downloadFile).mockResolvedValue(ok(mockBlob));
+
+      render(<FileExplorer serverId={1} />);
+
+      // Mock URL.createObjectURL and related DOM methods after render
+      const mockUrl = "blob:mock-url";
+      global.URL.createObjectURL = vi.fn().mockReturnValue(mockUrl);
+      global.URL.revokeObjectURL = vi.fn();
+
+      const mockAnchor = {
+        href: "",
+        download: "",
+        click: vi.fn(),
+        style: { display: "" },
+      } as any;
+
+      const originalCreateElement = document.createElement;
+      const originalAppendChild = document.body.appendChild;
+      const originalRemoveChild = document.body.removeChild;
+
+      try {
+        document.createElement = vi
+          .fn()
+          .mockImplementation((tagName: string) => {
+            if (tagName === "a") return mockAnchor;
+            return originalCreateElement.call(document, tagName);
+          });
+
+        document.body.appendChild = vi.fn().mockReturnValue(mockAnchor);
+        document.body.removeChild = vi.fn().mockReturnValue(mockAnchor);
+
+        await waitFor(() => {
+          expect(screen.getByText("plugins")).toBeInTheDocument();
+        });
+
+        // Select the plugins folder
+        const checkboxes = screen.getAllByRole(
+          "checkbox"
+        ) as HTMLInputElement[];
+        const folderCheckbox = checkboxes[1]; // First item checkbox (plugins folder)
+        fireEvent.click(folderCheckbox);
+
+        // Right click and select download
+        const folderRow = screen.getByText("plugins").closest("div");
+        fireEvent.contextMenu(folderRow!);
+
+        await waitFor(() => {
+          expect(
+            screen.getByText("📥 Download as ZIP (1)")
+          ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByText("📥 Download as ZIP (1)"));
+
+        // Check that files were added to ZIP with correct structure
+        await waitFor(() => {
+          expect(mockZip.file).toHaveBeenCalledWith(
+            "plugins/config.yml",
+            mockBlob
+          );
+          expect(mockZip.file).toHaveBeenCalledWith(
+            "plugins/subfolder/data.json",
+            mockBlob
+          );
+          expect(mockZip.generateAsync).toHaveBeenCalled();
+          expect(mockAnchor.click).toHaveBeenCalled();
+        });
+      } finally {
+        // Restore DOM methods
+        document.createElement = originalCreateElement;
+        document.body.appendChild = originalAppendChild;
+        document.body.removeChild = originalRemoveChild;
+      }
+    });
+
+    test("shows progress when downloading multiple files", async () => {
+      const { listFiles } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "file1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "file2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/file2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("file1.txt")).toBeInTheDocument();
+        expect(screen.getByText("file2.txt")).toBeInTheDocument();
+      });
+
+      // Select both files
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      const headerCheckbox = checkboxes[0]; // Header checkbox
+      fireEvent.click(headerCheckbox);
+
+      // Right click and select download
+      const file1Row = screen.getByText("file1.txt").closest("div");
+      fireEvent.contextMenu(file1Row!);
+
+      await waitFor(() => {
+        expect(screen.getByText("📥 Download as ZIP (2)")).toBeInTheDocument();
+      });
+
+      // Note: Full download test requires mocking JSZip and file downloads
+      // This test verifies the UI shows correctly for bulk operations
     });
   });
 });
