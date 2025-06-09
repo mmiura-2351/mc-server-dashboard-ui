@@ -64,7 +64,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     return extension ? VIEWABLE_IMAGE_EXTENSIONS.includes(extension) : false;
   };
 
-  const isTextFile = (fileName: string): boolean => {
+  const _isTextFile = (fileName: string): boolean => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     return extension ? VIEWABLE_TEXT_EXTENSIONS.includes(extension) : false;
   };
@@ -369,6 +369,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               ) : isImageFile(selectedFile.name) ? (
                 <div className={styles.imageContainer}>
                   {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={imageUrl}
                       alt={selectedFile.name}
