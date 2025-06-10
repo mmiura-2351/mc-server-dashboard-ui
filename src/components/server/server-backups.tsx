@@ -60,7 +60,10 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
         setHasUnsavedChanges(false);
       } else {
         // Keep default settings if API fails
-        console.warn("Failed to load backup settings:", settingsResult.error.message);
+        console.warn(
+          "Failed to load backup settings:",
+          settingsResult.error.message
+        );
       }
     } catch {
       setError(t("errors.failedToLoadBackups"));
@@ -108,7 +111,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     }
 
     setError(null);
-    
+
     try {
       const result = await serverService.restoreBackup(backupId);
 
@@ -128,7 +131,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     }
 
     setError(null);
-    
+
     try {
       const result = await serverService.deleteBackup(backupId);
 
@@ -157,7 +160,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const handleSaveSettings = async () => {
     setError(null);
     setIsSavingSettings(true);
-    
+
     try {
       const result = await serverService.updateBackupSettings(
         serverId,
@@ -172,7 +175,9 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
         setError(result.error.message);
       }
     } catch {
-      setError(t("errors.operationFailed", { action: "update backup settings" }));
+      setError(
+        t("errors.operationFailed", { action: "update backup settings" })
+      );
     } finally {
       setIsSavingSettings(false);
     }
@@ -268,7 +273,14 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
 
       {/* Backup Settings */}
       <div className={styles.section}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
           <h3>{t("backups.settings.title")}</h3>
           {!isEditingSettings && (
             <button onClick={handleStartEditing} className={styles.editButton}>
@@ -336,28 +348,40 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
         ) : (
           <div className={styles.settingsReadonly}>
             <div className={styles.settingItemReadonly}>
-              <div className={styles.settingLabel}>{t("backups.settings.status")}</div>
+              <div className={styles.settingLabel}>
+                {t("backups.settings.status")}
+              </div>
               <div className={styles.settingValue}>
-                {backupSettings.enabled ? t("backups.settings.enabled") : t("backups.settings.disabled")}
+                {backupSettings.enabled
+                  ? t("backups.settings.enabled")
+                  : t("backups.settings.disabled")}
               </div>
             </div>
 
             {backupSettings.enabled && (
               <>
                 <div className={styles.settingItemReadonly}>
-                  <div className={styles.settingLabel}>{t("backups.settings.interval")}</div>
-                  <div className={styles.settingValue}>{getIntervalLabel(backupSettings.interval)}</div>
+                  <div className={styles.settingLabel}>
+                    {t("backups.settings.interval")}
+                  </div>
+                  <div className={styles.settingValue}>
+                    {getIntervalLabel(backupSettings.interval)}
+                  </div>
                 </div>
 
                 <div className={styles.settingItemReadonly}>
-                  <div className={styles.settingLabel}>{t("backups.settings.maxBackups")}</div>
-                  <div className={styles.settingValue}>{backupSettings.maxBackups}</div>
+                  <div className={styles.settingLabel}>
+                    {t("backups.settings.maxBackups")}
+                  </div>
+                  <div className={styles.settingValue}>
+                    {backupSettings.maxBackups}
+                  </div>
                 </div>
               </>
             )}
           </div>
         )}
-        
+
         {isEditingSettings && (
           <div className={styles.settingsActions}>
             <button

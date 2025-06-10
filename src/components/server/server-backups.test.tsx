@@ -53,7 +53,8 @@ const translations: Record<string, string> = {
   "errors.failedToLoadBackups": "Failed to load backups",
   "errors.operationFailed": "Failed to {action}",
   "common.unknown": "Unknown",
-  "backups.creatingDescription": "Please wait while your backup is being created. This may take a few minutes depending on your world size.",
+  "backups.creatingDescription":
+    "Please wait while your backup is being created. This may take a few minutes depending on your world size.",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
@@ -222,7 +223,7 @@ describe("ServerBackups", () => {
 
     // Edit button should be hidden
     expect(screen.queryByText("Edit Settings")).not.toBeInTheDocument();
-    
+
     // Save button should be disabled initially (no changes)
     expect(screen.getByText("Save")).toBeDisabled();
   });
@@ -288,7 +289,7 @@ describe("ServerBackups", () => {
     // Both save and cancel buttons should be visible in edit mode
     expect(screen.getByText("Save")).toBeInTheDocument();
     expect(screen.getByText("Cancel")).toBeInTheDocument();
-    
+
     // Save should be disabled initially
     expect(screen.getByText("Save")).toBeDisabled();
 

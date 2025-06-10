@@ -162,10 +162,10 @@ export async function createBackup(
     `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`,
     {
       method: "POST",
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         name,
         description: "",
-        backup_type: "manual"
+        backup_type: "manual",
       }),
     }
   );
@@ -174,9 +174,12 @@ export async function createBackup(
 export async function restoreBackup(
   backupId: string
 ): Promise<Result<void, AuthError>> {
-  return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`, {
-    method: "POST",
-  });
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`,
+    {
+      method: "POST",
+    }
+  );
 }
 
 export async function deleteBackup(
@@ -195,11 +198,11 @@ export async function getBackupSettings(
     interval_hours: number | null;
     max_backups: number | null;
   }>(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
-  
+
   if (result.isErr()) {
     return err(result.error);
   }
-  
+
   return ok({
     enabled: result.value.enabled ?? false,
     interval: result.value.interval_hours ?? 24,
@@ -211,11 +214,13 @@ export async function updateBackupSettings(
   serverId: number,
   settings: BackupSettings
 ): Promise<Result<void, AuthError>> {
-  const url = new URL(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
+  const url = new URL(
+    `${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`
+  );
   url.searchParams.set("enabled", settings.enabled.toString());
   url.searchParams.set("interval_hours", settings.interval.toString());
   url.searchParams.set("max_backups", settings.maxBackups.toString());
-  
+
   return fetchEmpty(url.toString(), {
     method: "PUT",
   });
