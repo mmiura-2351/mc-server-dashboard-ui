@@ -207,11 +207,14 @@
     "noBackupsFound": "No backups found. Create your first backup to get started!",
     "automatic": "Auto",
     "restore": "Restore",
+    "delete": "Delete",
     "restoreConfirmation": "Are you sure you want to restore backup '{name}'? This will replace your current world data.",
+    "deleteConfirmation": "Are you sure you want to delete backup '{name}'? This action cannot be undone.",
     "errors": {
       "backupNameRequired": "Backup name is required",
       "failedToCreateBackup": "Failed to create backup",
-      "failedToRestoreBackup": "Failed to restore backup"
+      "failedToRestoreBackup": "Failed to restore backup",
+      "failedToDeleteBackup": "Failed to delete backup"
     }
   },
   "errors": {

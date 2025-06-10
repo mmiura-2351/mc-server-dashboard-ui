@@ -121,6 +121,26 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     }
   };
 
+  const handleDeleteBackup = async (backupId: string, backupName: string) => {
+    if (!confirm(t("backups.deleteConfirmation", { name: backupName }))) {
+      return;
+    }
+
+    setError(null);
+    
+    try {
+      const result = await serverService.deleteBackup(backupId);
+
+      if (result.isOk()) {
+        await loadBackupsAndSettings();
+      } else {
+        setError(result.error.message);
+      }
+    } catch {
+      setError(t("backups.errors.failedToDeleteBackup"));
+    }
+  };
+
   const handleEditSettings = (updates: Partial<BackupSettings>) => {
     const newSettings = { ...editedSettings, ...updates };
     setEditedSettings(newSettings);
@@ -352,6 +372,12 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                     className={styles.restoreButton}
                   >
                     {t("backups.restore")}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBackup(backup.id, backup.name)}
+                    className={styles.deleteButton}
+                  >
+                    {t("backups.delete")}
                   </button>
                 </div>
               </div>

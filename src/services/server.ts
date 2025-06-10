@@ -179,6 +179,14 @@ export async function restoreBackup(
   });
 }
 
+export async function deleteBackup(
+  backupId: string
+): Promise<Result<void, AuthError>> {
+  return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function getBackupSettings(
   serverId: number
 ): Promise<Result<BackupSettings, AuthError>> {

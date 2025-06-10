@@ -10,6 +10,7 @@ vi.mock("@/services/server", () => ({
   getBackupSettings: vi.fn(),
   createBackup: vi.fn(),
   restoreBackup: vi.fn(),
+  deleteBackup: vi.fn(),
   updateBackupSettings: vi.fn(),
 }));
 
@@ -39,8 +40,11 @@ const translations: Record<string, string> = {
     "No backups found. Create your first backup to get started!",
   "backups.automatic": "Auto",
   "backups.restore": "Restore",
+  "backups.delete": "Delete",
   "backups.restoreConfirmation":
     "Are you sure you want to restore backup '{name}'? This will replace your current world data.",
+  "backups.deleteConfirmation":
+    "Are you sure you want to delete backup '{name}'? This action cannot be undone.",
   "backups.errors.backupNameRequired": "Backup name is required",
   "errors.failedToLoadBackups": "Failed to load backups",
   "errors.operationFailed": "Failed to {action}",
@@ -119,6 +123,7 @@ describe("ServerBackups", () => {
       })
     );
     vi.mocked(serverService.restoreBackup).mockResolvedValue(ok(undefined));
+    vi.mocked(serverService.deleteBackup).mockResolvedValue(ok(undefined));
     vi.mocked(serverService.updateBackupSettings).mockResolvedValue(
       ok(undefined)
     );
@@ -150,6 +155,7 @@ describe("ServerBackups", () => {
 
     expect(screen.getByText("Auto Backup")).toBeInTheDocument();
     expect(screen.getByText("Auto")).toBeInTheDocument(); // automatic badge
+    expect(screen.getAllByText("Delete")).toHaveLength(2); // delete buttons for both backups
   });
 
   it("handles backup creation", async () => {
@@ -277,6 +283,43 @@ describe("ServerBackups", () => {
     expect(serverService.restoreBackup).not.toHaveBeenCalled();
   });
 
+  it("handles backup deletion with confirmation", async () => {
+    vi.mocked(window.confirm).mockReturnValue(true);
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test Backup")).toBeInTheDocument();
+    });
+
+    const deleteButtons = screen.getAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
+    );
+
+    await waitFor(() => {
+      expect(serverService.deleteBackup).toHaveBeenCalledWith("backup-1");
+    });
+  });
+
+  it("cancels backup deletion when not confirmed", async () => {
+    vi.mocked(window.confirm).mockReturnValue(false);
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test Backup")).toBeInTheDocument();
+    });
+
+    const deleteButtons = screen.getAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
+
+    expect(window.confirm).toHaveBeenCalled();
+    expect(serverService.deleteBackup).not.toHaveBeenCalled();
+  });
+
   it("displays error when backup creation fails", async () => {
     vi.mocked(serverService.createBackup).mockResolvedValue(
       err({ message: "Backup creation failed" })
@@ -308,6 +351,26 @@ describe("ServerBackups", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Failed to load backups")).toBeInTheDocument();
+    });
+  });
+
+  it("displays error when backup deletion fails", async () => {
+    vi.mocked(serverService.deleteBackup).mockResolvedValue(
+      err({ message: "Backup deletion failed" })
+    );
+    vi.mocked(window.confirm).mockReturnValue(true);
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test Backup")).toBeInTheDocument();
+    });
+
+    const deleteButtons = screen.getAllByText("Delete");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Backup deletion failed")).toBeInTheDocument();
     });
   });
 

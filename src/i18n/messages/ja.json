@@ -207,11 +207,14 @@
     "noBackupsFound": "バックアップが見つかりません。最初のバックアップを作成して始めましょう！",
     "automatic": "自動",
     "restore": "復元",
+    "delete": "削除",
     "restoreConfirmation": "バックアップ'{name}'を復元しますか？これにより現在のワールドデータが置き換えられます。",
+    "deleteConfirmation": "バックアップ'{name}'を削除しますか？この操作は元に戻せません。",
     "errors": {
       "backupNameRequired": "バックアップ名は必須です",
       "failedToCreateBackup": "バックアップの作成に失敗しました",
-      "failedToRestoreBackup": "バックアップの復元に失敗しました"
+      "failedToRestoreBackup": "バックアップの復元に失敗しました",
+      "failedToDeleteBackup": "バックアップの削除に失敗しました"
     }
   },
   "errors": {
