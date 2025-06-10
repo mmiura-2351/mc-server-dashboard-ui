@@ -44,6 +44,8 @@ const translations: Record<string, string> = {
   "backups.errors.backupNameRequired": "Backup name is required",
   "errors.failedToLoadBackups": "Failed to load backups",
   "errors.operationFailed": "Failed to {action}",
+  "common.unknown": "Unknown",
+  "backups.creatingDescription": "Please wait while your backup is being created. This may take a few minutes depending on your world size.",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
@@ -70,19 +72,23 @@ describe("ServerBackups", () => {
   const mockBackups = [
     {
       id: "backup-1",
-      serverId: "1",
+      server_id: 1,
       name: "Test Backup",
-      size: 1024000,
-      createdAt: "2024-01-01T00:00:00Z",
-      isAutomatic: false,
+      description: "Test backup description",
+      size_bytes: 1024000,
+      created_at: "2024-01-01T00:00:00Z",
+      backup_type: "manual" as const,
+      file_path: "/backups/backup-1.tar.gz",
     },
     {
       id: "backup-2",
-      serverId: "1",
+      server_id: 1,
       name: "Auto Backup",
-      size: 2048000,
-      createdAt: "2024-01-02T00:00:00Z",
-      isAutomatic: true,
+      description: "Scheduled backup",
+      size_bytes: 2048000,
+      created_at: "2024-01-02T00:00:00Z",
+      backup_type: "scheduled" as const,
+      file_path: "/backups/backup-2.tar.gz",
     },
   ];
 
@@ -103,11 +109,13 @@ describe("ServerBackups", () => {
     vi.mocked(serverService.createBackup).mockResolvedValue(
       ok({
         id: "new-backup",
-        serverId: "1",
+        server_id: 1,
         name: "New Backup",
-        size: 512000,
-        createdAt: "2024-01-03T00:00:00Z",
-        isAutomatic: false,
+        description: "Newly created backup",
+        size_bytes: 512000,
+        created_at: "2024-01-03T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/new-backup.tar.gz",
       })
     );
     vi.mocked(serverService.restoreBackup).mockResolvedValue(ok(undefined));
