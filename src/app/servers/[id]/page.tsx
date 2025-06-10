@@ -8,6 +8,7 @@ import { MainLayout } from "@/components/layout/main-layout";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
+import { ServerBackups } from "@/components/server/server-backups";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -30,12 +31,15 @@ export default function ServerDetailPage() {
     | "properties"
     | "settings"
     | "files"
+    | "backups"
     | null;
   const [activeTab, setActiveTab] = useState<
-    "info" | "properties" | "settings" | "files"
+    "info" | "properties" | "settings" | "files" | "backups"
   >(
     tabFromUrl &&
-      ["info", "properties", "settings", "files"].includes(tabFromUrl)
+      ["info", "properties", "settings", "files", "backups"].includes(
+        tabFromUrl
+      )
       ? tabFromUrl
       : "info"
   );
@@ -65,7 +69,7 @@ export default function ServerDetailPage() {
 
   // Function to update tab and URL
   const handleTabChange = (
-    tab: "info" | "properties" | "settings" | "files"
+    tab: "info" | "properties" | "settings" | "files" | "backups"
   ) => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
@@ -298,6 +302,12 @@ export default function ServerDetailPage() {
           >
             Files
           </button>
+          <button
+            className={`${styles.tab} ${activeTab === "backups" ? styles.activeTab : ""}`}
+            onClick={() => handleTabChange("backups")}
+          >
+            {t("servers.backups")}
+          </button>
         </div>
 
         <div className={styles.content}>
@@ -418,9 +428,13 @@ export default function ServerDetailPage() {
             <div className={styles.fullWidthTabContent}>
               <ServerPropertiesEditor serverId={server.id} />
             </div>
-          ) : (
+          ) : activeTab === "files" ? (
             <div className={styles.fullWidthTabContent}>
               <FileExplorer serverId={server.id} />
+            </div>
+          ) : (
+            <div className={styles.fullWidthTabContent}>
+              <ServerBackups serverId={server.id} />
             </div>
           )}
         </div>
