@@ -336,8 +336,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     const result = await fileService.deleteFile(serverId, filePath);
 
     if (result.isOk()) {
-      // Reload files to update the list
-      loadFiles();
+      // Update file list by removing the deleted file
+      setFiles(prevFiles => prevFiles.filter(f => f.name !== file.name));
       showToast(`Successfully deleted ${file.name}`, "info");
     } else {
       showToast(`Failed to delete file: ${result.error.message}`, "error");
@@ -359,6 +359,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     let successCount = 0;
     let failCount = 0;
+    const deletedFileNames: string[] = [];
 
     for (const file of selected) {
       const filePath =
@@ -367,9 +368,17 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       if (result.isOk()) {
         successCount++;
+        deletedFileNames.push(file.name);
       } else {
         failCount++;
       }
+    }
+
+    // Update file list by removing successfully deleted files
+    if (deletedFileNames.length > 0) {
+      setFiles(prevFiles => 
+        prevFiles.filter(f => !deletedFileNames.includes(f.name))
+      );
     }
 
     if (failCount === 0) {
@@ -382,7 +391,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     }
 
     clearSelection();
-    loadFiles();
   };
 
   const handleDownloadFile = async (file: FileSystemItem) => {
@@ -630,11 +638,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     );
 
     if (result.isOk()) {
+      // Update file list by modifying the renamed file
+      setFiles(prevFiles => 
+        prevFiles.map(f => 
+          f.name === renamingFile.name 
+            ? { ...f, name: newName.trim() }
+            : f
+        )
+      );
       showToast(
         `Successfully renamed "${renamingFile.name}" to "${newName.trim()}"`,
         "info"
       );
-      loadFiles(); // Refresh file list
       handleRenameCancel();
     } else {
       showToast(`Failed to rename file: ${result.error.message}`, "error");
@@ -732,8 +747,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           failed: result.value.failed,
         }));
 
-        // Refresh file list
-        await loadFiles();
+        // Refresh file list without showing loading state
+        const refreshResult = await fileService.listFiles(serverId, currentPath);
+        if (refreshResult.isOk()) {
+          setFiles(refreshResult.value);
+        }
 
         if (result.value.failed.length === 0) {
           showToast(
