@@ -3,6 +3,7 @@
     "loading": "Loading...",
     "refresh": "Refresh",
     "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "delete": "Delete",
     "confirm": "Confirm",
@@ -178,9 +179,41 @@
       "saveProperties": "Save Properties",
       "createFile": "Create Properties File",
       "saving": "Saving..."
+    },
+    "backups": "Backups"
+  },
+  "backups": {
+    "description": "Manage your server backups. Create manual backups or set up automatic scheduled backups to protect your world data.",
+    "settings": {
+      "title": "Backup Settings",
+      "enableAutoBackup": "Enable Automatic Backups",
+      "interval": "Backup Interval",
+      "maxBackups": "Maximum Backups to Keep"
+    },
+    "intervals": {
+      "6hours": "Every 6 hours",
+      "12hours": "Every 12 hours",
+      "24hours": "Every 24 hours",
+      "48hours": "Every 48 hours",
+      "weekly": "Weekly"
+    },
+    "createBackup": "Create New Backup",
+    "backupNamePlaceholder": "Enter backup name...",
+    "create": "Create Backup",
+    "creating": "Creating...",
+    "existingBackups": "Existing Backups",
+    "noBackupsFound": "No backups found. Create your first backup to get started!",
+    "automatic": "Auto",
+    "restore": "Restore",
+    "restoreConfirmation": "Are you sure you want to restore backup '{name}'? This will replace your current world data.",
+    "errors": {
+      "backupNameRequired": "Backup name is required",
+      "failedToCreateBackup": "Failed to create backup",
+      "failedToRestoreBackup": "Failed to restore backup"
     }
   },
   "errors": {
+    "failedToLoadBackups": "Failed to load backups",
     "generic": "An error occurred",
     "network": "Network error",
     "validation": "Validation error",

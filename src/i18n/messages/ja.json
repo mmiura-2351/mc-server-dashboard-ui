@@ -3,6 +3,7 @@
     "loading": "読み込み中...",
     "refresh": "更新",
     "save": "保存",
+    "saving": "保存中...",
     "cancel": "キャンセル",
     "delete": "削除",
     "confirm": "確認",
@@ -178,9 +179,41 @@
       "saveProperties": "プロパティを保存",
       "createFile": "プロパティファイルを作成",
       "saving": "保存中..."
+    },
+    "backups": "バックアップ"
+  },
+  "backups": {
+    "description": "サーバーのバックアップを管理できます。手動でバックアップを作成したり、自動バックアップスケジュールを設定してワールドデータを保護できます。",
+    "settings": {
+      "title": "バックアップ設定",
+      "enableAutoBackup": "自動バックアップを有効にする",
+      "interval": "バックアップ間隔",
+      "maxBackups": "保持する最大バックアップ数"
+    },
+    "intervals": {
+      "6hours": "6時間ごと",
+      "12hours": "12時間ごと",
+      "24hours": "24時間ごと",
+      "48hours": "48時間ごと",
+      "weekly": "週次"
+    },
+    "createBackup": "新しいバックアップを作成",
+    "backupNamePlaceholder": "バックアップ名を入力...",
+    "create": "バックアップ作成",
+    "creating": "作成中...",
+    "existingBackups": "既存のバックアップ",
+    "noBackupsFound": "バックアップが見つかりません。最初のバックアップを作成して始めましょう！",
+    "automatic": "自動",
+    "restore": "復元",
+    "restoreConfirmation": "バックアップ'{name}'を復元しますか？これにより現在のワールドデータが置き換えられます。",
+    "errors": {
+      "backupNameRequired": "バックアップ名は必須です",
+      "failedToCreateBackup": "バックアップの作成に失敗しました",
+      "failedToRestoreBackup": "バックアップの復元に失敗しました"
     }
   },
   "errors": {
+    "failedToLoadBackups": "バックアップの読み込みに失敗しました",
     "generic": "エラーが発生しました",
     "network": "ネットワークエラー",
     "validation": "バリデーションエラー",
