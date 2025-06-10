@@ -337,7 +337,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     if (result.isOk()) {
       // Update file list by removing the deleted file
-      setFiles(prevFiles => prevFiles.filter(f => f.name !== file.name));
+      setFiles((prevFiles) => prevFiles.filter((f) => f.name !== file.name));
       showToast(`Successfully deleted ${file.name}`, "info");
     } else {
       showToast(`Failed to delete file: ${result.error.message}`, "error");
@@ -376,8 +376,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     // Update file list by removing successfully deleted files
     if (deletedFileNames.length > 0) {
-      setFiles(prevFiles => 
-        prevFiles.filter(f => !deletedFileNames.includes(f.name))
+      setFiles((prevFiles) =>
+        prevFiles.filter((f) => !deletedFileNames.includes(f.name))
       );
     }
 
@@ -639,11 +639,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     if (result.isOk()) {
       // Update file list by modifying the renamed file
-      setFiles(prevFiles => 
-        prevFiles.map(f => 
-          f.name === renamingFile.name 
-            ? { ...f, name: newName.trim() }
-            : f
+      setFiles((prevFiles) =>
+        prevFiles.map((f) =>
+          f.name === renamingFile.name ? { ...f, name: newName.trim() } : f
         )
       );
       showToast(
@@ -748,7 +746,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         }));
 
         // Refresh file list without showing loading state
-        const refreshResult = await fileService.listFiles(serverId, currentPath);
+        const refreshResult = await fileService.listFiles(
+          serverId,
+          currentPath
+        );
         if (refreshResult.isOk()) {
           setFiles(refreshResult.value);
         }
@@ -1036,7 +1037,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         className={styles.breadcrumbItem}
       >
         🏠 Root
-      </button>
+      </button>,
     ];
 
     if (pathParts.length <= maxVisibleParts) {
@@ -1138,9 +1139,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       />
 
       <div className={styles.toolbar}>
-        <div className={styles.breadcrumb}>
-          {renderBreadcrumb()}
-        </div>
+        <div className={styles.breadcrumb}>{renderBreadcrumb()}</div>
         <div className={styles.actions}>
           {isSelectionMode && (
             <>
