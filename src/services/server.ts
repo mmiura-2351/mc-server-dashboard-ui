@@ -150,7 +150,8 @@ export async function getServerBackups(
   if (result.isErr()) {
     return err(result.error);
   }
-  return ok(result.value.backups);
+  // Return the backups array, handling the case where it might be undefined
+  return ok(result.value.backups || []);
 }
 
 export async function createBackup(

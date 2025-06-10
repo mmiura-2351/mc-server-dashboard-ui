@@ -92,11 +92,13 @@ export interface ServerTemplate {
 
 export interface ServerBackup {
   id: string;
-  serverId: string;
+  server_id: number;
   name: string;
-  size: number; // bytes
-  createdAt: string;
-  isAutomatic: boolean;
+  description?: string;
+  size_bytes: number;
+  created_at: string;
+  backup_type: "manual" | "scheduled" | "pre_update";
+  file_path: string;
 }
 
 export interface BackupSettings {

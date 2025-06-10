@@ -14,7 +14,8 @@
     "approved": "承認済み",
     "pending": "承認待ち",
     "approve": "承認",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "unknown": "不明"
   },
   "navigation": {
     "servers": "サーバー",
@@ -201,6 +202,7 @@
     "backupNamePlaceholder": "バックアップ名を入力...",
     "create": "バックアップ作成",
     "creating": "作成中...",
+    "creatingDescription": "バックアップを作成しています。ワールドのサイズによっては数分かかる場合があります。",
     "existingBackups": "既存のバックアップ",
     "noBackupsFound": "バックアップが見つかりません。最初のバックアップを作成して始めましょう！",
     "automatic": "自動",

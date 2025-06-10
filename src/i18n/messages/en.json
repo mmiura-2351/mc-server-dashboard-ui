@@ -14,7 +14,8 @@
     "approved": "Approved",
     "pending": "Pending",
     "approve": "Approve",
-    "logout": "Logout"
+    "logout": "Logout",
+    "unknown": "Unknown"
   },
   "navigation": {
     "servers": "Servers",
@@ -201,6 +202,7 @@
     "backupNamePlaceholder": "Enter backup name...",
     "create": "Create Backup",
     "creating": "Creating...",
+    "creatingDescription": "Please wait while your backup is being created. This may take a few minutes depending on your world size.",
     "existingBackups": "Existing Backups",
     "noBackupsFound": "No backups found. Create your first backup to get started!",
     "automatic": "Auto",
