@@ -189,7 +189,11 @@
       "title": "バックアップ設定",
       "enableAutoBackup": "自動バックアップを有効にする",
       "interval": "バックアップ間隔",
-      "maxBackups": "保持する最大バックアップ数"
+      "maxBackups": "保持する最大バックアップ数",
+      "edit": "設定を編集",
+      "status": "状態",
+      "enabled": "有効",
+      "disabled": "無効"
     },
     "intervals": {
       "6hours": "6時間ごと",

@@ -189,7 +189,11 @@
       "title": "Backup Settings",
       "enableAutoBackup": "Enable Automatic Backups",
       "interval": "Backup Interval",
-      "maxBackups": "Maximum Backups to Keep"
+      "maxBackups": "Maximum Backups to Keep",
+      "edit": "Edit Settings",
+      "status": "Status",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
     },
     "intervals": {
       "6hours": "Every 6 hours",

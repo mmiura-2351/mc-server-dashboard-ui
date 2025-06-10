@@ -29,6 +29,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const [error, setError] = useState<string | null>(null);
   const [newBackupName, setNewBackupName] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isEditingSettings, setIsEditingSettings] = useState(false);
 
   const loadBackupsAndSettings = async () => {
     setIsLoading(true);
@@ -147,6 +148,12 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     setHasUnsavedChanges(true);
   };
 
+  const handleStartEditing = () => {
+    setIsEditingSettings(true);
+    setHasUnsavedChanges(false);
+    setError(null);
+  };
+
   const handleSaveSettings = async () => {
     setError(null);
     setIsSavingSettings(true);
@@ -160,6 +167,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
       if (result.isOk()) {
         setBackupSettings(editedSettings);
         setHasUnsavedChanges(false);
+        setIsEditingSettings(false);
       } else {
         setError(result.error.message);
       }
@@ -173,6 +181,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const handleCancelChanges = () => {
     setEditedSettings(backupSettings);
     setHasUnsavedChanges(false);
+    setIsEditingSettings(false);
     setError(null);
   };
 
@@ -196,6 +205,23 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
 
   const isAutomaticBackup = (backup: ServerBackup) => {
     return backup.backup_type === "scheduled";
+  };
+
+  const getIntervalLabel = (hours: number) => {
+    switch (hours) {
+      case 6:
+        return t("backups.intervals.6hours");
+      case 12:
+        return t("backups.intervals.12hours");
+      case 24:
+        return t("backups.intervals.24hours");
+      case 48:
+        return t("backups.intervals.48hours");
+      case 168:
+        return t("backups.intervals.weekly");
+      default:
+        return `${hours} hours`;
+    }
   };
 
   if (isLoading) {
@@ -242,64 +268,97 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
 
       {/* Backup Settings */}
       <div className={styles.section}>
-        <h3>{t("backups.settings.title")}</h3>
-        <div className={styles.settingsGrid}>
-          <div className={styles.settingItem}>
-            <label className={styles.label}>
-              <input
-                type="checkbox"
-                checked={!!editedSettings.enabled}
-                onChange={(e) =>
-                  handleEditSettings({
-                    enabled: e.target.checked,
-                  })
-                }
-              />
-              {t("backups.settings.enableAutoBackup")}
-            </label>
-          </div>
-
-          <div className={styles.settingItem}>
-            <label className={styles.label}>
-              {t("backups.settings.interval")}
-              <select
-                value={String(editedSettings.interval || 24)}
-                onChange={(e) =>
-                  handleEditSettings({
-                    interval: parseInt(e.target.value) || 24,
-                  })
-                }
-                disabled={!editedSettings.enabled}
-              >
-                <option value="6">{t("backups.intervals.6hours")}</option>
-                <option value="12">{t("backups.intervals.12hours")}</option>
-                <option value="24">{t("backups.intervals.24hours")}</option>
-                <option value="48">{t("backups.intervals.48hours")}</option>
-                <option value="168">{t("backups.intervals.weekly")}</option>
-              </select>
-            </label>
-          </div>
-
-          <div className={styles.settingItem}>
-            <label className={styles.label}>
-              {t("backups.settings.maxBackups")}
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={String(editedSettings.maxBackups || 7)}
-                onChange={(e) =>
-                  handleEditSettings({
-                    maxBackups: parseInt(e.target.value) || 1,
-                  })
-                }
-                disabled={!editedSettings.enabled}
-              />
-            </label>
-          </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+          <h3>{t("backups.settings.title")}</h3>
+          {!isEditingSettings && (
+            <button onClick={handleStartEditing} className={styles.editButton}>
+              {t("backups.settings.edit")}
+            </button>
+          )}
         </div>
+
+        {isEditingSettings ? (
+          <div className={styles.settingsGrid}>
+            <div className={styles.settingItem}>
+              <label className={styles.label}>
+                <input
+                  type="checkbox"
+                  checked={!!editedSettings.enabled}
+                  onChange={(e) =>
+                    handleEditSettings({
+                      enabled: e.target.checked,
+                    })
+                  }
+                />
+                {t("backups.settings.enableAutoBackup")}
+              </label>
+            </div>
+
+            <div className={styles.settingItem}>
+              <label className={styles.label}>
+                {t("backups.settings.interval")}
+                <select
+                  value={String(editedSettings.interval || 24)}
+                  onChange={(e) =>
+                    handleEditSettings({
+                      interval: parseInt(e.target.value) || 24,
+                    })
+                  }
+                  disabled={!editedSettings.enabled}
+                >
+                  <option value="6">{t("backups.intervals.6hours")}</option>
+                  <option value="12">{t("backups.intervals.12hours")}</option>
+                  <option value="24">{t("backups.intervals.24hours")}</option>
+                  <option value="48">{t("backups.intervals.48hours")}</option>
+                  <option value="168">{t("backups.intervals.weekly")}</option>
+                </select>
+              </label>
+            </div>
+
+            <div className={styles.settingItem}>
+              <label className={styles.label}>
+                {t("backups.settings.maxBackups")}
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={String(editedSettings.maxBackups || 7)}
+                  onChange={(e) =>
+                    handleEditSettings({
+                      maxBackups: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  disabled={!editedSettings.enabled}
+                />
+              </label>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.settingsReadonly}>
+            <div className={styles.settingItemReadonly}>
+              <div className={styles.settingLabel}>{t("backups.settings.status")}</div>
+              <div className={styles.settingValue}>
+                {backupSettings.enabled ? t("backups.settings.enabled") : t("backups.settings.disabled")}
+              </div>
+            </div>
+
+            {backupSettings.enabled && (
+              <>
+                <div className={styles.settingItemReadonly}>
+                  <div className={styles.settingLabel}>{t("backups.settings.interval")}</div>
+                  <div className={styles.settingValue}>{getIntervalLabel(backupSettings.interval)}</div>
+                </div>
+
+                <div className={styles.settingItemReadonly}>
+                  <div className={styles.settingLabel}>{t("backups.settings.maxBackups")}</div>
+                  <div className={styles.settingValue}>{backupSettings.maxBackups}</div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
         
-        {hasUnsavedChanges && (
+        {isEditingSettings && (
           <div className={styles.settingsActions}>
             <button
               onClick={handleCancelChanges}
@@ -311,7 +370,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
             <button
               onClick={handleSaveSettings}
               className={styles.saveButton}
-              disabled={isSavingSettings}
+              disabled={isSavingSettings || !hasUnsavedChanges}
             >
               {isSavingSettings ? t("common.saving") : t("common.save")}
             </button>
