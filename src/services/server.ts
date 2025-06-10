@@ -142,44 +142,74 @@ export async function getServerTemplates(): Promise<
 }
 
 export async function getServerBackups(
-  _serverId: number
+  serverId: number
 ): Promise<Result<ServerBackup[], AuthError>> {
-  // Placeholder implementation - replace with actual backup API calls
-  return ok([]);
+  const result = await fetchJson<{ backups: ServerBackup[] }>(
+    `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`
+  );
+  if (result.isErr()) {
+    return err(result.error);
+  }
+  return ok(result.value.backups);
 }
 
 export async function createBackup(
-  _serverId: number,
-  _name: string
+  serverId: number,
+  name: string
 ): Promise<Result<ServerBackup, AuthError>> {
-  // Placeholder implementation
-  return err({ message: "Backup functionality not yet implemented" });
+  return fetchJson<ServerBackup>(
+    `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`,
+    {
+      method: "POST",
+      body: JSON.stringify({ 
+        name,
+        description: "",
+        backup_type: "manual"
+      }),
+    }
+  );
 }
 
 export async function restoreBackup(
-  _backupId: string
+  backupId: string
 ): Promise<Result<void, AuthError>> {
-  // Placeholder implementation
-  return err({ message: "Backup functionality not yet implemented" });
+  return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`, {
+    method: "POST",
+  });
 }
 
 export async function getBackupSettings(
-  _serverId: number
+  serverId: number
 ): Promise<Result<BackupSettings, AuthError>> {
-  // Placeholder implementation
+  const result = await fetchJson<{
+    enabled: boolean | null;
+    interval_hours: number | null;
+    max_backups: number | null;
+  }>(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
+  
+  if (result.isErr()) {
+    return err(result.error);
+  }
+  
   return ok({
-    enabled: false,
-    interval: 24,
-    maxBackups: 7,
+    enabled: result.value.enabled ?? false,
+    interval: result.value.interval_hours ?? 24,
+    maxBackups: result.value.max_backups ?? 7,
   });
 }
 
 export async function updateBackupSettings(
-  _serverId: number,
-  _settings: BackupSettings
+  serverId: number,
+  settings: BackupSettings
 ): Promise<Result<void, AuthError>> {
-  // Placeholder implementation
-  return ok(undefined);
+  const url = new URL(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
+  url.searchParams.set("enabled", settings.enabled.toString());
+  url.searchParams.set("interval_hours", settings.interval.toString());
+  url.searchParams.set("max_backups", settings.maxBackups.toString());
+  
+  return fetchEmpty(url.toString(), {
+    method: "PUT",
+  });
 }
 
 export async function getServerPlayers(
