@@ -156,21 +156,47 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     setError(null);
   };
 
-  const formatBackupSize = (bytes: number) => {
+  const formatBackupSize = (bytes: number | undefined | null) => {
+    if (!bytes || bytes === 0) return "0 B";
     const sizes = ["B", "KB", "MB", "GB"];
-    if (bytes === 0) return "0 B";
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return `${Math.round((bytes / Math.pow(1024, i)) * 100) / 100} ${sizes[i]}`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return t("common.unknown");
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return t("common.unknown");
+      return date.toLocaleString();
+    } catch {
+      return t("common.unknown");
+    }
+  };
+
+  const isAutomaticBackup = (backup: ServerBackup) => {
+    return backup.backup_type === "scheduled";
   };
 
   if (isLoading) {
     return (
       <div className={styles.container}>
         <div className={styles.loading}>{t("common.loading")}</div>
+      </div>
+    );
+  }
+
+  // Show loading overlay during backup creation
+  if (isCreatingBackup) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingContent}>
+            <div className={styles.spinner}></div>
+            <h3>{t("backups.creating")}</h3>
+            <p>{t("backups.creatingDescription")}</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -309,15 +335,15 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                 <div className={styles.backupInfo}>
                   <div className={styles.backupName}>
                     {backup.name}
-                    {backup.isAutomatic && (
+                    {isAutomaticBackup(backup) && (
                       <span className={styles.automaticBadge}>
                         {t("backups.automatic")}
                       </span>
                     )}
                   </div>
                   <div className={styles.backupDetails}>
-                    <span>{formatDate(backup.createdAt)}</span>
-                    <span>{formatBackupSize(backup.size)}</span>
+                    <span>{formatDate(backup.created_at)}</span>
+                    <span>{formatBackupSize(backup.size_bytes)}</span>
                   </div>
                 </div>
                 <div className={styles.backupActions}>
