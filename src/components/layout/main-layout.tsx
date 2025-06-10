@@ -38,12 +38,6 @@ export function MainLayout({ children }: MainLayoutProps) {
       icon: "📋",
       active: pathname === "/templates",
     },
-    {
-      label: t("navigation.backups"),
-      path: "/backups",
-      icon: "💾",
-      active: pathname === "/backups",
-    },
   ];
 
   const accountItems = [
