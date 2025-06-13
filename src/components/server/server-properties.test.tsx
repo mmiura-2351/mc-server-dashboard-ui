@@ -90,7 +90,7 @@ describe("ServerPropertiesEditor", () => {
 
     const labels = screen.getAllByText(/^[A-Z]/, { selector: "label" });
     const labelTexts = labels.map(
-      (label) => label.textContent?.split("(")[0].trim() || ""
+      (label) => label.textContent?.split("(")[0]?.trim() || ""
     );
 
     // Check that some properties are in alphabetical order

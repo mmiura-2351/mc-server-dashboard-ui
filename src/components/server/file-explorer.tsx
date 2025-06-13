@@ -350,7 +350,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     const confirmMessage =
       selected.length === 1
-        ? `Are you sure you want to delete "${selected[0].name}"?`
+        ? `Are you sure you want to delete "${selected[0]?.name}"?`
         : `Are you sure you want to delete ${selected.length} files?`;
 
     if (!confirm(confirmMessage)) {
@@ -427,7 +427,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     if (selected.length === 0) return;
 
     // If only one file is selected and it's not a directory, download it directly
-    if (selected.length === 1 && !selected[0].is_directory) {
+    if (selected.length === 1 && selected[0] && !selected[0].is_directory) {
       await handleDownloadFile(selected[0]);
       clearSelection();
       return;
@@ -489,6 +489,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       // Update progress
       if (i % 5 === 0 || i === filesToDownload.length - 1) {
         showToast(`Processing ${i + 1}/${totalFiles} files...`, "info");
+      }
+
+      if (!fileInfo) {
+        showToast(`File information missing for item ${i + 1}`, "error");
+        continue;
       }
 
       const result = await fileService.downloadFile(
