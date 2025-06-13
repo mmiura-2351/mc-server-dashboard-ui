@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
-import { MainLayout } from "@/components/layout/main-layout";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
@@ -186,11 +185,9 @@ export default function ServerDetailPage() {
   // Show loading while auth is being checked
   if (authLoading) {
     return (
-      <MainLayout>
-        <div className={styles.container}>
-          <div className={styles.loading}>Loading...</div>
-        </div>
-      </MainLayout>
+      <div className={styles.container}>
+        <div className={styles.loading}>Loading...</div>
+      </div>
     );
   }
 
@@ -198,19 +195,16 @@ export default function ServerDetailPage() {
 
   if (isLoading) {
     return (
-      <MainLayout>
-        <div className={styles.container}>
-          <div className={styles.loading}>
-            {t("servers.loadingServerDetails")}
-          </div>
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          {t("servers.loadingServerDetails")}
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   if (error && !server) {
     return (
-      <MainLayout>
         <div className={styles.container}>
           <div className={styles.error}>
             <h2>{t("errors.generic")}</h2>
@@ -223,13 +217,11 @@ export default function ServerDetailPage() {
             </button>
           </div>
         </div>
-      </MainLayout>
     );
   }
 
   if (!server) {
     return (
-      <MainLayout>
         <div className={styles.container}>
           <div className={styles.error}>
             <h2>{t("servers.serverNotFound")}</h2>
@@ -241,13 +233,11 @@ export default function ServerDetailPage() {
             </button>
           </div>
         </div>
-      </MainLayout>
     );
   }
 
   return (
-    <MainLayout>
-      <div className={styles.container}>
+    <div className={styles.container}>
         <div className={styles.header}>
           <button
             onClick={() => router.push("/dashboard")}
@@ -439,6 +429,5 @@ export default function ServerDetailPage() {
           )}
         </div>
       </div>
-    </MainLayout>
   );
 }

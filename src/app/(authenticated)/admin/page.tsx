@@ -1,20 +1,20 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth";
-import { MainLayout } from "@/components/layout/main-layout";
-import { AccountSettings } from "@/components/account/account-settings";
+import { UserManagement } from "@/components/admin/user-management";
+import { Role } from "@/types/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function AccountPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+export default function AdminPage() {
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/");
+    if (!isLoading && (!isAuthenticated || user?.role !== Role.ADMIN)) {
+      router.push("/"); // Redirect non-admin users
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   if (isLoading) {
     return (
@@ -33,13 +33,9 @@ export default function AccountPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return null; // Will redirect to home
+  if (!isAuthenticated || user?.role !== Role.ADMIN) {
+    return null; // Will redirect
   }
 
-  return (
-    <MainLayout>
-      <AccountSettings />
-    </MainLayout>
-  );
+  return <UserManagement />;
 }
