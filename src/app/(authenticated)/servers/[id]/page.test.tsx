@@ -15,7 +15,7 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "errors.operationFailed": "Operation failed",
     "servers.serverNotFound": "Server not found",
     "servers.information": "Information",
-    "servers.properties": "Properties", 
+    "servers.properties": "Properties",
     "servers.settings": "Settings",
     "servers.files": "Files",
     "servers.backups": "Backups",
@@ -26,11 +26,12 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "servers.actions.restart": "Restart Server",
     "servers.actions.delete": "Delete Server",
     "servers.backToDashboard": "← Back to Dashboard",
-    "servers.deleteConfirmation": "Are you sure you want to delete this server? This action cannot be undone.",
+    "servers.deleteConfirmation":
+      "Are you sure you want to delete this server? This action cannot be undone.",
     "servers.fields.version": "Minecraft Version",
     "servers.fields.type": "Server Type",
     "servers.fields.maxPlayers": "Max Players",
-    "servers.fields.memoryLimit": "Memory Limit", 
+    "servers.fields.memoryLimit": "Memory Limit",
     "servers.fields.port": "Port",
     "servers.fields.created": "Created",
     "servers.description": "Description",
@@ -40,7 +41,7 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "servers.status.stopping": "Stopping",
     "servers.status.error": "Error",
   };
-  
+
   let translation = translations[key] || key;
   if (params) {
     Object.entries(params).forEach(([paramKey, paramValue]) => {
@@ -124,13 +125,13 @@ describe("ServerDetailPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup successful authentication by default
     authScenarios.authenticated();
-    
+
     // Setup router with server ID 1 by default
     routerScenarios.serverDetail("1");
-    
+
     // Setup successful server service responses by default
     mockGetServer.mockResolvedValue(ok(mockServer));
     mockStartServer.mockResolvedValue(ok(undefined));
@@ -142,9 +143,7 @@ describe("ServerDetailPage", () => {
   describe("Server Data Loading", () => {
     test("should render loading state while fetching server details", () => {
       // Make getServer return a never-resolving promise
-      mockGetServer.mockImplementation(
-        () => new Promise(() => {})
-      );
+      mockGetServer.mockImplementation(() => new Promise(() => {}));
 
       render(<ServerDetailPage />);
 
@@ -152,14 +151,14 @@ describe("ServerDetailPage", () => {
     });
 
     test("should render server information when data loads successfully", async () => {
-      const testServer = createMockServer({ 
+      const testServer = createMockServer({
         status: ServerStatus.STOPPED,
         name: "Test Server",
         minecraft_version: "1.21.5",
         server_type: ServerType.VANILLA,
         max_players: 20,
         max_memory: 2048,
-        port: 25565
+        port: 25565,
       });
       mockGetServer.mockResolvedValue(ok(testServer));
 
@@ -176,7 +175,7 @@ describe("ServerDetailPage", () => {
       expect(screen.getByText("20")).toBeInTheDocument();
       expect(screen.getByText("2048MB")).toBeInTheDocument();
       expect(screen.getByText("25565")).toBeInTheDocument();
-      
+
       // Verify API call was made with correct server ID
       expect(mockGetServer).toHaveBeenCalledWith(1);
     });
@@ -229,8 +228,12 @@ describe("ServerDetailPage", () => {
       await user.click(propertiesTab);
 
       expect(propertiesTab.className).toContain("activeTab");
-      expect(screen.getByTestId("server-properties-editor")).toBeInTheDocument();
-      expect(screen.getByText("Properties Editor for Server 1")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("server-properties-editor")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Properties Editor for Server 1")
+      ).toBeInTheDocument();
     });
 
     test("should switch to settings tab when clicked", async () => {
@@ -260,7 +263,9 @@ describe("ServerDetailPage", () => {
 
       expect(filesTab.className).toContain("activeTab");
       expect(screen.getByTestId("file-explorer")).toBeInTheDocument();
-      expect(screen.getByText("File Explorer for Server 1")).toBeInTheDocument();
+      expect(
+        screen.getByText("File Explorer for Server 1")
+      ).toBeInTheDocument();
     });
 
     test("should switch to backups tab when clicked", async () => {
@@ -290,8 +295,12 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      expect(screen.getByRole("button", { name: "Start Server" })).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Stop Server" })).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Start Server" })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Stop Server" })
+      ).not.toBeInTheDocument();
     });
 
     test("should show stop and restart buttons for running server", async () => {
@@ -304,9 +313,15 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      expect(screen.getByRole("button", { name: "Stop Server" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Restart Server" })).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Start Server" })).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Stop Server" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Restart Server" })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Start Server" })
+      ).not.toBeInTheDocument();
     });
 
     test("should handle server start action", async () => {
@@ -351,7 +366,9 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const restartButton = screen.getByRole("button", { name: "Restart Server" });
+      const restartButton = screen.getByRole("button", {
+        name: "Restart Server",
+      });
       await user.click(restartButton);
 
       expect(mockRestartServer).toHaveBeenCalledWith(1);
@@ -370,7 +387,9 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Server" });
+      const deleteButton = screen.getByRole("button", {
+        name: "Delete Server",
+      });
       await user.click(deleteButton);
 
       expect(confirmSpy).toHaveBeenCalledWith(
@@ -394,7 +413,9 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Server" });
+      const deleteButton = screen.getByRole("button", {
+        name: "Delete Server",
+      });
       await user.click(deleteButton);
 
       expect(confirmSpy).toHaveBeenCalled();
@@ -449,7 +470,9 @@ describe("ServerDetailPage", () => {
       const dismissButton = screen.getByRole("button", { name: "×" });
       await user.click(dismissButton);
 
-      expect(screen.queryByText("Failed to start server")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Failed to start server")
+      ).not.toBeInTheDocument();
     });
   });
 
