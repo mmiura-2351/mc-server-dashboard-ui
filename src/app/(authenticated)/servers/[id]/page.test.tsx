@@ -194,7 +194,7 @@ describe("ServerDetailPage", () => {
     });
 
     test("should show server not found when server is null", async () => {
-      mockGetServer.mockResolvedValue(ok(null));
+      mockGetServer.mockResolvedValue(ok(null as any));
 
       render(<ServerDetailPage />);
 
