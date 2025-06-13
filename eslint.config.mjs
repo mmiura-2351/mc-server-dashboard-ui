@@ -13,6 +13,7 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
   {
     rules: {
+      // TypeScript rules
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -21,8 +22,15 @@ const eslintConfig = [
         },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
+      
+      // React rules
       "react-hooks/exhaustive-deps": "warn",
+      
+      // Console and debugging
       "no-console": ["warn", { allow: ["warn", "error"] }],
+      
+      // Note: Removed code style rules (semi, quotes, indent) to avoid conflict with Prettier
+      // Prettier handles all code formatting, and "prettier" config disables conflicting ESLint rules
     },
   },
 ];
