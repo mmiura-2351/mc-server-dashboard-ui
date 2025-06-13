@@ -72,6 +72,26 @@
     "userDeletedSuccessfully": "ユーザーを削除しました",
     "noUsersFound": "ユーザーが見つかりません。"
   },
+  "dashboard": {
+    "title": "MC Server Dashboard",
+    "welcome": "ようこそ、{username}さん",
+    "overview": "概要",
+    "accountSettings": "アカウント設定",
+    "accountStatus": "アカウントステータス",
+    "quickActions": "クイックアクション",
+    "manageUsers": "ユーザー管理",
+    "manageServers": "サーバー管理",
+    "accountPendingApproval": "アカウント承認待ち",
+    "accountPendingDescription": "あなたのアカウントは現在管理者による承認待ちです。アカウントが承認されると、すべての機能にアクセスできるようになります。",
+    "accountPendingNote": "ご質問がございましたら、システム管理者にお問い合わせください。",
+    "fields": {
+      "username": "ユーザー名：",
+      "email": "メールアドレス：",
+      "role": "ロール：",
+      "active": "アクティブ：",
+      "approved": "承認済み："
+    }
+  },
   "layout": {
     "brandTitle": "MC Server Dashboard",
     "brandSubtitle": "Minecraft Server Management",

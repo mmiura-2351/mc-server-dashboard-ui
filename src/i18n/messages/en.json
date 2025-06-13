@@ -72,6 +72,26 @@
     "userDeletedSuccessfully": "User deleted successfully",
     "noUsersFound": "No users found."
   },
+  "dashboard": {
+    "title": "MC Server Dashboard",
+    "welcome": "Welcome, {username}",
+    "overview": "Overview",
+    "accountSettings": "Account Settings",
+    "accountStatus": "Account Status",
+    "quickActions": "Quick Actions",
+    "manageUsers": "Manage Users",
+    "manageServers": "Manage Servers",
+    "accountPendingApproval": "Account Pending Approval",
+    "accountPendingDescription": "Your account is currently pending approval by an administrator. You will be able to access all features once your account has been approved.",
+    "accountPendingNote": "If you have any questions, please contact your system administrator.",
+    "fields": {
+      "username": "Username:",
+      "email": "Email:",
+      "role": "Role:",
+      "active": "Active:",
+      "approved": "Approved:"
+    }
+  },
   "layout": {
     "brandTitle": "MC Server Dashboard",
     "brandSubtitle": "Minecraft Server Management",

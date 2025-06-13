@@ -42,9 +42,47 @@ let mockAuthContext: {
   isLoading: false,
 };
 
+// Translation mock
+const translations: Record<string, string> = {
+  "dashboard.title": "MC Server Dashboard",
+  "dashboard.welcome": "Welcome, {username}",
+  "dashboard.overview": "Overview",
+  "dashboard.accountSettings": "Account Settings",
+  "dashboard.accountStatus": "Account Status",
+  "dashboard.quickActions": "Quick Actions",
+  "dashboard.manageUsers": "Manage Users",
+  "dashboard.manageServers": "Manage Servers",
+  "dashboard.accountPendingApproval": "Account Pending Approval",
+  "dashboard.accountPendingDescription": "Your account is currently pending approval by an administrator. You will be able to access all features once your account has been approved.",
+  "dashboard.accountPendingNote": "If you have any questions, please contact your system administrator.",
+  "dashboard.fields.username": "Username:",
+  "dashboard.fields.email": "Email:",
+  "dashboard.fields.role": "Role:",
+  "dashboard.fields.active": "Active:",
+  "dashboard.fields.approved": "Approved:",
+  "common.logout": "Logout",
+  "common.yes": "Yes",
+  "common.no": "No",
+  "common.pending": "Pending"
+};
+
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
+
 // Mock modules
 vi.mock("@/contexts/auth", () => ({
   useAuth: () => mockAuthContext,
+}));
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT, locale: "en" }),
 }));
 
 vi.mock("next/navigation", () => ({
