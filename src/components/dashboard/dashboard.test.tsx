@@ -53,8 +53,10 @@ const translations: Record<string, string> = {
   "dashboard.manageUsers": "Manage Users",
   "dashboard.manageServers": "Manage Servers",
   "dashboard.accountPendingApproval": "Account Pending Approval",
-  "dashboard.accountPendingDescription": "Your account is currently pending approval by an administrator. You will be able to access all features once your account has been approved.",
-  "dashboard.accountPendingNote": "If you have any questions, please contact your system administrator.",
+  "dashboard.accountPendingDescription":
+    "Your account is currently pending approval by an administrator. You will be able to access all features once your account has been approved.",
+  "dashboard.accountPendingNote":
+    "If you have any questions, please contact your system administrator.",
   "dashboard.fields.username": "Username:",
   "dashboard.fields.email": "Email:",
   "dashboard.fields.role": "Role:",
@@ -63,7 +65,7 @@ const translations: Record<string, string> = {
   "common.logout": "Logout",
   "common.yes": "Yes",
   "common.no": "No",
-  "common.pending": "Pending"
+  "common.pending": "Pending",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {

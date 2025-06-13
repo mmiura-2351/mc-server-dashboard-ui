@@ -42,11 +42,13 @@ export function Dashboard() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>{t('dashboard.title')}</h1>
+        <h1 className={styles.title}>{t("dashboard.title")}</h1>
         <div className={styles.userInfo}>
-          <span className={styles.username}>{t('dashboard.welcome', { username: user.username })}</span>
+          <span className={styles.username}>
+            {t("dashboard.welcome", { username: user.username })}
+          </span>
           <button onClick={handleLogout} className={styles.logoutButton}>
-            {t('common.logout')}
+            {t("common.logout")}
           </button>
         </div>
       </header>
@@ -56,13 +58,13 @@ export function Dashboard() {
           className={`${styles.navButton} ${activeTab === "overview" ? styles.active : ""}`}
           onClick={() => setActiveTab("overview")}
         >
-          {t('dashboard.overview')}
+          {t("dashboard.overview")}
         </button>
         <button
           className={`${styles.navButton} ${activeTab === "account" ? styles.active : ""}`}
           onClick={() => setActiveTab("account")}
         >
-          {t('dashboard.accountSettings')}
+          {t("dashboard.accountSettings")}
         </button>
       </nav>
 
@@ -70,36 +72,48 @@ export function Dashboard() {
         {activeTab === "overview" && (
           <div className={styles.tabContent}>
             <div className={styles.statusCard}>
-              <h2 className={styles.cardTitle}>{t('dashboard.accountStatus')}</h2>
+              <h2 className={styles.cardTitle}>
+                {t("dashboard.accountStatus")}
+              </h2>
               <div className={styles.statusGrid}>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>{t('dashboard.fields.username')}</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.username")}
+                  </span>
                   <span className={styles.statusValue}>{user.username}</span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>{t('dashboard.fields.email')}</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.email")}
+                  </span>
                   <span className={styles.statusValue}>{user.email}</span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>{t('dashboard.fields.role')}</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.role")}
+                  </span>
                   <span className={styles.statusValue}>
                     {user.role || "user"}
                   </span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>{t('dashboard.fields.active')}</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.active")}
+                  </span>
                   <span
                     className={`${styles.statusValue} ${user.is_active ? styles.active : styles.inactive}`}
                   >
-                    {user.is_active ? t('common.yes') : t('common.no')}
+                    {user.is_active ? t("common.yes") : t("common.no")}
                   </span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>{t('dashboard.fields.approved')}</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.approved")}
+                  </span>
                   <span
                     className={`${styles.statusValue} ${user.is_approved ? styles.approved : styles.pending}`}
                   >
-                    {user.is_approved ? t('common.yes') : t('common.pending')}
+                    {user.is_approved ? t("common.yes") : t("common.pending")}
                   </span>
                 </div>
               </div>
@@ -107,27 +121,31 @@ export function Dashboard() {
               {!user.is_approved && (
                 <div className={styles.pendingNotice}>
                   <h3 className={styles.noticeTitle}>
-                    {t('dashboard.accountPendingApproval')}
+                    {t("dashboard.accountPendingApproval")}
                   </h3>
                   <p className={styles.noticeText}>
-                    {t('dashboard.accountPendingDescription')}
+                    {t("dashboard.accountPendingDescription")}
                   </p>
                   <p className={styles.noticeSubtext}>
-                    {t('dashboard.accountPendingNote')}
+                    {t("dashboard.accountPendingNote")}
                   </p>
                 </div>
               )}
             </div>
 
             <div className={styles.quickActions}>
-              <h2 className={styles.cardTitle}>{t('dashboard.quickActions')}</h2>
+              <h2 className={styles.cardTitle}>
+                {t("dashboard.quickActions")}
+              </h2>
               <div className={styles.actionGrid}>
                 <button
                   className={styles.actionButton}
                   onClick={handleAccountSettings}
                 >
                   <span className={styles.actionIcon}>⚙️</span>
-                  <span className={styles.actionText}>{t('dashboard.accountSettings')}</span>
+                  <span className={styles.actionText}>
+                    {t("dashboard.accountSettings")}
+                  </span>
                 </button>
                 {isAdmin && (
                   <button
@@ -135,7 +153,9 @@ export function Dashboard() {
                     onClick={handleUserManagement}
                   >
                     <span className={styles.actionIcon}>👥</span>
-                    <span className={styles.actionText}>{t('dashboard.manageUsers')}</span>
+                    <span className={styles.actionText}>
+                      {t("dashboard.manageUsers")}
+                    </span>
                   </button>
                 )}
                 <button
@@ -144,7 +164,9 @@ export function Dashboard() {
                   disabled={!user.is_approved}
                 >
                   <span className={styles.actionIcon}>🖥️</span>
-                  <span className={styles.actionText}>{t('dashboard.manageServers')}</span>
+                  <span className={styles.actionText}>
+                    {t("dashboard.manageServers")}
+                  </span>
                 </button>
               </div>
             </div>

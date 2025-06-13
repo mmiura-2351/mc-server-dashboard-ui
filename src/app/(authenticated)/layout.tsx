@@ -36,7 +36,7 @@ export default function AuthenticatedLayout({
           color: "#6b7280",
         }}
       >
-        {t('common.loading')}
+        {t("common.loading")}
       </div>
     );
   }
