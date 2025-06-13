@@ -4,7 +4,7 @@ import type {
   RefreshTokenRequest,
   RefreshTokenResponse,
 } from "@/types/auth";
-import type { ApiRequestConfig, JsonResponse, BlobResponse } from "./api-types";
+import type { ApiRequestConfig } from "./api-types";
 import { ResponseHandlerManager } from "./response-handlers";
 
 // Global refresh token promise to prevent multiple simultaneous refresh attempts
@@ -117,12 +117,12 @@ async function handleSuccessResponse<T>(
 
     switch (apiResponse.type) {
       case "json":
-        return ok((apiResponse as JsonResponse<T>).data);
+        return ok(apiResponse.data);
       case "empty":
         // For empty responses, return appropriate empty value based on expected type
         return ok({} as T);
       case "blob":
-        return ok((apiResponse as BlobResponse).data as T);
+        return ok(apiResponse.data as T);
       default:
         return err({
           message: "Unknown response type",
