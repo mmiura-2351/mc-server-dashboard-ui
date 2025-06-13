@@ -13,7 +13,7 @@ import { defaultLocale } from "@/i18n/config";
 interface LanguageContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  messages: Record<string, any>;
+  messages: Record<string, unknown>;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
@@ -26,7 +26,7 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale);
-  const [messages, setMessages] = useState<Record<string, any>>({});
+  const [messages, setMessages] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     // Load saved locale from localStorage
@@ -79,11 +79,11 @@ export function useTranslation() {
 
   const t = (key: string, params?: Record<string, string>) => {
     const keys = key.split(".");
-    let value = messages;
+    let value: unknown = messages;
 
     for (const k of keys) {
       if (value && typeof value === "object" && k in value) {
-        value = value[k];
+        value = (value as Record<string, unknown>)[k];
       } else {
         return key; // Return key if translation not found
       }

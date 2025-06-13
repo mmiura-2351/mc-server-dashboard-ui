@@ -1,18 +1,24 @@
 export interface MinecraftServer {
-  id: string;
+  id: number;
   name: string;
-  version: string;
-  type: ServerType;
+  description: string | null;
+  minecraft_version: string;
+  server_type: ServerType;
   status: ServerStatus;
-  memory: number; // MB
-  players: {
-    online: number;
-    max: number;
-  };
+  directory_path: string;
   port: number;
-  createdAt: string;
-  lastStarted?: string;
-  description?: string;
+  max_memory: number; // MB
+  max_players: number;
+  owner_id: number;
+  template_id: number | null;
+  created_at: string;
+  updated_at: string;
+  process_info?: Record<string, unknown> | null;
+  configurations?: ServerConfigurationResponse[];
+}
+
+export interface ServerConfigurationResponse {
+  [key: string]: unknown;
 }
 
 export enum ServerType {
@@ -22,11 +28,55 @@ export enum ServerType {
 }
 
 export enum ServerStatus {
-  RUNNING = "running",
   STOPPED = "stopped",
   STARTING = "starting",
+  RUNNING = "running",
   STOPPING = "stopping",
   ERROR = "error",
+}
+
+export interface ServerListResponse {
+  servers: MinecraftServer[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+export interface ServerStatusResponse {
+  server_id: number;
+  status: ServerStatus;
+  process_info?: Record<string, unknown> | null;
+}
+
+export interface ServerLogsResponse {
+  server_id: number;
+  logs: string[];
+  total_lines: number;
+}
+
+export interface CreateServerRequest {
+  name: string;
+  description?: string | null;
+  minecraft_version: string;
+  server_type: ServerType;
+  port?: number;
+  max_memory?: number;
+  max_players?: number;
+  template_id?: number | null;
+  server_properties?: Record<string, unknown> | null;
+  attach_groups?: Record<string, number[]> | null;
+}
+
+export interface ServerUpdateRequest {
+  name?: string | null;
+  description?: string | null;
+  max_memory?: number | null;
+  max_players?: number | null;
+  server_properties?: Record<string, unknown> | null;
+}
+
+export interface ServerCommandRequest {
+  command: string;
 }
 
 export interface ServerTemplate {
@@ -40,22 +90,15 @@ export interface ServerTemplate {
   createdBy: string;
 }
 
-export interface CreateServerRequest {
-  name: string;
-  version: string;
-  type: ServerType;
-  memory: number;
-  description?: string;
-  templateId?: string;
-}
-
 export interface ServerBackup {
   id: string;
-  serverId: string;
+  server_id: number;
   name: string;
-  size: number; // bytes
-  createdAt: string;
-  isAutomatic: boolean;
+  description?: string;
+  size_bytes: number;
+  created_at: string;
+  backup_type: "manual" | "scheduled" | "pre_update";
+  file_path: string;
 }
 
 export interface BackupSettings {

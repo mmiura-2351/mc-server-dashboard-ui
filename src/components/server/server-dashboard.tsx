@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import * as serverService from "@/services/server";
 import type {
@@ -12,32 +13,34 @@ import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
 import styles from "./server-dashboard.module.css";
 
 export function ServerDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [servers, setServers] = useState<MinecraftServer[]>([]);
-  const [templates, setTemplates] = useState<ServerTemplate[]>([]);
+  const [, setTemplates] = useState<ServerTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<MinecraftServer | null>(
-    null
-  );
+  const [isCreating, setIsCreating] = useState(false);
 
   // Create server form
   const [createForm, setCreateForm] = useState<CreateServerRequest>({
     name: "",
-    version: "1.21.5",
-    type: ServerType.PAPER,
-    memory: 2048,
+    minecraft_version: "1.21.5",
+    server_type: ServerType.VANILLA,
+    max_memory: 2048,
     description: "",
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+
+    // Debug authentication status (development only)
+    if (process.env.NODE_ENV === "development") {
+      const token = localStorage.getItem("access_token");
+      console.warn("[DEBUG] Loading servers - Token exists:", !!token);
+      console.warn("[DEBUG] User:", user);
+    }
 
     try {
       const [serversResult, templatesResult] = await Promise.all([
@@ -48,22 +51,38 @@ export function ServerDashboard() {
       if (serversResult.isOk()) {
         setServers(serversResult.value);
       } else {
+        // Handle authentication errors
+        if (serversResult.error.status === 401) {
+          logout();
+          return;
+        }
         setError(serversResult.error.message);
       }
 
       if (templatesResult.isOk()) {
         setTemplates(templatesResult.value);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load data");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, logout]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateServer = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsCreating(true);
+
+    // Debug authentication status before creating server (development only)
+    if (process.env.NODE_ENV === "development") {
+      const token = localStorage.getItem("access_token");
+      console.warn("[DEBUG] Creating server - Token exists:", !!token);
+      console.warn("[DEBUG] Form data:", createForm);
+    }
 
     const result = await serverService.createServer(createForm);
     if (result.isOk()) {
@@ -71,60 +90,24 @@ export function ServerDashboard() {
       setShowCreateModal(false);
       setCreateForm({
         name: "",
-        version: "1.21.5",
-        type: ServerType.PAPER,
-        memory: 2048,
+        minecraft_version: "1.21.5",
+        server_type: ServerType.VANILLA,
+        max_memory: 2048,
         description: "",
       });
     } else {
+      // Handle authentication errors
+      if (result.error.status === 401) {
+        logout();
+        return;
+      }
       setError(result.error.message);
     }
-    setIsLoading(false);
+    setIsCreating(false);
   };
 
-  const handleServerAction = async (
-    serverId: string,
-    action: "start" | "stop" | "delete"
-  ) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      let result;
-      switch (action) {
-        case "start":
-          result = await serverService.startServer(serverId);
-          break;
-        case "stop":
-          result = await serverService.stopServer(serverId);
-          break;
-        case "delete":
-          if (
-            !confirm(
-              "Are you sure you want to delete this server? This action cannot be undone."
-            )
-          ) {
-            setIsLoading(false);
-            return;
-          }
-          result = await serverService.deleteServer(serverId);
-          break;
-      }
-
-      if (result.isOk()) {
-        if (action === "delete") {
-          setServers(servers.filter((s) => s.id !== serverId));
-        } else {
-          await loadData(); // Reload to get updated status
-        }
-      } else {
-        setError(result.error.message);
-      }
-    } catch (err) {
-      setError("Action failed");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleServerClick = (serverId: number) => {
+    router.push(`/servers/${serverId}`);
   };
 
   const getStatusColor = (status: ServerStatus) => {
@@ -170,7 +153,7 @@ export function ServerDashboard() {
         <button
           onClick={() => setShowCreateModal(true)}
           className={styles.createButton}
-          disabled={isLoading}
+          disabled={isCreating}
         >
           Create Server
         </button>
@@ -206,7 +189,11 @@ export function ServerDashboard() {
           ) : (
             <div className={styles.serverGrid}>
               {servers.map((server) => (
-                <div key={server.id} className={styles.serverCard}>
+                <div
+                  key={server.id}
+                  className={styles.serverCard}
+                  onClick={() => handleServerClick(server.id)}
+                >
                   <div className={styles.serverHeader}>
                     <h3 className={styles.serverName}>{server.name}</h3>
                     <span
@@ -219,21 +206,21 @@ export function ServerDashboard() {
                   <div className={styles.serverInfo}>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Version:</span>
-                      <span>{server.version}</span>
+                      <span>{server.minecraft_version}</span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Type:</span>
-                      <span className={styles.serverType}>{server.type}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.label}>Players:</span>
-                      <span>
-                        {server.players.online}/{server.players.max}
+                      <span className={styles.serverType}>
+                        {server.server_type}
                       </span>
                     </div>
                     <div className={styles.infoRow}>
+                      <span className={styles.label}>Players:</span>
+                      <span>0/{server.max_players}</span>
+                    </div>
+                    <div className={styles.infoRow}>
                       <span className={styles.label}>Memory:</span>
-                      <span>{server.memory}MB</span>
+                      <span>{server.max_memory}MB</span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>Port:</span>
@@ -247,38 +234,11 @@ export function ServerDashboard() {
                     </p>
                   )}
 
-                  <div className={styles.serverActions}>
-                    {server.status === ServerStatus.STOPPED && (
-                      <button
-                        onClick={() => handleServerAction(server.id, "start")}
-                        className={`${styles.actionButton} ${styles.startButton}`}
-                        disabled={isLoading}
-                      >
-                        Start
-                      </button>
-                    )}
-                    {server.status === ServerStatus.RUNNING && (
-                      <button
-                        onClick={() => handleServerAction(server.id, "stop")}
-                        className={`${styles.actionButton} ${styles.stopButton}`}
-                        disabled={isLoading}
-                      >
-                        Stop
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setSelectedServer(server)}
-                      className={`${styles.actionButton} ${styles.manageButton}`}
-                    >
-                      Manage
-                    </button>
-                    <button
-                      onClick={() => handleServerAction(server.id, "delete")}
-                      className={`${styles.actionButton} ${styles.deleteButton}`}
-                      disabled={isLoading}
-                    >
-                      Delete
-                    </button>
+                  <div className={styles.serverCardFooter}>
+                    <span className={styles.clickHint}>
+                      Click to manage server
+                    </span>
+                    <span className={styles.arrow}>→</span>
                   </div>
                 </div>
               ))}
@@ -320,9 +280,12 @@ export function ServerDashboard() {
                 <label htmlFor="serverVersion">Minecraft Version</label>
                 <select
                   id="serverVersion"
-                  value={createForm.version}
+                  value={createForm.minecraft_version}
                   onChange={(e) =>
-                    setCreateForm({ ...createForm, version: e.target.value })
+                    setCreateForm({
+                      ...createForm,
+                      minecraft_version: e.target.value,
+                    })
                   }
                 >
                   {MINECRAFT_VERSIONS.map((version) => (
@@ -337,11 +300,11 @@ export function ServerDashboard() {
                 <label htmlFor="serverType">Server Type</label>
                 <select
                   id="serverType"
-                  value={createForm.type}
+                  value={createForm.server_type}
                   onChange={(e) =>
                     setCreateForm({
                       ...createForm,
-                      type: e.target.value as ServerType,
+                      server_type: e.target.value as ServerType,
                     })
                   }
                 >
@@ -355,11 +318,11 @@ export function ServerDashboard() {
                 <label htmlFor="serverMemory">Memory (MB)</label>
                 <select
                   id="serverMemory"
-                  value={createForm.memory}
+                  value={createForm.max_memory}
                   onChange={(e) =>
                     setCreateForm({
                       ...createForm,
-                      memory: parseInt(e.target.value),
+                      max_memory: parseInt(e.target.value),
                     })
                   }
                 >
@@ -377,7 +340,7 @@ export function ServerDashboard() {
                 </label>
                 <textarea
                   id="serverDescription"
-                  value={createForm.description}
+                  value={createForm.description || ""}
                   onChange={(e) =>
                     setCreateForm({
                       ...createForm,
@@ -399,41 +362,13 @@ export function ServerDashboard() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isCreating}
                   className={styles.submitButton}
                 >
-                  {isLoading ? "Creating..." : "Create Server"}
+                  {isCreating ? "Creating..." : "Create Server"}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Server Management Modal */}
-      {selectedServer && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h2>Manage {selectedServer.name}</h2>
-              <button
-                onClick={() => setSelectedServer(null)}
-                className={styles.closeButton}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className={styles.managementTabs}>
-              <p>Server management features will be implemented here:</p>
-              <ul>
-                <li>Server Properties</li>
-                <li>Player Management (OP/Whitelist)</li>
-                <li>File Manager</li>
-                <li>Backup Management</li>
-                <li>Console</li>
-              </ul>
-            </div>
           </div>
         </div>
       )}

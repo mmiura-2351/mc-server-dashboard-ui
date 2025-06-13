@@ -2,6 +2,11 @@ import { ok, err, type Result } from "neverthrow";
 import type {
   MinecraftServer,
   CreateServerRequest,
+  ServerUpdateRequest,
+  ServerListResponse,
+  ServerStatusResponse,
+  ServerLogsResponse,
+  ServerCommandRequest,
   ServerTemplate,
   ServerBackup,
   BackupSettings,
@@ -9,316 +14,397 @@ import type {
   ServerProperties,
 } from "@/types/server";
 import type { AuthError } from "@/types/auth";
+import { fetchEmpty, fetchJson } from "@/services/api";
 
-// Mock data for development
-const mockServers: MinecraftServer[] = [
-  {
-    id: "server-1",
-    name: "Survival World",
-    version: "1.21.5",
-    type: "paper" as any,
-    status: "running" as any,
-    memory: 4096,
-    players: { online: 3, max: 20 },
-    port: 25565,
-    createdAt: "2024-01-15T10:00:00Z",
-    lastStarted: "2024-01-20T08:30:00Z",
-    description: "Main survival server for the community",
-  },
-  {
-    id: "server-2",
-    name: "Creative Build",
-    version: "1.21.3",
-    type: "vanilla" as any,
-    status: "stopped" as any,
-    memory: 2048,
-    players: { online: 0, max: 10 },
-    port: 25566,
-    createdAt: "2024-01-10T14:00:00Z",
-    description: "Creative building server",
-  },
-  {
-    id: "server-3",
-    name: "Modded Adventure",
-    version: "1.20.1",
-    type: "forge" as any,
-    status: "starting" as any,
-    memory: 8192,
-    players: { online: 0, max: 15 },
-    port: 25567,
-    createdAt: "2024-01-05T16:00:00Z",
-    description: "Modded server with adventure mods",
-  },
-];
-
-const mockTemplates: ServerTemplate[] = [
-  {
-    id: "template-1",
-    name: "Vanilla Survival",
-    description: "Standard vanilla survival server",
-    version: "1.21.5",
-    type: "vanilla" as any,
-    memory: 2048,
-    isPublic: true,
-    createdBy: "admin",
-  },
-  {
-    id: "template-2",
-    name: "Paper Performance",
-    description: "Optimized Paper server for better performance",
-    version: "1.21.5",
-    type: "paper" as any,
-    memory: 4096,
-    isPublic: true,
-    createdBy: "admin",
-  },
-];
-
-const mockBackups: ServerBackup[] = [
-  {
-    id: "backup-1",
-    serverId: "server-1",
-    name: "Daily Backup - 2024-01-20",
-    size: 1024 * 1024 * 500, // 500MB
-    createdAt: "2024-01-20T02:00:00Z",
-    isAutomatic: true,
-  },
-  {
-    id: "backup-2",
-    serverId: "server-1",
-    name: "Manual Backup - Before Update",
-    size: 1024 * 1024 * 480, // 480MB
-    createdAt: "2024-01-19T15:30:00Z",
-    isAutomatic: false,
-  },
-];
-
-// Simulate API delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getServers(): Promise<
   Result<MinecraftServer[], AuthError>
 > {
-  await delay(500);
-  return ok([...mockServers]);
+  const result = await fetchJson<ServerListResponse>(
+    `${API_BASE_URL}/api/v1/servers`
+  );
+  if (result.isErr()) {
+    return err(result.error);
+  }
+  return ok(result.value.servers);
 }
 
 export async function getServer(
-  id: string
+  id: number
 ): Promise<Result<MinecraftServer, AuthError>> {
-  await delay(300);
-  const server = mockServers.find((s) => s.id === id);
-  if (!server) {
-    return err({ message: "Server not found", status: 404 });
-  }
-  return ok(server);
+  return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers/${id}`);
 }
 
 export async function createServer(
   data: CreateServerRequest
 ): Promise<Result<MinecraftServer, AuthError>> {
-  await delay(1000);
-
-  const newServer: MinecraftServer = {
-    id: `server-${Date.now()}`,
-    name: data.name,
-    version: data.version,
-    type: data.type,
-    status: "stopped" as any,
-    memory: data.memory,
-    players: { online: 0, max: 20 },
-    port: 25565 + mockServers.length,
-    createdAt: new Date().toISOString(),
-    description: data.description,
-  };
-
-  mockServers.push(newServer);
-  return ok(newServer);
+  return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
-export async function startServer(
-  id: string
-): Promise<Result<void, AuthError>> {
-  await delay(2000);
-  const server = mockServers.find((s) => s.id === id);
-  if (!server) {
-    return err({ message: "Server not found", status: 404 });
-  }
-
-  server.status = "running" as any;
-  server.lastStarted = new Date().toISOString();
-  return ok(undefined);
-}
-
-export async function stopServer(id: string): Promise<Result<void, AuthError>> {
-  await delay(1500);
-  const server = mockServers.find((s) => s.id === id);
-  if (!server) {
-    return err({ message: "Server not found", status: 404 });
-  }
-
-  server.status = "stopped" as any;
-  return ok(undefined);
+export async function updateServer(
+  id: number,
+  data: ServerUpdateRequest
+): Promise<Result<MinecraftServer, AuthError>> {
+  return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteServer(
-  id: string
+  id: number
 ): Promise<Result<void, AuthError>> {
-  await delay(800);
-  const index = mockServers.findIndex((s) => s.id === id);
-  if (index === -1) {
-    return err({ message: "Server not found", status: 404 });
-  }
-
-  mockServers.splice(index, 1);
-  return ok(undefined);
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}`, {
+    method: "DELETE",
+  });
 }
 
+export async function startServer(
+  id: number
+): Promise<Result<void, AuthError>> {
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/start`, {
+    method: "POST",
+  });
+}
+
+export async function stopServer(id: number): Promise<Result<void, AuthError>> {
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/stop`, {
+    method: "POST",
+  });
+}
+
+export async function restartServer(
+  id: number
+): Promise<Result<void, AuthError>> {
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/restart`, {
+    method: "POST",
+  });
+}
+
+export async function getServerStatus(
+  id: number
+): Promise<Result<ServerStatusResponse, AuthError>> {
+  return fetchJson<ServerStatusResponse>(
+    `${API_BASE_URL}/api/v1/servers/${id}/status`
+  );
+}
+
+export async function getServerLogs(
+  id: number,
+  lines?: number
+): Promise<Result<ServerLogsResponse, AuthError>> {
+  const url = new URL(`${API_BASE_URL}/api/v1/servers/${id}/logs`);
+  if (lines) {
+    url.searchParams.set("lines", lines.toString());
+  }
+  return fetchJson<ServerLogsResponse>(url.toString());
+}
+
+export async function sendServerCommand(
+  id: number,
+  command: string
+): Promise<Result<void, AuthError>> {
+  const data: ServerCommandRequest = { command };
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/${id}/command`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getSupportedVersions(): Promise<
+  Result<string[], AuthError>
+> {
+  const result = await fetchJson<{ versions: string[] }>(
+    `${API_BASE_URL}/api/v1/servers/versions/supported`
+  );
+  if (result.isErr()) {
+    return err(result.error);
+  }
+  return ok(result.value.versions);
+}
+
+export async function syncServerStates(): Promise<Result<void, AuthError>> {
+  return fetchEmpty(`${API_BASE_URL}/api/v1/servers/sync`, {
+    method: "POST",
+  });
+}
+
+// Legacy functions for templates and backups (to be implemented later with proper API endpoints)
 export async function getServerTemplates(): Promise<
   Result<ServerTemplate[], AuthError>
 > {
-  await delay(300);
-  return ok([...mockTemplates]);
+  // Placeholder implementation - replace with actual API call when templates endpoint is available
+  return ok([]);
 }
 
 export async function getServerBackups(
-  serverId: string
+  serverId: number
 ): Promise<Result<ServerBackup[], AuthError>> {
-  await delay(400);
-  const backups = mockBackups.filter((b) => b.serverId === serverId);
-  return ok(backups);
+  const result = await fetchJson<{ backups: ServerBackup[] }>(
+    `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`
+  );
+  if (result.isErr()) {
+    return err(result.error);
+  }
+  // Return the backups array, handling the case where it might be undefined
+  return ok(result.value.backups || []);
 }
 
 export async function createBackup(
-  serverId: string,
+  serverId: number,
   name: string
 ): Promise<Result<ServerBackup, AuthError>> {
-  await delay(3000);
-
-  const newBackup: ServerBackup = {
-    id: `backup-${Date.now()}`,
-    serverId,
-    name,
-    size: Math.floor(Math.random() * 1024 * 1024 * 600), // Random size up to 600MB
-    createdAt: new Date().toISOString(),
-    isAutomatic: false,
-  };
-
-  mockBackups.push(newBackup);
-  return ok(newBackup);
+  return fetchJson<ServerBackup>(
+    `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        description: "",
+        backup_type: "manual",
+      }),
+    }
+  );
 }
 
 export async function restoreBackup(
   backupId: string
 ): Promise<Result<void, AuthError>> {
-  await delay(5000);
-  const backup = mockBackups.find((b) => b.id === backupId);
-  if (!backup) {
-    return err({ message: "Backup not found", status: 404 });
-  }
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`,
+    {
+      method: "POST",
+    }
+  );
+}
 
-  return ok(undefined);
+export async function deleteBackup(
+  backupId: string
+): Promise<Result<void, AuthError>> {
+  return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function getBackupSettings(
-  serverId: string
+  serverId: number
 ): Promise<Result<BackupSettings, AuthError>> {
-  await delay(200);
+  const result = await fetchJson<{
+    enabled: boolean | null;
+    interval_hours: number | null;
+    max_backups: number | null;
+  }>(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
+
+  if (result.isErr()) {
+    return err(result.error);
+  }
+
   return ok({
-    enabled: true,
-    interval: 24,
-    maxBackups: 7,
+    enabled: result.value.enabled ?? false,
+    interval: result.value.interval_hours ?? 24,
+    maxBackups: result.value.max_backups ?? 7,
   });
 }
 
 export async function updateBackupSettings(
-  serverId: string,
+  serverId: number,
   settings: BackupSettings
 ): Promise<Result<void, AuthError>> {
-  await delay(500);
-  return ok(undefined);
+  const url = new URL(
+    `${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`
+  );
+  url.searchParams.set("enabled", settings.enabled.toString());
+  url.searchParams.set("interval_hours", settings.interval.toString());
+  url.searchParams.set("max_backups", settings.maxBackups.toString());
+
+  return fetchEmpty(url.toString(), {
+    method: "PUT",
+  });
 }
 
 export async function getServerPlayers(
-  serverId: string
+  _serverId: number
 ): Promise<Result<ServerPlayer[], AuthError>> {
-  await delay(300);
-  const mockPlayers: ServerPlayer[] = [
-    {
-      name: "Steve",
-      uuid: "069a79f4-44e9-4726-a5be-fca90e38aaf5",
-      isOp: true,
-      isWhitelisted: true,
-      lastSeen: "2024-01-20T10:30:00Z",
-    },
-    {
-      name: "Alex",
-      uuid: "853c80ef-3c37-49fd-aa49-938b674adae6",
-      isOp: false,
-      isWhitelisted: true,
-      lastSeen: "2024-01-20T09:15:00Z",
-    },
-  ];
-
-  return ok(mockPlayers);
+  // Placeholder implementation - would need groups API integration
+  return ok([]);
 }
 
 export async function addPlayerToWhitelist(
-  serverId: string,
-  playerName: string
+  _serverId: number,
+  _playerName: string
 ): Promise<Result<void, AuthError>> {
-  await delay(500);
+  // Placeholder implementation
   return ok(undefined);
 }
 
 export async function removePlayerFromWhitelist(
-  serverId: string,
-  playerName: string
+  _serverId: number,
+  _playerName: string
 ): Promise<Result<void, AuthError>> {
-  await delay(500);
+  // Placeholder implementation
   return ok(undefined);
 }
 
 export async function giveOpPermission(
-  serverId: string,
-  playerName: string
+  _serverId: number,
+  _playerName: string
 ): Promise<Result<void, AuthError>> {
-  await delay(500);
+  // Placeholder implementation
   return ok(undefined);
 }
 
 export async function removeOpPermission(
-  serverId: string,
-  playerName: string
+  _serverId: number,
+  _playerName: string
 ): Promise<Result<void, AuthError>> {
-  await delay(500);
+  // Placeholder implementation
   return ok(undefined);
+}
+
+// Read server.properties file content
+export async function getServerPropertiesFile(
+  serverId: number
+): Promise<Result<string, AuthError>> {
+  return fetchJson<{
+    content: string;
+    encoding: string;
+    file_info: unknown;
+  }>(
+    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/server.properties/read`
+  ).then((result) => {
+    if (result.isOk()) {
+      return ok(result.value.content);
+    }
+    return err(result.error);
+  });
+}
+
+// Parse server.properties content into object
+export function parseServerProperties(content: string): ServerProperties {
+  const properties: ServerProperties = {};
+  const lines = content.split("\n");
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    // Skip comments and empty lines
+    if (trimmedLine.startsWith("#") || trimmedLine === "") {
+      continue;
+    }
+
+    // Parse key=value pairs
+    const equalIndex = trimmedLine.indexOf("=");
+    if (equalIndex !== -1) {
+      const key = trimmedLine.substring(0, equalIndex).trim();
+      const value = trimmedLine.substring(equalIndex + 1).trim();
+
+      // Convert to appropriate type
+      if (value === "true" || value === "false") {
+        properties[key] = value === "true";
+      } else if (!isNaN(Number(value)) && value !== "") {
+        properties[key] = Number(value);
+      } else {
+        properties[key] = value;
+      }
+    }
+  }
+
+  return properties;
+}
+
+// Convert properties object back to file content
+export function stringifyServerProperties(
+  properties: ServerProperties
+): string {
+  const lines: string[] = [];
+
+  // Add header comment
+  lines.push("#Minecraft server properties");
+  lines.push(`#${new Date().toString()}`);
+
+  // Sort keys for consistency
+  const sortedKeys = Object.keys(properties).sort();
+
+  for (const key of sortedKeys) {
+    const value = properties[key];
+    lines.push(`${key}=${value}`);
+  }
+
+  return lines.join("\n");
 }
 
 export async function getServerProperties(
-  serverId: string
+  serverId: number
 ): Promise<Result<ServerProperties, AuthError>> {
-  await delay(400);
-  const mockProperties: ServerProperties = {
-    "server-port": 25565,
-    "max-players": 20,
-    difficulty: "normal",
-    gamemode: "survival",
-    pvp: true,
-    "spawn-protection": 16,
-    "view-distance": 10,
-    "simulation-distance": 10,
-    "enable-command-block": false,
-    motd: "A Minecraft Server",
-  };
+  const fileResult = await getServerPropertiesFile(serverId);
 
-  return ok(mockProperties);
+  if (fileResult.isErr()) {
+    return err(fileResult.error);
+  }
+
+  try {
+    const properties = parseServerProperties(fileResult.value);
+    return ok(properties);
+  } catch {
+    return err({
+      message: "Failed to parse server.properties file",
+    });
+  }
+}
+
+// Write server.properties file
+export async function writeServerPropertiesFile(
+  serverId: number,
+  content: string
+): Promise<Result<void, AuthError>> {
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/server.properties`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        content: content,
+        encoding: "utf-8",
+        create_backup: true,
+      }),
+    }
+  );
 }
 
 export async function updateServerProperties(
-  serverId: string,
+  serverId: number,
   properties: Partial<ServerProperties>
 ): Promise<Result<void, AuthError>> {
-  await delay(800);
-  return ok(undefined);
+  // First, get the current properties
+  const fileResult = await getServerPropertiesFile(serverId);
+
+  if (fileResult.isErr()) {
+    return err(fileResult.error);
+  }
+
+  try {
+    // Parse current properties
+    const currentProperties = parseServerProperties(fileResult.value);
+
+    // Merge with new properties
+    const updatedProperties = {
+      ...currentProperties,
+      ...properties,
+    };
+
+    // Convert to file content
+    const content = stringifyServerProperties(
+      updatedProperties as ServerProperties
+    );
+
+    // Write the file
+    return writeServerPropertiesFile(serverId, content);
+  } catch {
+    return err({
+      message: "Failed to parse server.properties file",
+    });
+  }
 }

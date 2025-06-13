@@ -11,7 +11,7 @@ export interface User extends UserBase {
   id: number;
   is_active: boolean;
   is_approved: boolean;
-  role?: Role;
+  role: Role;
 }
 
 export interface LoginRequest {
@@ -21,6 +21,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   access_token: string;
+  refresh_token: string;
   token_type: string;
 }
 
@@ -51,6 +52,17 @@ export interface RoleUpdate {
 export interface UserWithToken {
   user: User;
   access_token: string;
+  refresh_token?: string;
+  token_type: string;
+}
+
+export interface RefreshTokenRequest {
+  refresh_token: string;
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token: string;
   token_type: string;
 }
 

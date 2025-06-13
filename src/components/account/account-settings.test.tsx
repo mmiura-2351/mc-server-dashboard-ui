@@ -4,12 +4,7 @@ import { ok, err } from "neverthrow";
 import { AccountSettings } from "./account-settings";
 import { useAuth } from "@/contexts/auth";
 import { LanguageProvider } from "@/contexts/language";
-import type {
-  User,
-  UserUpdate,
-  PasswordUpdate,
-  UserDelete,
-} from "@/types/auth";
+import type { User } from "@/types/auth";
 import { Role } from "@/types/auth";
 
 // Mock the auth context

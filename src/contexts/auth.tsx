@@ -56,22 +56,75 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+    const cachedUserData = localStorage.getItem("user_data");
+
     if (!token) {
       setIsLoading(false);
       return;
+    }
+
+    // Try to restore user from cache first for better UX
+    if (cachedUserData) {
+      try {
+        const parsedUser = JSON.parse(cachedUserData);
+        setUser(parsedUser);
+      } catch {
+        // Invalid cached data, remove it
+        localStorage.removeItem("user_data");
+      }
     }
 
     const loadUser = async () => {
       const result = await authService.getCurrentUser(token);
       if (result.isOk()) {
         setUser(result.value);
+        localStorage.setItem("user_data", JSON.stringify(result.value));
       } else {
-        localStorage.removeItem("access_token");
+        // If getCurrentUser fails, the API service will handle token refresh automatically
+        // If refresh fails, it will dispatch authLogout event
+        if (result.error.status === 401) {
+          // Clear local state, but let API service handle the refresh logic
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user_data");
+          setUser(null);
+        }
       }
       setIsLoading(false);
     };
 
     loadUser();
+
+    // Listen for automatic token refresh events from API service
+    const handleTokenRefresh = (event: CustomEvent) => {
+      const { access_token } = event.detail;
+      // Refresh user data with new token
+      authService.getCurrentUser(access_token).then((result) => {
+        if (result.isOk()) {
+          setUser(result.value);
+          localStorage.setItem("user_data", JSON.stringify(result.value));
+        }
+      });
+    };
+
+    // Listen for automatic logout events from API service
+    const handleAuthLogout = () => {
+      setUser(null);
+    };
+
+    window.addEventListener(
+      "tokenRefresh",
+      handleTokenRefresh as EventListener
+    );
+    window.addEventListener("authLogout", handleAuthLogout);
+
+    return () => {
+      window.removeEventListener(
+        "tokenRefresh",
+        handleTokenRefresh as EventListener
+      );
+      window.removeEventListener("authLogout", handleAuthLogout);
+    };
   }, []);
 
   const login = async (
@@ -83,12 +136,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setIsLoading(true);
-    const { access_token } = loginResult.value;
+    const { access_token, refresh_token } = loginResult.value;
     localStorage.setItem("access_token", access_token);
+    localStorage.setItem("refresh_token", refresh_token);
 
     const userResult = await authService.getCurrentUser(access_token);
     if (userResult.isErr()) {
       localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
       setIsLoading(false);
       return err(userResult.error);
     }
@@ -112,6 +167,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_data");
     setUser(null);
   };
@@ -126,13 +182,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const result = await authService.updateUserInfo(token, userData);
     if (result.isOk()) {
-      const { user, access_token } = result.value;
+      const { user, access_token, refresh_token } = result.value;
       setUser(user);
       localStorage.setItem("user_data", JSON.stringify(user));
 
       // 新しいトークンが提供された場合は更新
       if (access_token && access_token !== "") {
         localStorage.setItem("access_token", access_token);
+      }
+      if (refresh_token && refresh_token !== "") {
+        localStorage.setItem("refresh_token", refresh_token);
       }
 
       return ok(user);
@@ -150,13 +209,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const result = await authService.updatePassword(token, passwordData);
     if (result.isOk()) {
-      const { user, access_token } = result.value;
+      const { user, access_token, refresh_token } = result.value;
       setUser(user);
       localStorage.setItem("user_data", JSON.stringify(user));
 
       // パスワード変更時は常に新しいトークンが提供される
       if (access_token && access_token !== "") {
         localStorage.setItem("access_token", access_token);
+      }
+      if (refresh_token && refresh_token !== "") {
+        localStorage.setItem("refresh_token", refresh_token);
       }
 
       return ok(user);

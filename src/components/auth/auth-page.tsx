@@ -21,7 +21,7 @@ export function AuthPage({ initialMode = "login" }: AuthPageProps) {
   };
 
   const handleLoginSuccess = () => {
-    router.push("/account");
+    router.push("/dashboard");
   };
 
   const handleRegisterSuccess = () => {

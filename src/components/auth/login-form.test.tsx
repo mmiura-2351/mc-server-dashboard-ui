@@ -1,8 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LoginForm } from "./login-form";
-import * as authContext from "@/contexts/auth";
+import "@/contexts/auth";
 import { ok, err } from "neverthrow";
 
 // Mock the auth context
@@ -132,7 +138,7 @@ describe("LoginForm", () => {
 
   test("shows loading state during login", async () => {
     // Mock login to return a promise that we can control
-    let resolveLogin: (value: any) => void;
+    let resolveLogin: (value: unknown) => void;
     const loginPromise = new Promise((resolve) => {
       resolveLogin = resolve;
     });
@@ -145,7 +151,9 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText("Password"), "testpass");
 
     // Submit the form to trigger loading state
-    await user.click(screen.getByRole("button", { name: "Login" }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: "Login" }));
+    });
 
     // Check loading state
     expect(
@@ -156,7 +164,9 @@ describe("LoginForm", () => {
     ).toBeDisabled();
 
     // Resolve the login promise to clean up
-    resolveLogin!(ok(undefined));
+    await act(async () => {
+      resolveLogin!(ok(undefined));
+    });
   });
 
   test("calls onSwitchToRegister when register link is clicked", async () => {
@@ -174,7 +184,7 @@ describe("LoginForm", () => {
 
   test("disables form when loading", async () => {
     // Mock login to return a promise that we can control
-    let resolveLogin: (value: any) => void;
+    let resolveLogin: (value: unknown) => void;
     const loginPromise = new Promise((resolve) => {
       resolveLogin = resolve;
     });
@@ -192,7 +202,9 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText("Password"), "testpass");
 
     // Submit the form to trigger loading state
-    await user.click(screen.getByRole("button", { name: "Login" }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: "Login" }));
+    });
 
     // Check that form elements are disabled during loading
     expect(screen.getByLabelText("Username")).toBeDisabled();
@@ -203,6 +215,8 @@ describe("LoginForm", () => {
     expect(screen.getByText("Register here")).toBeDisabled();
 
     // Resolve the login promise to clean up
-    resolveLogin!(ok(undefined));
+    await act(async () => {
+      resolveLogin!(ok(undefined));
+    });
   });
 });
