@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -11,6 +12,7 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function AuthenticatedLayout({
           color: "#6b7280",
         }}
       >
-        Loading...
+        {t("common.loading")}
       </div>
     );
   }

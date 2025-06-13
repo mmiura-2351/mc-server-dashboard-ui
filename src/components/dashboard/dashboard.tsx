@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/contexts/language";
 import { AccountSettings } from "@/components/account/account-settings";
 import { Role } from "@/types/auth";
 import styles from "./dashboard.module.css";
@@ -12,6 +13,7 @@ type ActiveTab = "overview" | "account";
 export function Dashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
 
   if (!user) {
@@ -40,11 +42,13 @@ export function Dashboard() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>MC Server Dashboard</h1>
+        <h1 className={styles.title}>{t("dashboard.title")}</h1>
         <div className={styles.userInfo}>
-          <span className={styles.username}>Welcome, {user.username}</span>
+          <span className={styles.username}>
+            {t("dashboard.welcome", { username: user.username })}
+          </span>
           <button onClick={handleLogout} className={styles.logoutButton}>
-            Logout
+            {t("common.logout")}
           </button>
         </div>
       </header>
@@ -54,13 +58,13 @@ export function Dashboard() {
           className={`${styles.navButton} ${activeTab === "overview" ? styles.active : ""}`}
           onClick={() => setActiveTab("overview")}
         >
-          Overview
+          {t("dashboard.overview")}
         </button>
         <button
           className={`${styles.navButton} ${activeTab === "account" ? styles.active : ""}`}
           onClick={() => setActiveTab("account")}
         >
-          Account Settings
+          {t("dashboard.accountSettings")}
         </button>
       </nav>
 
@@ -68,36 +72,48 @@ export function Dashboard() {
         {activeTab === "overview" && (
           <div className={styles.tabContent}>
             <div className={styles.statusCard}>
-              <h2 className={styles.cardTitle}>Account Status</h2>
+              <h2 className={styles.cardTitle}>
+                {t("dashboard.accountStatus")}
+              </h2>
               <div className={styles.statusGrid}>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>Username:</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.username")}
+                  </span>
                   <span className={styles.statusValue}>{user.username}</span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>Email:</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.email")}
+                  </span>
                   <span className={styles.statusValue}>{user.email}</span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>Role:</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.role")}
+                  </span>
                   <span className={styles.statusValue}>
                     {user.role || "user"}
                   </span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>Active:</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.active")}
+                  </span>
                   <span
                     className={`${styles.statusValue} ${user.is_active ? styles.active : styles.inactive}`}
                   >
-                    {user.is_active ? "Yes" : "No"}
+                    {user.is_active ? t("common.yes") : t("common.no")}
                   </span>
                 </div>
                 <div className={styles.statusItem}>
-                  <span className={styles.statusLabel}>Approved:</span>
+                  <span className={styles.statusLabel}>
+                    {t("dashboard.fields.approved")}
+                  </span>
                   <span
                     className={`${styles.statusValue} ${user.is_approved ? styles.approved : styles.pending}`}
                   >
-                    {user.is_approved ? "Yes" : "Pending"}
+                    {user.is_approved ? t("common.yes") : t("common.pending")}
                   </span>
                 </div>
               </div>
@@ -105,30 +121,31 @@ export function Dashboard() {
               {!user.is_approved && (
                 <div className={styles.pendingNotice}>
                   <h3 className={styles.noticeTitle}>
-                    Account Pending Approval
+                    {t("dashboard.accountPendingApproval")}
                   </h3>
                   <p className={styles.noticeText}>
-                    Your account is currently pending approval by an
-                    administrator. You will be able to access all features once
-                    your account has been approved.
+                    {t("dashboard.accountPendingDescription")}
                   </p>
                   <p className={styles.noticeSubtext}>
-                    If you have any questions, please contact your system
-                    administrator.
+                    {t("dashboard.accountPendingNote")}
                   </p>
                 </div>
               )}
             </div>
 
             <div className={styles.quickActions}>
-              <h2 className={styles.cardTitle}>Quick Actions</h2>
+              <h2 className={styles.cardTitle}>
+                {t("dashboard.quickActions")}
+              </h2>
               <div className={styles.actionGrid}>
                 <button
                   className={styles.actionButton}
                   onClick={handleAccountSettings}
                 >
                   <span className={styles.actionIcon}>⚙️</span>
-                  <span className={styles.actionText}>Account Settings</span>
+                  <span className={styles.actionText}>
+                    {t("dashboard.accountSettings")}
+                  </span>
                 </button>
                 {isAdmin && (
                   <button
@@ -136,7 +153,9 @@ export function Dashboard() {
                     onClick={handleUserManagement}
                   >
                     <span className={styles.actionIcon}>👥</span>
-                    <span className={styles.actionText}>Manage Users</span>
+                    <span className={styles.actionText}>
+                      {t("dashboard.manageUsers")}
+                    </span>
                   </button>
                 )}
                 <button
@@ -145,7 +164,9 @@ export function Dashboard() {
                   disabled={!user.is_approved}
                 >
                   <span className={styles.actionIcon}>🖥️</span>
-                  <span className={styles.actionText}>Manage Servers</span>
+                  <span className={styles.actionText}>
+                    {t("dashboard.manageServers")}
+                  </span>
                 </button>
               </div>
             </div>
