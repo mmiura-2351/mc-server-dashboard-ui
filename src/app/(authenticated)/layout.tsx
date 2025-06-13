@@ -1,13 +1,16 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth";
-import { ServerDashboard } from "@/components/server/server-dashboard";
 import { MainLayout } from "@/components/layout/main-layout";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function DashboardPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+export default function AuthenticatedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -40,9 +43,5 @@ export default function DashboardPage() {
     return null; // Will redirect
   }
 
-  return (
-    <MainLayout>
-      <ServerDashboard />
-    </MainLayout>
-  );
+  return <MainLayout>{children}</MainLayout>;
 }
