@@ -205,229 +205,227 @@ export default function ServerDetailPage() {
 
   if (error && !server) {
     return (
-        <div className={styles.container}>
-          <div className={styles.error}>
-            <h2>{t("errors.generic")}</h2>
-            <p>{error}</p>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className={styles.backButton}
-            >
-              {t("servers.backToDashboard")}
-            </button>
-          </div>
-        </div>
-    );
-  }
-
-  if (!server) {
-    return (
-        <div className={styles.container}>
-          <div className={styles.error}>
-            <h2>{t("servers.serverNotFound")}</h2>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className={styles.backButton}
-            >
-              {t("servers.backToDashboard")}
-            </button>
-          </div>
-        </div>
-    );
-  }
-
-  return (
-    <div className={styles.container}>
-        <div className={styles.header}>
+      <div className={styles.container}>
+        <div className={styles.error}>
+          <h2>{t("errors.generic")}</h2>
+          <p>{error}</p>
           <button
             onClick={() => router.push("/dashboard")}
             className={styles.backButton}
           >
             {t("servers.backToDashboard")}
           </button>
-          <div className={styles.titleSection}>
-            <h1 className={styles.title}>{server.name}</h1>
-            <span
-              className={`${styles.status} ${getStatusColor(server.status)}`}
-            >
-              {getStatusText(server.status)}
-            </span>
-          </div>
         </div>
+      </div>
+    );
+  }
 
-        {error && (
-          <div className={styles.errorBanner}>
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className={styles.dismissButton}
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        <div className={styles.tabContainer}>
+  if (!server) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.error}>
+          <h2>{t("servers.serverNotFound")}</h2>
           <button
-            className={`${styles.tab} ${activeTab === "info" ? styles.activeTab : ""}`}
-            onClick={() => handleTabChange("info")}
+            onClick={() => router.push("/dashboard")}
+            className={styles.backButton}
           >
-            {t("servers.information")}
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
-            onClick={() => handleTabChange("settings")}
-          >
-            Settings
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
-            onClick={() => handleTabChange("properties")}
-          >
-            Properties
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "files" ? styles.activeTab : ""}`}
-            onClick={() => handleTabChange("files")}
-          >
-            Files
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "backups" ? styles.activeTab : ""}`}
-            onClick={() => handleTabChange("backups")}
-          >
-            {t("servers.backups")}
+            {t("servers.backToDashboard")}
           </button>
         </div>
+      </div>
+    );
+  }
 
-        <div className={styles.content}>
-          {activeTab === "info" ? (
-            <div className={styles.infoTabContent}>
-              <div className={styles.infoSection}>
-                <h2>{t("servers.serverInformation")}</h2>
-                <div className={styles.infoGrid}>
-                  <div className={styles.infoItem}>
-                    <span className={styles.label}>
-                      {t("servers.fields.version")}:
-                    </span>
-                    <span>{server.minecraft_version}</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.label}>
-                      {t("servers.fields.type")}:
-                    </span>
-                    <span className={styles.serverType}>
-                      {server.server_type}
-                    </span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.label}>
-                      {t("servers.fields.maxPlayers")}:
-                    </span>
-                    <span>{server.max_players}</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.label}>
-                      {t("servers.fields.memoryLimit")}:
-                    </span>
-                    <span>{server.max_memory}MB</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.label}>
-                      {t("servers.fields.port")}:
-                    </span>
-                    <span>{server.port}</span>
-                  </div>
-                  <div className={styles.infoItem}>
-                    <span className={styles.label}>
-                      {t("servers.fields.created")}:
-                    </span>
-                    <span>
-                      {new Date(server.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className={styles.backButton}
+        >
+          {t("servers.backToDashboard")}
+        </button>
+        <div className={styles.titleSection}>
+          <h1 className={styles.title}>{server.name}</h1>
+          <span className={`${styles.status} ${getStatusColor(server.status)}`}>
+            {getStatusText(server.status)}
+          </span>
+        </div>
+      </div>
+
+      {error && (
+        <div className={styles.errorBanner}>
+          {error}
+          <button
+            onClick={() => setError(null)}
+            className={styles.dismissButton}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      <div className={styles.tabContainer}>
+        <button
+          className={`${styles.tab} ${activeTab === "info" ? styles.activeTab : ""}`}
+          onClick={() => handleTabChange("info")}
+        >
+          {t("servers.information")}
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
+          onClick={() => handleTabChange("settings")}
+        >
+          Settings
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
+          onClick={() => handleTabChange("properties")}
+        >
+          Properties
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "files" ? styles.activeTab : ""}`}
+          onClick={() => handleTabChange("files")}
+        >
+          Files
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "backups" ? styles.activeTab : ""}`}
+          onClick={() => handleTabChange("backups")}
+        >
+          {t("servers.backups")}
+        </button>
+      </div>
+
+      <div className={styles.content}>
+        {activeTab === "info" ? (
+          <div className={styles.infoTabContent}>
+            <div className={styles.infoSection}>
+              <h2>{t("servers.serverInformation")}</h2>
+              <div className={styles.infoGrid}>
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>
+                    {t("servers.fields.version")}:
+                  </span>
+                  <span>{server.minecraft_version}</span>
                 </div>
-                {server.description && (
-                  <div className={styles.description}>
-                    <span className={styles.label}>
-                      {t("servers.description")}:
-                    </span>
-                    <p>{server.description}</p>
-                  </div>
-                )}
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>
+                    {t("servers.fields.type")}:
+                  </span>
+                  <span className={styles.serverType}>
+                    {server.server_type}
+                  </span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>
+                    {t("servers.fields.maxPlayers")}:
+                  </span>
+                  <span>{server.max_players}</span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>
+                    {t("servers.fields.memoryLimit")}:
+                  </span>
+                  <span>{server.max_memory}MB</span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>
+                    {t("servers.fields.port")}:
+                  </span>
+                  <span>{server.port}</span>
+                </div>
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>
+                    {t("servers.fields.created")}:
+                  </span>
+                  <span>
+                    {new Date(server.created_at).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
+              {server.description && (
+                <div className={styles.description}>
+                  <span className={styles.label}>
+                    {t("servers.description")}:
+                  </span>
+                  <p>{server.description}</p>
+                </div>
+              )}
+            </div>
 
-              <div className={styles.actionsSection}>
-                <h2>{t("servers.serverActions")}</h2>
-                <div className={styles.actionButtons}>
-                  {(server.status === ServerStatus.STOPPED ||
-                    server.status === ServerStatus.ERROR) && (
-                    <button
-                      onClick={() => handleServerAction("start")}
-                      className={`${styles.actionButton} ${styles.startButton}`}
-                      disabled={isActioning}
-                    >
-                      {isActioning
-                        ? t("servers.actions.starting")
-                        : t("servers.actions.start")}
-                    </button>
-                  )}
-                  {(server.status === ServerStatus.RUNNING ||
-                    server.status === ServerStatus.STARTING) && (
-                    <button
-                      onClick={() => handleServerAction("stop")}
-                      className={`${styles.actionButton} ${styles.stopButton}`}
-                      disabled={isActioning}
-                    >
-                      {isActioning
-                        ? t("servers.actions.stopping")
-                        : t("servers.actions.stop")}
-                    </button>
-                  )}
-                  {server.status === ServerStatus.RUNNING && (
-                    <button
-                      onClick={() => handleServerAction("restart")}
-                      className={`${styles.actionButton} ${styles.restartButton}`}
-                      disabled={isActioning}
-                    >
-                      {isActioning
-                        ? t("servers.actions.restarting")
-                        : t("servers.actions.restart")}
-                    </button>
-                  )}
+            <div className={styles.actionsSection}>
+              <h2>{t("servers.serverActions")}</h2>
+              <div className={styles.actionButtons}>
+                {(server.status === ServerStatus.STOPPED ||
+                  server.status === ServerStatus.ERROR) && (
                   <button
-                    onClick={handleDeleteServer}
-                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                    onClick={() => handleServerAction("start")}
+                    className={`${styles.actionButton} ${styles.startButton}`}
                     disabled={isActioning}
                   >
                     {isActioning
-                      ? t("servers.actions.deleting")
-                      : t("servers.actions.delete")}
+                      ? t("servers.actions.starting")
+                      : t("servers.actions.start")}
                   </button>
-                </div>
+                )}
+                {(server.status === ServerStatus.RUNNING ||
+                  server.status === ServerStatus.STARTING) && (
+                  <button
+                    onClick={() => handleServerAction("stop")}
+                    className={`${styles.actionButton} ${styles.stopButton}`}
+                    disabled={isActioning}
+                  >
+                    {isActioning
+                      ? t("servers.actions.stopping")
+                      : t("servers.actions.stop")}
+                  </button>
+                )}
+                {server.status === ServerStatus.RUNNING && (
+                  <button
+                    onClick={() => handleServerAction("restart")}
+                    className={`${styles.actionButton} ${styles.restartButton}`}
+                    disabled={isActioning}
+                  >
+                    {isActioning
+                      ? t("servers.actions.restarting")
+                      : t("servers.actions.restart")}
+                  </button>
+                )}
+                <button
+                  onClick={handleDeleteServer}
+                  className={`${styles.actionButton} ${styles.deleteButton}`}
+                  disabled={isActioning}
+                >
+                  {isActioning
+                    ? t("servers.actions.deleting")
+                    : t("servers.actions.delete")}
+                </button>
               </div>
             </div>
-          ) : activeTab === "settings" ? (
-            <div className={styles.fullWidthTabContent}>
-              <ServerSettings
-                server={server}
-                onUpdate={(updatedServer) => setServer(updatedServer)}
-              />
-            </div>
-          ) : activeTab === "properties" ? (
-            <div className={styles.fullWidthTabContent}>
-              <ServerPropertiesEditor serverId={server.id} />
-            </div>
-          ) : activeTab === "files" ? (
-            <div className={styles.fullWidthTabContent}>
-              <FileExplorer serverId={server.id} />
-            </div>
-          ) : (
-            <div className={styles.fullWidthTabContent}>
-              <ServerBackups serverId={server.id} />
-            </div>
-          )}
-        </div>
+          </div>
+        ) : activeTab === "settings" ? (
+          <div className={styles.fullWidthTabContent}>
+            <ServerSettings
+              server={server}
+              onUpdate={(updatedServer) => setServer(updatedServer)}
+            />
+          </div>
+        ) : activeTab === "properties" ? (
+          <div className={styles.fullWidthTabContent}>
+            <ServerPropertiesEditor serverId={server.id} />
+          </div>
+        ) : activeTab === "files" ? (
+          <div className={styles.fullWidthTabContent}>
+            <FileExplorer serverId={server.id} />
+          </div>
+        ) : (
+          <div className={styles.fullWidthTabContent}>
+            <ServerBackups serverId={server.id} />
+          </div>
+        )}
       </div>
+    </div>
   );
 }
