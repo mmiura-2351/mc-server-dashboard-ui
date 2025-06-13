@@ -25,7 +25,12 @@ export const createMockRouter = (
 /**
  * Global navigation state
  */
-let navigationState = {
+let navigationState: {
+  params: Record<string, string | string[]>;
+  pathname: string;
+  searchParams: URLSearchParams;
+  router: ReturnType<typeof createMockRouter>;
+} = {
   params: { id: "1" },
   pathname: "/servers/1",
   searchParams: new URLSearchParams(),
