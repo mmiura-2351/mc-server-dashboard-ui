@@ -2,6 +2,133 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Standard Development Rules
+
+### Rule 1: New Rule Addition Process
+**Continuously improve project standards through rule documentation.**
+
+When receiving instructions from users that appear to require ongoing compliance (not just one-time implementation):
+
+1. Ask: "Should I make this a standard rule?"
+2. If YES response is received, add it to CLAUDE.md as an additional rule
+3. Apply it as a standard rule for all future interactions
+
+This process enables continuous improvement of project rules and ensures consistent behavior across sessions.
+
+### Rule 2: Task Completion and CI Verification
+**Always verify CI passes and commit changes after completing any task.**
+
+When completing any significant task or feature implementation:
+1. **CI Verification**: Ensure all tests pass before committing
+2. **Code Quality**: Run lint and format checks (`npm run lint`, `npm run format`, `npm run type-check`)
+3. **Commit Changes**: Create meaningful commit messages with proper documentation
+4. **Status Update**: Update relevant tracking documents if applicable
+
+### Rule 3: Test Code Development Process
+**Follow systematic approach for test coverage improvement.**
+
+When creating test coverage for components or services:
+1. **Establish Target Coverage**: Set target coverage percentage based on component criticality
+2. **Analyze Required Testing Elements**: 
+   - Analyze the component/service implementation thoroughly
+   - Identify uncovered lines, error paths, and edge cases
+   - Understand props, state changes, user interactions, and API calls
+   - Review existing tests to avoid duplication
+3. **Create Tests Based on Analysis**:
+   - Create comprehensive test cases targeting specific uncovered areas
+   - Focus on error handling, user interactions, and business logic validation
+   - Use appropriate mocking strategies for external dependencies (API calls, localStorage)
+4. **Iterate Until Coverage Target is Met**:
+   - Run coverage reports to identify remaining gaps
+   - Iterate on analysis and implementation until target coverage is achieved
+   - Ensure all tests pass and maintain code quality standards
+
+### Rule 4: Code Review Issue Creation
+**Create GitHub Issues for improvements, bugs, and missing features found during code reviews.**
+
+When reviewing source code and identifying areas for improvement:
+1. **Create GitHub Issues**: For any bugs, improvement opportunities, or missing features discovered during code review
+2. **Categorize Issues**: Use appropriate labels (bug, enhancement, feature-request, etc.)
+3. **Provide Context**: Include relevant code references, file paths, and line numbers
+4. **Document Impact**: Describe the potential impact and benefits of addressing the issue
+
+### Rule 5: Standard Issue Resolution Process
+**Follow systematic approach when fixing GitHub Issues.**
+
+When addressing GitHub Issues, follow this standard procedure:
+1. **Create Issue Branch**: Create a dedicated branch for the issue and attach it to the issue
+2. **Analyze Issue Details**: Thoroughly understand the issue requirements and perform necessary analysis
+3. **Create Sub-Issues**: If needed, create sub-issues to break down complex problems into manageable parts
+4. **Deep Implementation Planning**: Think deeply about all elements required for implementation based on your analysis
+5. **Implement Solution**: Perform the implementation and fixes following project standards
+6. **Verify and Create PR**: Confirm the issue has been properly addressed and create a pull request
+
+### Rule 6: Test Execution Guidelines
+**Be mindful of test execution performance and timeouts.**
+
+When running tests, follow these guidelines:
+1. **Avoid Full Test Suite Timeouts**: Running all tests may result in timeouts. Focus on running minimal, targeted tests when possible
+2. **Extend Timeout for Full Suite**: When running the complete test suite is necessary, explicitly extend the timeout duration (e.g., use `--timeout=300000` parameter)
+
+### Rule 7: Issue Resolution Completion Process
+**Always close resolved Issues with proper documentation and status updates.**
+
+When completing issue resolution:
+1. **Verify Resolution**: Ensure all issue requirements have been fully addressed
+2. **Document Changes**: Update relevant documentation (README, CLAUDE.md, etc.) if needed
+3. **Test Validation**: Confirm all tests pass and functionality works as expected
+4. **Close with Summary**: Close issues with a summary of changes made and references to related PRs
+
+### Rule 8: Git/GitHub Workflow Standards
+**Follow standardized Git and GitHub practices for consistent project management.**
+
+**Branch Management:**
+1. **Issue-based Branches**: Create branches following pattern `fix/issue-{number}-{brief-description}` or `feature/issue-{number}-{brief-description}`
+2. **Keep Branches Focused**: One branch per issue/feature to maintain clear history
+3. **Regular Updates**: Keep feature branches updated with latest main changes
+
+**Pull Request Workflow:**
+1. **Descriptive Titles**: Use clear, descriptive PR titles that explain the change
+2. **Comprehensive Descriptions**: Include summary, changes made, testing approach, and impact assessment
+3. **Link Issues**: Always link related issues using "Resolves #X" or "Fixes #X"
+4. **Request Reviews**: Assign appropriate reviewers and respond to feedback promptly
+
+**Issue Management:**
+1. **Clear Descriptions**: Write detailed issue descriptions with clear acceptance criteria
+2. **Proper Labels**: Use appropriate labels (bug, enhancement, documentation, etc.)
+3. **Priority Setting**: Assign priority levels to help with work planning
+4. **Progress Updates**: Keep issues updated with progress and blockers
+
+### Rule 9: Pull Request Review Process
+**Conduct thorough code reviews and provide comprehensive feedback on GitHub Pull Requests.**
+
+**Review Guidelines:**
+1. **Comprehensive Coverage**: Review code quality, functionality, tests, documentation, and security implications
+2. **Constructive Feedback**: Provide specific, actionable feedback with suggestions for improvement
+3. **Code Standards**: Verify adherence to project coding standards and architectural patterns
+4. **Testing Verification**: Ensure adequate test coverage and that all tests pass
+
+**Review Process:**
+1. **Use GitHub CLI**: Utilize `gh pr view` and `gh pr review` commands for efficient review workflow
+2. **Structured Comments**: Organize feedback into categories (bugs, improvements, questions, suggestions)
+3. **Approval Criteria**: Only approve PRs that meet all quality standards and fully address the issue
+4. **Follow-up Actions**: Track that feedback is addressed before final approval and merge
+
+### Rule 10: Pull Request Merge Strategy
+**Use squash merge as the default merge strategy for pull requests.**
+
+When merging pull requests:
+1. **Default to Squash Merge**: Use `gh pr merge <number> --squash` to maintain a clean commit history
+2. **Clean Commit Message**: Ensure the squashed commit has a clear, descriptive message
+3. **Delete Merged Branches**: Always delete the feature branch after successful merge
+4. **Update Related Issues**: Ensure linked issues are properly closed with the merge
+
+Benefits of squash merge:
+- Maintains clean, linear commit history
+- Groups all PR changes into a single commit
+- Makes it easier to revert changes if needed
+- Keeps the main branch history readable
+
 ## Project Overview
 
 This is a Minecraft Server Management Dashboard frontend built with Next.js 15 (App Router) and TypeScript. It provides comprehensive server management capabilities including user authentication, server lifecycle management, player groups, backup systems, and multi-language support.
