@@ -193,8 +193,10 @@ describe("ServerDetailPage", () => {
       });
     });
 
-    test("should show server not found when server is null", async () => {
-      mockGetServer.mockResolvedValue(ok(null as any));
+    test("should show server not found when server fetch returns 404", async () => {
+      mockGetServer.mockResolvedValue(
+        err({ status: 404, message: "Server not found" })
+      );
 
       render(<ServerDetailPage />);
 
