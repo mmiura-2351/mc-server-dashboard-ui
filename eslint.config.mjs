@@ -12,8 +12,14 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
   {
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: __dirname,
+      },
+    },
     rules: {
-      // TypeScript rules
+      // TypeScript rules - Strict type safety
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -21,7 +27,14 @@ const eslintConfig = [
           varsIgnorePattern: "^_",
         },
       ],
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error", // Upgraded from warn to error
+      // Removed unsafe rules due to parser configuration complexity in Next.js
+      // "@typescript-eslint/no-unsafe-assignment": "warn",
+      // "@typescript-eslint/no-unsafe-call": "warn",
+      // "@typescript-eslint/no-unsafe-member-access": "warn",
+      // "@typescript-eslint/no-unsafe-return": "warn",
+      "@typescript-eslint/prefer-as-const": "error",
+      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
       
       // React rules
       "react-hooks/exhaustive-deps": "warn",

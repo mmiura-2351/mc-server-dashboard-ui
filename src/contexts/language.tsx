@@ -93,7 +93,7 @@ export function useTranslation() {
       // Replace parameters in the string
       return Object.entries(params).reduce((str, [param, replacement]) => {
         return str.replace(`{${param}}`, replacement);
-      }, value as string);
+      }, value);
     }
 
     return typeof value === "string" ? value : key;

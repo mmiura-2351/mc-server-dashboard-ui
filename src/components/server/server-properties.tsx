@@ -358,7 +358,10 @@ export function ServerPropertiesEditor({
           </p>
           <div className={styles.propertyGrid}>
             {propertyKeys.map((key) =>
-              renderPropertyInput(key, editedProperties[key] ?? properties[key])
+              renderPropertyInput(
+                key,
+                (editedProperties[key] ?? properties[key]) || ""
+              )
             )}
           </div>
         </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   render,
@@ -1448,11 +1449,11 @@ describe("FileExplorer", () => {
       expect(checkboxes).toHaveLength(3); // Header + 2 files
 
       // Select first file (index 1 because index 0 is header checkbox)
-      const file1Checkbox = checkboxes[1];
+      const file1Checkbox = checkboxes[1]!;
       await user.click(file1Checkbox);
 
       // Select second file (index 2)
-      const file2Checkbox = checkboxes[2];
+      const file2Checkbox = checkboxes[2]!;
       await user.click(file2Checkbox);
 
       // Wait for selection to update
@@ -1462,8 +1463,8 @@ describe("FileExplorer", () => {
 
       // Check that both files are selected
       await waitFor(() => {
-        expect(file1Checkbox.checked).toBe(true);
-        expect(file2Checkbox.checked).toBe(true);
+        expect(file1Checkbox!.checked).toBe(true);
+        expect(file2Checkbox!.checked).toBe(true);
       });
     });
 
@@ -1545,7 +1546,7 @@ describe("FileExplorer", () => {
       expect(checkboxes).toHaveLength(2); // Header + 1 file
 
       // Select file (index 1 because index 0 is header checkbox)
-      const fileCheckbox = checkboxes[1];
+      const fileCheckbox = checkboxes[1]!;
       await user.click(fileCheckbox);
 
       // Wait for selection state to update and Clear button to appear
@@ -1562,7 +1563,7 @@ describe("FileExplorer", () => {
 
       // Check that selection is cleared
       await waitFor(() => {
-        expect(fileCheckbox.checked).toBe(false);
+        expect(fileCheckbox!.checked).toBe(false);
         expect(screen.queryByText("1 selected")).not.toBeInTheDocument();
         expect(screen.queryByText("✖️ Clear")).not.toBeInTheDocument();
       });
@@ -1631,8 +1632,8 @@ describe("FileExplorer", () => {
       // Verify checkboxes are checked
       const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
       await waitFor(() => {
-        expect(checkboxes[1].checked).toBe(true); // First file
-        expect(checkboxes[2].checked).toBe(true); // Second file
+        expect(checkboxes[1]!.checked).toBe(true); // First file
+        expect(checkboxes[2]!.checked).toBe(true); // Second file
       });
     });
   });
@@ -1673,8 +1674,8 @@ describe("FileExplorer", () => {
 
       // Select both files using checkboxes
       const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
-      const file1Checkbox = checkboxes[1]; // First file checkbox
-      const file2Checkbox = checkboxes[2]; // Second file checkbox
+      const file1Checkbox = checkboxes[1]!; // First file checkbox
+      const file2Checkbox = checkboxes[2]!; // Second file checkbox
 
       fireEvent.click(file1Checkbox);
       fireEvent.click(file2Checkbox);
@@ -1731,8 +1732,8 @@ describe("FileExplorer", () => {
 
       // Select both files
       const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
-      const file1Checkbox = checkboxes[1]; // First file checkbox
-      const file2Checkbox = checkboxes[2]; // Second file checkbox
+      const file1Checkbox = checkboxes[1]!; // First file checkbox
+      const file2Checkbox = checkboxes[2]!; // Second file checkbox
 
       fireEvent.click(file1Checkbox);
       fireEvent.click(file2Checkbox);
@@ -1859,7 +1860,7 @@ describe("FileExplorer", () => {
         const checkboxes = screen.getAllByRole(
           "checkbox"
         ) as HTMLInputElement[];
-        const folderCheckbox = checkboxes[1]; // First item checkbox (plugins folder)
+        const folderCheckbox = checkboxes[1]!; // First item checkbox (plugins folder)
         fireEvent.click(folderCheckbox);
 
         // Right click and select download
@@ -1930,7 +1931,7 @@ describe("FileExplorer", () => {
 
       // Select both files
       const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
-      const headerCheckbox = checkboxes[0]; // Header checkbox
+      const headerCheckbox = checkboxes[0]!; // Header checkbox
       fireEvent.click(headerCheckbox);
 
       // Right click and select download
@@ -2047,8 +2048,8 @@ describe("FileExplorer", () => {
 
       // Select both files
       const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
-      const file1Checkbox = checkboxes[1];
-      const file2Checkbox = checkboxes[2];
+      const file1Checkbox = checkboxes[1]!;
+      const file2Checkbox = checkboxes[2]!;
 
       fireEvent.click(file1Checkbox);
       fireEvent.click(file2Checkbox);

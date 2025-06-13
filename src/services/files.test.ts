@@ -88,7 +88,7 @@ describe("File service", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toHaveLength(1);
-        expect(result.value[0].name).toBe("server.properties");
+        expect(result.value[0]!.name).toBe("server.properties");
       }
     });
 
@@ -117,7 +117,7 @@ describe("File service", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toHaveLength(1);
-        expect(result.value[0].name).toBe("config.yml");
+        expect(result.value[0]!.name).toBe("config.yml");
       }
 
       // Check the URL was called with correct path encoding
@@ -442,7 +442,7 @@ describe("File service", () => {
       if (result.isOk()) {
         expect(result.value.successful).toHaveLength(0);
         expect(result.value.failed).toHaveLength(1);
-        expect(result.value.failed[0].error).toBe("Permission denied");
+        expect(result.value.failed[0]!.error).toBe("Permission denied");
       }
     });
   });

@@ -269,10 +269,15 @@ export async function uploadMultipleFiles(
               loaded,
               total,
               percentage: Math.round((loaded / total) * 100),
-              filename: file.name,
+              filename: file?.name || `File ${i + 1}`,
             });
           }
         : undefined;
+
+      if (!file) {
+        failed.push({ file: `File ${i + 1}`, error: "missing" });
+        continue;
+      }
 
       const result = await uploadFileWithProgress(
         serverId,
@@ -288,7 +293,7 @@ export async function uploadMultipleFiles(
       }
     } catch (error) {
       failed.push({
-        file: file.name,
+        file: file?.name || `File ${i + 1}`,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
