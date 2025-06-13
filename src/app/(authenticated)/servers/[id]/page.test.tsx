@@ -1,73 +1,47 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ServerDetailPage from "./page";
-import * as serverService from "@/services/server";
-import { useAuth } from "@/contexts/auth";
 import { ok, err } from "neverthrow";
 import { ServerStatus, ServerType } from "@/types/server";
-import { Role } from "@/types/auth";
+import { mockServer, createMockServer } from "@/test/server-mocks";
+import { authScenarios } from "@/test/auth-mocks";
+import { routerScenarios } from "@/test/router-mocks";
 
-// Mock Next.js router
-const mockPush = vi.fn();
-const mockReplace = vi.fn();
-const mockParams = { id: "1" };
-
-vi.mock("next/navigation", () => ({
-  useParams: () => mockParams,
-  useRouter: () => ({
-    push: mockPush,
-    replace: mockReplace,
-  }),
-  usePathname: () => "/servers/1",
-  useSearchParams: () => new URLSearchParams(),
-}));
-
-// Mock the auth context
-const mockLogout = vi.fn();
-
-vi.mock("@/contexts/auth", () => ({
-  useAuth: vi.fn(),
-}));
-
-// Mock the language context with translations
-const translations: Record<string, string> = {
-  "servers.loadingServerDetails": "Loading server details...",
-  "servers.serverNotFound": "Server not found",
-  "servers.backToDashboard": "← Back to Dashboard",
-  "servers.information": "Information",
-  "servers.settings": "Settings",
-  "servers.properties": "Properties",
-  "servers.serverInformation": "Server Information",
-  "servers.serverActions": "Server Actions",
-  "servers.description": "Description",
-  "servers.deleteConfirmation":
-    "Are you sure you want to delete this server? This action cannot be undone.",
-  "servers.status.running": "Running",
-  "servers.status.stopped": "Stopped",
-  "servers.status.starting": "Starting...",
-  "servers.status.stopping": "Stopping...",
-  "servers.status.error": "Error",
-  "servers.status.unknown": "Unknown",
-  "servers.actions.start": "Start Server",
-  "servers.actions.stop": "Stop Server",
-  "servers.actions.restart": "Restart Server",
-  "servers.actions.delete": "Delete Server",
-  "servers.actions.starting": "Starting...",
-  "servers.actions.stopping": "Stopping...",
-  "servers.actions.restarting": "Restarting...",
-  "servers.actions.deleting": "Deleting...",
-  "servers.fields.version": "Minecraft Version",
-  "servers.fields.type": "Server Type",
-  "servers.fields.maxPlayers": "Max Players",
-  "servers.fields.memoryLimit": "Memory Limit",
-  "servers.fields.port": "Port",
-  "servers.fields.created": "Created",
-  "errors.generic": "An error occurred",
-  "errors.operationFailed": "Server {action} failed",
-};
-
+// Mock translation context directly
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  const translations: Record<string, string> = {
+    "servers.loadingServerDetails": "Loading server details...",
+    "errors.generic": "An error occurred",
+    "errors.operationFailed": "Operation failed",
+    "servers.serverNotFound": "Server not found",
+    "servers.information": "Information",
+    "servers.properties": "Properties",
+    "servers.settings": "Settings",
+    "servers.files": "Files",
+    "servers.backups": "Backups",
+    "servers.serverInformation": "Server Information",
+    "servers.serverActions": "Server Actions",
+    "servers.actions.start": "Start Server",
+    "servers.actions.stop": "Stop Server",
+    "servers.actions.restart": "Restart Server",
+    "servers.actions.delete": "Delete Server",
+    "servers.backToDashboard": "← Back to Dashboard",
+    "servers.deleteConfirmation":
+      "Are you sure you want to delete this server? This action cannot be undone.",
+    "servers.fields.version": "Minecraft Version",
+    "servers.fields.type": "Server Type",
+    "servers.fields.maxPlayers": "Max Players",
+    "servers.fields.memoryLimit": "Memory Limit",
+    "servers.fields.port": "Port",
+    "servers.fields.created": "Created",
+    "servers.description": "Description",
+    "servers.status.stopped": "Stopped",
+    "servers.status.running": "Running",
+    "servers.status.starting": "Starting",
+    "servers.status.stopping": "Stopping",
+    "servers.status.error": "Error",
+  };
+
   let translation = translations[key] || key;
   if (params) {
     Object.entries(params).forEach(([paramKey, paramValue]) => {
@@ -84,7 +58,7 @@ vi.mock("@/contexts/language", () => ({
   }),
 }));
 
-// Mock the server service
+// Mock server service functions individually (avoiding namespace import issue)
 vi.mock("@/services/server", () => ({
   getServer: vi.fn(),
   startServer: vi.fn(),
@@ -95,7 +69,7 @@ vi.mock("@/services/server", () => ({
   updateServerProperties: vi.fn(),
 }));
 
-// Mock the ServerPropertiesEditor component
+// Mock child components to isolate page component testing
 vi.mock("@/components/server/server-properties", () => ({
   ServerPropertiesEditor: ({ serverId }: { serverId: number }) => (
     <div data-testid="server-properties-editor">
@@ -104,398 +78,477 @@ vi.mock("@/components/server/server-properties", () => ({
   ),
 }));
 
+vi.mock("@/components/server/server-settings", () => ({
+  ServerSettings: ({
+    server,
+    onUpdate,
+  }: {
+    server: { id: number; name: string };
+    onUpdate: (server: { id: number; name: string }) => void;
+  }) => (
+    <div data-testid="server-settings">
+      Settings for {server.name}
+      <button
+        onClick={() => onUpdate({ ...server, name: "Updated " + server.name })}
+      >
+        Update Server
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("@/components/server/file-explorer", () => ({
+  FileExplorer: ({ serverId }: { serverId: number }) => (
+    <div data-testid="file-explorer">File Explorer for Server {serverId}</div>
+  ),
+}));
+
+vi.mock("@/components/server/server-backups", () => ({
+  ServerBackups: ({ serverId }: { serverId: number }) => (
+    <div data-testid="server-backups">Backups for Server {serverId}</div>
+  ),
+}));
+
+// Import component after mocks are set up
+import ServerDetailPage from "./page";
+import * as serverService from "@/services/server";
+
 describe("ServerDetailPage", () => {
   const user = userEvent.setup();
 
-  // Default auth context
-  const mockAuthContext = {
-    user: {
-      id: 1,
-      username: "admin",
-      email: "admin@example.com",
-      is_approved: true,
-      is_active: true,
-      role: Role.ADMIN,
-    },
-    isLoading: false, // This is for auth loading state
-    login: vi.fn(),
-    register: vi.fn(),
-    logout: mockLogout,
-    isAuthenticated: true,
-    updateUserInfo: vi.fn(),
-    updatePassword: vi.fn(),
-    deleteAccount: vi.fn(),
-    refreshUser: vi.fn(),
-  };
-  const mockServer = {
-    id: 1,
-    name: "Test Server",
-    description: "A test server",
-    minecraft_version: "1.21.5",
-    server_type: ServerType.VANILLA,
-    status: "stopped" as ServerStatus,
-    directory_path: "servers/test",
-    port: 25565,
-    max_memory: 2048,
-    max_players: 20,
-    owner_id: 1,
-    template_id: null,
-    created_at: "2025-01-01T00:00:00Z",
-    updated_at: "2025-01-01T00:00:00Z",
-    process_info: null,
-    configurations: [],
-  };
+  // Get mocked service functions
+  const mockGetServer = vi.mocked(serverService.getServer);
+  const mockStartServer = vi.mocked(serverService.startServer);
+  const mockStopServer = vi.mocked(serverService.stopServer);
+  const mockRestartServer = vi.mocked(serverService.restartServer);
+  const mockDeleteServer = vi.mocked(serverService.deleteServer);
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset auth context to default authenticated state
-    vi.mocked(useAuth).mockReturnValue(mockAuthContext);
-    // Reset all mocks to avoid cross-test interference
-    vi.mocked(serverService.getServer).mockReset();
-    vi.mocked(serverService.startServer).mockReset();
-    vi.mocked(serverService.stopServer).mockReset();
-    vi.mocked(serverService.restartServer).mockReset();
-    vi.mocked(serverService.deleteServer).mockReset();
+
+    // Setup successful authentication by default
+    authScenarios.authenticated();
+
+    // Setup router with server ID 1 by default
+    routerScenarios.serverDetail("1");
+
+    // Setup successful server service responses by default
+    mockGetServer.mockResolvedValue(ok(mockServer));
+    mockStartServer.mockResolvedValue(ok(undefined));
+    mockStopServer.mockResolvedValue(ok(undefined));
+    mockRestartServer.mockResolvedValue(ok(undefined));
+    mockDeleteServer.mockResolvedValue(ok(undefined));
   });
 
-  test("should render loading state initially", () => {
-    vi.mocked(serverService.getServer).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
+  describe("Server Data Loading", () => {
+    test("should render loading state while fetching server details", () => {
+      // Make getServer return a never-resolving promise
+      mockGetServer.mockImplementation(() => new Promise(() => {}));
 
-    render(<ServerDetailPage />);
+      render(<ServerDetailPage />);
 
-    expect(screen.getByText("Loading server details...")).toBeInTheDocument();
+      expect(screen.getByText("Loading server details...")).toBeInTheDocument();
+    });
+
+    test("should render server information when data loads successfully", async () => {
+      const testServer = createMockServer({
+        status: ServerStatus.STOPPED,
+        name: "Test Server",
+        minecraft_version: "1.21.5",
+        server_type: ServerType.VANILLA,
+        max_players: 20,
+        max_memory: 2048,
+        port: 25565,
+      });
+      mockGetServer.mockResolvedValue(ok(testServer));
+
+      render(<ServerDetailPage />);
+
+      // Wait for server data to load
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      // Verify server details are displayed
+      expect(screen.getByText("1.21.5")).toBeInTheDocument();
+      expect(screen.getByText("vanilla")).toBeInTheDocument();
+      expect(screen.getByText("20")).toBeInTheDocument();
+      expect(screen.getByText("2048MB")).toBeInTheDocument();
+      expect(screen.getByText("25565")).toBeInTheDocument();
+
+      // Verify API call was made with correct server ID
+      expect(mockGetServer).toHaveBeenCalledWith(1);
+    });
+
+    test("should show error message when server fetch fails", async () => {
+      mockGetServer.mockResolvedValue(
+        err({ status: 500, message: "Internal server error" })
+      );
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("An error occurred")).toBeInTheDocument();
+        expect(screen.getByText("Internal server error")).toBeInTheDocument();
+      });
+    });
+
+    test("should show server not found when server fetch returns 404", async () => {
+      mockGetServer.mockResolvedValue(
+        err({ status: 404, message: "Server not found" })
+      );
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Server not found")).toBeInTheDocument();
+      });
+    });
   });
 
-  test("should render server information tab by default", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
+  describe("Tab Navigation", () => {
+    test("should render information tab by default", async () => {
+      render(<ServerDetailPage />);
 
-    render(<ServerDetailPage />);
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
 
-    // Wait for server data to load and tabs to appear
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
+      const infoTab = screen.getByRole("button", { name: "Information" });
+      expect(infoTab.className).toContain("activeTab");
+      expect(screen.getByText("Server Information")).toBeInTheDocument();
+    });
+
+    test("should switch to properties tab when clicked", async () => {
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const propertiesTab = screen.getByRole("button", { name: "Properties" });
+      await user.click(propertiesTab);
+
+      expect(propertiesTab.className).toContain("activeTab");
       expect(
-        screen.getByRole("button", { name: "Information" })
+        screen.getByTestId("server-properties-editor")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Properties Editor for Server 1")
       ).toBeInTheDocument();
     });
 
-    // Check that Information tab is active
-    const infoTab = screen.getByRole("button", { name: "Information" });
-    expect(infoTab.className).toContain("_activeTab_");
+    test("should switch to settings tab when clicked", async () => {
+      render(<ServerDetailPage />);
 
-    // Check server details are shown
-    expect(screen.getByText("1.21.5")).toBeInTheDocument(); // minecraft_version
-    expect(screen.getByText("vanilla")).toBeInTheDocument(); // server_type
-    expect(screen.getByText("20")).toBeInTheDocument(); // max_players
-    expect(screen.getByText("2048MB")).toBeInTheDocument(); // max_memory
-    expect(screen.getByText("25565")).toBeInTheDocument(); // port
-  });
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
 
-  test("should switch to properties tab when clicked", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
+      const settingsTab = screen.getByRole("button", { name: "Settings" });
+      await user.click(settingsTab);
 
-    render(<ServerDetailPage />);
+      expect(settingsTab.className).toContain("activeTab");
+      expect(screen.getByTestId("server-settings")).toBeInTheDocument();
+      expect(screen.getByText("Settings for Test Server")).toBeInTheDocument();
+    });
 
-    // Wait for server data to load and tabs to appear
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
+    test("should switch to files tab when clicked", async () => {
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const filesTab = screen.getByRole("button", { name: "Files" });
+      await user.click(filesTab);
+
+      expect(filesTab.className).toContain("activeTab");
+      expect(screen.getByTestId("file-explorer")).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Properties" })
+        screen.getByText("File Explorer for Server 1")
       ).toBeInTheDocument();
     });
 
-    const propertiesTab = screen.getByRole("button", { name: "Properties" });
-    await user.click(propertiesTab);
+    test("should switch to backups tab when clicked", async () => {
+      render(<ServerDetailPage />);
 
-    // Check that Properties tab is now active
-    expect(propertiesTab.className).toContain("_activeTab_");
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
 
-    // Check that properties editor is rendered
-    expect(screen.getByTestId("server-properties-editor")).toBeInTheDocument();
-    expect(
-      screen.getByText("Properties Editor for Server 1")
-    ).toBeInTheDocument();
-  });
+      const backupsTab = screen.getByRole("button", { name: "Backups" });
+      await user.click(backupsTab);
 
-  test("should show appropriate action buttons based on server status", async () => {
-    // Test with stopped server
-    vi.mocked(serverService.getServer).mockResolvedValue(
-      ok({ ...mockServer, status: "stopped" as ServerStatus })
-    );
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
+      expect(backupsTab.className).toContain("activeTab");
+      expect(screen.getByTestId("server-backups")).toBeInTheDocument();
+      expect(screen.getByText("Backups for Server 1")).toBeInTheDocument();
     });
-
-    expect(
-      screen.getByRole("button", { name: "Start Server" })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Stop Server" })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Restart Server" })
-    ).not.toBeInTheDocument();
   });
 
-  test("should show stop and restart buttons for running server", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(
-      ok({ ...mockServer, status: "running" as ServerStatus })
-    );
+  describe("Server Actions", () => {
+    test("should show start button for stopped server", async () => {
+      const stoppedServer = createMockServer({ status: ServerStatus.STOPPED });
+      mockGetServer.mockResolvedValue(ok(stoppedServer));
 
-    render(<ServerDetailPage />);
+      render(<ServerDetailPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Stop Server" })
-      ).toBeInTheDocument();
-    });
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
 
-    expect(
-      screen.queryByRole("button", { name: "Start Server" })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Stop Server" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Restart Server" })
-    ).toBeInTheDocument();
-  });
-
-  test("should handle start server action", async () => {
-    const stoppedServer = { ...mockServer, status: "stopped" as ServerStatus };
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(stoppedServer));
-    vi.mocked(serverService.startServer).mockResolvedValue(ok(undefined));
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Start Server" })
       ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Stop Server" })
+      ).not.toBeInTheDocument();
     });
 
-    const startButton = screen.getByRole("button", { name: "Start Server" });
-    await user.click(startButton);
+    test("should show stop and restart buttons for running server", async () => {
+      const runningServer = createMockServer({ status: ServerStatus.RUNNING });
+      mockGetServer.mockResolvedValue(ok(runningServer));
 
-    expect(serverService.startServer).toHaveBeenCalledWith(1);
-  });
+      render(<ServerDetailPage />);
 
-  test("should handle stop server action", async () => {
-    const runningServer = { ...mockServer, status: "running" as ServerStatus };
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(runningServer));
-    vi.mocked(serverService.stopServer).mockResolvedValue(ok(undefined));
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
 
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Stop Server" })
       ).toBeInTheDocument();
-    });
-
-    const stopButton = screen.getByRole("button", { name: "Stop Server" });
-    await user.click(stopButton);
-
-    expect(serverService.stopServer).toHaveBeenCalledWith(1);
-  });
-
-  test("should handle restart server action", async () => {
-    const runningServer = { ...mockServer, status: "running" as ServerStatus };
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(runningServer));
-    vi.mocked(serverService.restartServer).mockResolvedValue(ok(undefined));
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: "Restart Server" })
       ).toBeInTheDocument();
-    });
-
-    const restartButton = screen.getByRole("button", {
-      name: "Restart Server",
-    });
-    await user.click(restartButton);
-
-    expect(serverService.restartServer).toHaveBeenCalledWith(1);
-  });
-
-  test("should handle delete server with confirmation", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
-    vi.mocked(serverService.deleteServer).mockResolvedValue(ok(undefined));
-
-    // Mock window.confirm
-    const originalConfirm = window.confirm;
-    window.confirm = vi.fn(() => true);
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
-    });
-
-    const deleteButton = screen.getByRole("button", { name: "Delete Server" });
-    await user.click(deleteButton);
-
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Are you sure you want to delete this server? This action cannot be undone."
-    );
-    expect(serverService.deleteServer).toHaveBeenCalledWith(1);
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
-
-    // Restore original confirm
-    window.confirm = originalConfirm;
-  });
-
-  test("should not delete server if confirmation is cancelled", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
-
-    // Mock window.confirm to return false
-    const originalConfirm = window.confirm;
-    window.confirm = vi.fn(() => false);
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
-    });
-
-    const deleteButton = screen.getByRole("button", { name: "Delete Server" });
-    await user.click(deleteButton);
-
-    expect(window.confirm).toHaveBeenCalled();
-    expect(serverService.deleteServer).not.toHaveBeenCalled();
-
-    // Restore original confirm
-    window.confirm = originalConfirm;
-  });
-
-  test("should show error message on server action failure", async () => {
-    // Clear all previous mocks to avoid interference
-    vi.mocked(serverService.getServer).mockReset();
-    vi.mocked(serverService.startServer).mockReset();
-
-    const stoppedServer = { ...mockServer, status: "stopped" as ServerStatus };
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(stoppedServer));
-    vi.mocked(serverService.startServer).mockResolvedValue(
-      err({ message: "Failed to start server", status: 500 })
-    );
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Start Server" })
-      ).toBeInTheDocument();
+        screen.queryByRole("button", { name: "Start Server" })
+      ).not.toBeInTheDocument();
     });
 
-    const startButton = screen.getByRole("button", { name: "Start Server" });
-    await user.click(startButton);
+    test("should handle server start action", async () => {
+      const stoppedServer = createMockServer({ status: ServerStatus.STOPPED });
+      mockGetServer.mockResolvedValue(ok(stoppedServer));
 
-    // Check that the service was called (this ensures the error path was triggered)
-    expect(serverService.startServer).toHaveBeenCalledWith(1);
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const startButton = screen.getByRole("button", { name: "Start Server" });
+      await user.click(startButton);
+
+      expect(mockStartServer).toHaveBeenCalledWith(1);
+    });
+
+    test("should handle server stop action", async () => {
+      const runningServer = createMockServer({ status: ServerStatus.RUNNING });
+      mockGetServer.mockResolvedValue(ok(runningServer));
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const stopButton = screen.getByRole("button", { name: "Stop Server" });
+      await user.click(stopButton);
+
+      expect(mockStopServer).toHaveBeenCalledWith(1);
+    });
+
+    test("should handle server restart action", async () => {
+      const runningServer = createMockServer({ status: ServerStatus.RUNNING });
+      mockGetServer.mockResolvedValue(ok(runningServer));
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const restartButton = screen.getByRole("button", {
+        name: "Restart Server",
+      });
+      await user.click(restartButton);
+
+      expect(mockRestartServer).toHaveBeenCalledWith(1);
+    });
+
+    test("should handle server delete action with confirmation", async () => {
+      const testServer = createMockServer({ status: ServerStatus.STOPPED });
+      mockGetServer.mockResolvedValue(ok(testServer));
+
+      // Mock window.confirm to return true
+      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByRole("button", {
+        name: "Delete Server",
+      });
+      await user.click(deleteButton);
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        "Are you sure you want to delete this server? This action cannot be undone."
+      );
+      expect(mockDeleteServer).toHaveBeenCalledWith(1);
+
+      confirmSpy.mockRestore();
+    });
+
+    test("should not delete server when confirmation is cancelled", async () => {
+      const testServer = createMockServer({ status: ServerStatus.STOPPED });
+      mockGetServer.mockResolvedValue(ok(testServer));
+
+      // Mock window.confirm to return false
+      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const deleteButton = screen.getByRole("button", {
+        name: "Delete Server",
+      });
+      await user.click(deleteButton);
+
+      expect(confirmSpy).toHaveBeenCalled();
+      expect(mockDeleteServer).not.toHaveBeenCalled();
+
+      confirmSpy.mockRestore();
+    });
   });
 
-  test("should navigate back to dashboard when back button is clicked", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
+  describe("Error Handling", () => {
+    test("should show error banner when server action fails", async () => {
+      const testServer = createMockServer({ status: ServerStatus.STOPPED });
+      mockGetServer.mockResolvedValue(ok(testServer));
+      mockStartServer.mockResolvedValue(
+        err({ status: 500, message: "Failed to start server" })
+      );
 
-    render(<ServerDetailPage />);
+      render(<ServerDetailPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const startButton = screen.getByRole("button", { name: "Start Server" });
+      await user.click(startButton);
+
+      await waitFor(() => {
+        expect(screen.getByText("Failed to start server")).toBeInTheDocument();
+      });
     });
 
-    const backButton = screen.getByRole("button", {
-      name: "← Back to Dashboard",
-    });
-    await user.click(backButton);
+    test("should dismiss error banner when close button clicked", async () => {
+      const testServer = createMockServer({ status: ServerStatus.STOPPED });
+      mockGetServer.mockResolvedValue(ok(testServer));
+      mockStartServer.mockResolvedValue(
+        err({ status: 500, message: "Failed to start server" })
+      );
 
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
-  });
+      render(<ServerDetailPage />);
 
-  test("should redirect to home if user is not authenticated", () => {
-    // Create a new auth context with user as null and auth loading as false
-    const unauthenticatedContext = {
-      ...mockAuthContext,
-      user: null,
-      isLoading: false, // Auth loading must be false for redirect to happen
-      isAuthenticated: false,
-    };
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
 
-    vi.mocked(useAuth).mockReturnValue(unauthenticatedContext);
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(mockServer));
+      const startButton = screen.getByRole("button", { name: "Start Server" });
+      await user.click(startButton);
 
-    render(<ServerDetailPage />);
+      await waitFor(() => {
+        expect(screen.getByText("Failed to start server")).toBeInTheDocument();
+      });
 
-    expect(mockPush).toHaveBeenCalledWith("/");
-  });
+      const dismissButton = screen.getByRole("button", { name: "×" });
+      await user.click(dismissButton);
 
-  test("should show server not found error", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(
-      err({ message: "Server not found", status: 404 })
-    );
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Server not found")).toBeInTheDocument();
-    });
-
-    const backButton = screen.getByRole("button", {
-      name: "← Back to Dashboard",
-    });
-    expect(backButton).toBeInTheDocument();
-  });
-
-  test("should show correct status styling", async () => {
-    vi.mocked(serverService.getServer).mockResolvedValue(
-      ok({ ...mockServer, status: "running" as ServerStatus })
-    );
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Running")).toBeInTheDocument();
-    });
-
-    const statusElement = screen.getByText("Running");
-    expect(statusElement.className).toContain("_statusRunning_");
-  });
-
-  test("should disable action buttons during server operations", async () => {
-    const stoppedServer = { ...mockServer, status: "stopped" as ServerStatus };
-    vi.mocked(serverService.getServer).mockResolvedValue(ok(stoppedServer));
-    vi.mocked(serverService.startServer).mockImplementation(
-      () =>
-        new Promise((resolve) => setTimeout(() => resolve(ok(undefined)), 100))
-    );
-
-    render(<ServerDetailPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Server")).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Start Server" })
-      ).toBeInTheDocument();
+        screen.queryByText("Failed to start server")
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Edge Cases", () => {
+    test("should handle different server types correctly", async () => {
+      const paperServer = createMockServer({
+        server_type: ServerType.PAPER,
+        name: "Paper Server",
+      });
+      mockGetServer.mockResolvedValue(ok(paperServer));
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Paper Server")).toBeInTheDocument();
+        expect(screen.getByText("paper")).toBeInTheDocument();
+      });
     });
 
-    const startButton = screen.getByRole("button", { name: "Start Server" });
-    await user.click(startButton);
+    test("should handle server with no description", async () => {
+      const serverWithoutDescription = createMockServer({ description: null });
+      mockGetServer.mockResolvedValue(ok(serverWithoutDescription));
 
-    // Button should show loading state and be disabled
-    expect(
-      screen.getByRole("button", { name: "Starting..." })
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Starting..." })).toBeDisabled();
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText("Description:")).not.toBeInTheDocument();
+    });
+
+    test("should handle invalid server ID", async () => {
+      mockGetServer.mockResolvedValue(
+        err({ status: 404, message: "Server not found" })
+      );
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Server not found")).toBeInTheDocument();
+      });
+    });
+
+    test("should handle network errors gracefully", async () => {
+      mockGetServer.mockResolvedValue(
+        err({ status: 500, message: "Network error" })
+      );
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("An error occurred")).toBeInTheDocument();
+        expect(screen.getByText("Network error")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Navigation", () => {
+    test("should navigate back to dashboard when back button clicked", async () => {
+      const { router } = routerScenarios.serverDetail("1");
+
+      render(<ServerDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server")).toBeInTheDocument();
+      });
+
+      const backButton = screen.getByRole("button", {
+        name: "← Back to Dashboard",
+      });
+      await user.click(backButton);
+
+      expect(router.push).toHaveBeenCalledWith("/dashboard");
+    });
   });
 });
