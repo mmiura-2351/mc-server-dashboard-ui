@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import type { LoginRequest } from "@/types/auth";
+import { InputSanitizer } from "@/utils/input-sanitizer";
 import styles from "./auth-form.module.css";
 
 interface LoginFormProps {
@@ -23,17 +24,40 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     e.preventDefault();
     setError("");
 
-    if (!formData.username.trim() || !formData.password.trim()) {
-      setError("Username and password are required");
+    // Sanitize inputs
+    const sanitizedUsername = InputSanitizer.sanitizeUsername(formData.username);
+    const sanitizedPassword = formData.password.trim();
+
+    // Enhanced validation
+    if (!sanitizedUsername) {
+      setError("Username is required and must contain only valid characters");
+      return;
+    }
+
+    if (!sanitizedPassword) {
+      setError("Password is required");
+      return;
+    }
+
+    if (sanitizedUsername.length < 3) {
+      setError("Username must be at least 3 characters long");
+      return;
+    }
+
+    if (sanitizedPassword.length < 6) {
+      setError("Password must be at least 6 characters long");
       return;
     }
 
     setIsLoading(true);
-    const result = await login(formData);
+    const result = await login({
+      username: sanitizedUsername,
+      password: sanitizedPassword,
+    });
     setIsLoading(false);
 
     if (result.isErr()) {
-      // 承認待ちの場合は特別なメッセージを表示
+      // Handle specific error cases
       if (
         result.error.status === 403 &&
         result.error.message.includes("pending approval")
@@ -41,8 +65,12 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         setError(
           "Your account is pending approval. Please wait for an administrator to approve your account before you can log in."
         );
+      } else if (result.error.status === 401) {
+        setError("Invalid username or password");
+      } else if (result.error.status === 429) {
+        setError("Too many login attempts. Please try again later.");
       } else {
-        setError(result.error.message);
+        setError("Login failed. Please try again.");
       }
       return;
     }
@@ -52,10 +80,26 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Apply basic sanitization on input
+    let sanitizedValue = value;
+    if (name === "username") {
+      // Real-time sanitization for username (less strict for UX)
+      sanitizedValue = InputSanitizer.sanitizeText(value);
+    } else if (name === "password") {
+      // For password, only remove null bytes and control characters
+      sanitizedValue = InputSanitizer.sanitizeText(value);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: sanitizedValue,
     }));
+    
+    // Clear error when user starts typing
+    if (error) {
+      setError("");
+    }
   };
 
   return (
@@ -81,6 +125,10 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           className={styles.input}
           disabled={isLoading}
           required
+          minLength={3}
+          maxLength={50}
+          pattern="[a-zA-Z0-9._-]+"
+          title="Username must contain only letters, numbers, dots, underscores, and hyphens"
         />
       </div>
 
@@ -97,6 +145,9 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           className={styles.input}
           disabled={isLoading}
           required
+          minLength={6}
+          maxLength={128}
+          autoComplete="current-password"
         />
       </div>
 

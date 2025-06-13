@@ -18,6 +18,9 @@ import type {
   UserDelete,
 } from "@/types/auth";
 import * as authService from "@/services/auth";
+import { AuthStorage } from "@/utils/secure-storage";
+import { tokenManager } from "@/utils/token-manager";
+import { InputSanitizer } from "@/utils/input-sanitizer";
 
 interface AuthContextType {
   user: User | null;
@@ -55,8 +58,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = user !== null;
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const cachedUserData = localStorage.getItem("user_data");
+    const token = AuthStorage.getAccessToken();
+    const cachedUserData = AuthStorage.getUserData();
 
     if (!token) {
       setIsLoading(false);
@@ -65,28 +68,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Try to restore user from cache first for better UX
     if (cachedUserData) {
-      try {
-        const parsedUser = JSON.parse(cachedUserData);
-        setUser(parsedUser);
-      } catch {
-        // Invalid cached data, remove it
-        localStorage.removeItem("user_data");
-      }
+      setUser(cachedUserData as User);
     }
 
     const loadUser = async () => {
-      const result = await authService.getCurrentUser(token);
+      // Use token manager for secure token handling
+      const validToken = await tokenManager.getValidAccessToken();
+      if (!validToken) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await authService.getCurrentUser(validToken);
       if (result.isOk()) {
         setUser(result.value);
-        localStorage.setItem("user_data", JSON.stringify(result.value));
+        AuthStorage.setUserData(result.value);
       } else {
-        // If getCurrentUser fails, the API service will handle token refresh automatically
-        // If refresh fails, it will dispatch authLogout event
+        // Token manager will handle refresh and logout events
         if (result.error.status === 401) {
-          // Clear local state, but let API service handle the refresh logic
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          localStorage.removeItem("user_data");
+          AuthStorage.clearAuthData();
           setUser(null);
         }
       }
@@ -95,19 +96,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     loadUser();
 
-    // Listen for automatic token refresh events from API service
+    // Listen for automatic token refresh events from token manager
     const handleTokenRefresh = (event: CustomEvent) => {
       const { access_token } = event.detail;
       // Refresh user data with new token
       authService.getCurrentUser(access_token).then((result) => {
         if (result.isOk()) {
           setUser(result.value);
-          localStorage.setItem("user_data", JSON.stringify(result.value));
+          AuthStorage.setUserData(result.value);
         }
       });
     };
 
-    // Listen for automatic logout events from API service
+    // Listen for automatic logout events from token manager
     const handleAuthLogout = () => {
       setUser(null);
     };
@@ -130,25 +131,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (
     credentials: LoginRequest
   ): Promise<Result<void, AuthError>> => {
-    const loginResult = await authService.login(credentials);
+    // Sanitize input credentials
+    const sanitizedCredentials = {
+      username: InputSanitizer.sanitizeUsername(credentials.username),
+      password: credentials.password.trim(), // Don't over-sanitize passwords
+    };
+
+    // Validate sanitized credentials
+    if (!sanitizedCredentials.username || !sanitizedCredentials.password) {
+      return err({ message: "Username and password are required" });
+    }
+
+    const loginResult = await authService.login(sanitizedCredentials);
     if (loginResult.isErr()) {
       return err(loginResult.error);
     }
 
     setIsLoading(true);
     const { access_token, refresh_token } = loginResult.value;
-    localStorage.setItem("access_token", access_token);
-    localStorage.setItem("refresh_token", refresh_token);
+    
+    // Use secure storage for token storage
+    const tokenStored = AuthStorage.setAuthTokens(access_token, refresh_token);
+    if (!tokenStored) {
+      setIsLoading(false);
+      return err({ message: "Failed to store authentication tokens" });
+    }
 
     const userResult = await authService.getCurrentUser(access_token);
     if (userResult.isErr()) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
+      AuthStorage.clearAuthData();
       setIsLoading(false);
       return err(userResult.error);
     }
 
-    localStorage.setItem("user_data", JSON.stringify(userResult.value));
+    const userStored = AuthStorage.setUserData(userResult.value);
+    if (!userStored) {
+      AuthStorage.clearAuthData();
+      setIsLoading(false);
+      return err({ message: "Failed to store user data" });
+    }
+
     setUser(userResult.value);
     setIsLoading(false);
     return ok(undefined);
@@ -166,32 +188,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_data");
+    AuthStorage.clearAuthData();
+    tokenManager.clearTokens();
     setUser(null);
   };
 
   const updateUserInfo = async (
     userData: UserUpdate
   ): Promise<Result<User, AuthError>> => {
-    const token = localStorage.getItem("access_token");
+    const token = await tokenManager.getValidAccessToken();
     if (!token) {
       return err({ message: "No authentication token found" });
     }
 
-    const result = await authService.updateUserInfo(token, userData);
+    // Sanitize user data
+    const sanitizedUserData = {
+      ...userData,
+      username: userData.username ? InputSanitizer.sanitizeUsername(userData.username) : undefined,
+      email: userData.email ? InputSanitizer.sanitizeEmail(userData.email) : undefined,
+    };
+
+    const result = await authService.updateUserInfo(token, sanitizedUserData);
     if (result.isOk()) {
       const { user, access_token, refresh_token } = result.value;
       setUser(user);
-      localStorage.setItem("user_data", JSON.stringify(user));
+      AuthStorage.setUserData(user);
 
-      // 新しいトークンが提供された場合は更新
+      // Update tokens if provided
       if (access_token && access_token !== "") {
-        localStorage.setItem("access_token", access_token);
+        AuthStorage.setAccessToken(access_token);
       }
       if (refresh_token && refresh_token !== "") {
-        localStorage.setItem("refresh_token", refresh_token);
+        AuthStorage.setRefreshToken(refresh_token);
       }
 
       return ok(user);
@@ -202,23 +230,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const updatePassword = async (
     passwordData: PasswordUpdate
   ): Promise<Result<User, AuthError>> => {
-    const token = localStorage.getItem("access_token");
+    const token = await tokenManager.getValidAccessToken();
     if (!token) {
       return err({ message: "No authentication token found" });
+    }
+
+    // Validate password strength
+    const passwordValidation = InputSanitizer.validatePassword(passwordData.new_password);
+    if (!passwordValidation.isValid) {
+      return err({ message: passwordValidation.errors.join(", ") });
     }
 
     const result = await authService.updatePassword(token, passwordData);
     if (result.isOk()) {
       const { user, access_token, refresh_token } = result.value;
       setUser(user);
-      localStorage.setItem("user_data", JSON.stringify(user));
+      AuthStorage.setUserData(user);
 
-      // パスワード変更時は常に新しいトークンが提供される
+      // Update tokens after password change
       if (access_token && access_token !== "") {
-        localStorage.setItem("access_token", access_token);
+        AuthStorage.setAccessToken(access_token);
       }
       if (refresh_token && refresh_token !== "") {
-        localStorage.setItem("refresh_token", refresh_token);
+        AuthStorage.setRefreshToken(refresh_token);
       }
 
       return ok(user);
@@ -229,7 +263,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const deleteAccount = async (
     deleteData: UserDelete
   ): Promise<Result<void, AuthError>> => {
-    const token = localStorage.getItem("access_token");
+    const token = await tokenManager.getValidAccessToken();
     if (!token) {
       return err({ message: "No authentication token found" });
     }
@@ -243,13 +277,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const refreshUser = async (): Promise<void> => {
-    const token = localStorage.getItem("access_token");
+    const token = await tokenManager.getValidAccessToken();
     if (!token) return;
 
     const result = await authService.getCurrentUser(token);
     if (result.isOk()) {
       setUser(result.value);
-      localStorage.setItem("user_data", JSON.stringify(result.value));
+      AuthStorage.setUserData(result.value);
     }
   };
 

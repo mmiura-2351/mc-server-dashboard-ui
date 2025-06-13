@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
+import { FileUploadSecurity, DEFAULT_UPLOAD_CONFIG } from "@/utils/file-upload-security";
+import { InputSanitizer } from "@/utils/input-sanitizer";
 import styles from "./file-explorer.module.css";
 import JSZip from "jszip";
 
@@ -692,10 +694,38 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const handleFileUpload = async (files: File[], isFolder = false) => {
     if (files.length === 0) return;
 
-    // Initialize upload state
+    // Validate files for security
+    const securityResult = await FileUploadSecurity.securityFilter(files, {
+      ...DEFAULT_UPLOAD_CONFIG,
+      maxFileSize: 50 * 1024 * 1024, // 50MB for Minecraft server files
+      maxTotalSize: 200 * 1024 * 1024, // 200MB total
+      maxFiles: 20, // Reasonable limit for server files
+    });
+
+    // Show warnings if any
+    if (securityResult.warnings.length > 0) {
+      console.warn('File upload warnings:', securityResult.warnings);
+    }
+
+    // Show blocked files
+    if (securityResult.blocked.length > 0) {
+      const blockedMessage = securityResult.blocked
+        .map(b => `${b.file.name}: ${b.reason}`)
+        .join('\n');
+      alert(`Some files were blocked for security reasons:\n${blockedMessage}`);
+    }
+
+    // Use only allowed files
+    const allowedFiles = securityResult.allowed;
+    if (allowedFiles.length === 0) {
+      alert('No files could be uploaded due to security restrictions.');
+      return;
+    }
+
+    // Initialize upload state with allowed files
     setUploadState({
       isUploading: true,
-      progress: Array.from(files).map((file) => ({
+      progress: allowedFiles.map((file) => ({
         filename: isFolder
           ? (file as File & { webkitRelativePath?: string })
               .webkitRelativePath || file.name
@@ -710,7 +740,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     setShowUploadModal(true);
 
     try {
-      const fileArray = Array.from(files);
+      const fileArray = allowedFiles;
       const progressCallback = (
         progress: fileService.UploadProgressCallback extends (
           arg: infer P
@@ -1501,7 +1531,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   id="newName"
                   type="text"
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  onChange={(e) => {
+                    const sanitized = InputSanitizer.sanitizeFilePath(e.target.value);
+                    setNewName(sanitized);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleRenameConfirm();
