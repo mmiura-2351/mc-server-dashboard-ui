@@ -33,6 +33,10 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const [downloadingBackups, setDownloadingBackups] = useState<Set<string>>(
     new Set()
   );
+  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
+  const [restoringBackups, setRestoringBackups] = useState<Set<string>>(
+    new Set()
+  );
 
   const loadBackupsAndSettings = async () => {
     setIsLoading(true);
@@ -80,6 +84,20 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverId]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (openDropdowns.size > 0) {
+        closeAllDropdowns();
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [openDropdowns]);
+
   const handleCreateBackup = async () => {
     if (!newBackupName.trim()) {
       setError(t("backups.errors.backupNameRequired"));
@@ -113,6 +131,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
       return;
     }
 
+    setRestoringBackups((prev) => new Set(prev).add(backupId));
     setError(null);
 
     try {
@@ -125,6 +144,50 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
       }
     } catch {
       setError(t("backups.errors.failedToRestoreBackup"));
+    } finally {
+      setRestoringBackups((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(backupId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleAdvancedRestore = async (
+    backupId: string,
+    backupName: string,
+    options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
+  ) => {
+    const confirmMessage = options?.preservePlayerData
+      ? t("backups.advancedRestoreConfirmation", { name: backupName })
+      : t("backups.restoreConfirmation", { name: backupName });
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    setRestoringBackups((prev) => new Set(prev).add(backupId));
+    setError(null);
+
+    try {
+      const result = await serverService.advancedRestoreBackup(
+        backupId,
+        options
+      );
+
+      if (result.isOk()) {
+        await loadBackupsAndSettings();
+      } else {
+        setError(result.error.message);
+      }
+    } catch {
+      setError(t("backups.errors.failedToRestoreBackup"));
+    } finally {
+      setRestoringBackups((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(backupId);
+        return newSet;
+      });
     }
   };
 
@@ -177,6 +240,23 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
         return newSet;
       });
     }
+  };
+
+  const toggleDropdown = (backupId: string) => {
+    setOpenDropdowns((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(backupId)) {
+        newSet.delete(backupId);
+      } else {
+        newSet.clear(); // Close other dropdowns
+        newSet.add(backupId);
+      }
+      return newSet;
+    });
+  };
+
+  const closeAllDropdowns = () => {
+    setOpenDropdowns(new Set());
   };
 
   const handleEditSettings = (updates: Partial<BackupSettings>) => {
@@ -493,18 +573,63 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                       ? t("backups.downloading")
                       : t("backups.download")}
                   </button>
-                  <button
-                    onClick={() => handleRestoreBackup(backup.id, backup.name)}
-                    className={styles.restoreButton}
-                  >
-                    {t("backups.restore")}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteBackup(backup.id, backup.name)}
-                    className={styles.deleteButton}
-                  >
-                    {t("backups.delete")}
-                  </button>
+                  <div className={styles.actionDropdown}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown(backup.id);
+                      }}
+                      className={styles.dropdownToggle}
+                      aria-expanded={openDropdowns.has(backup.id)}
+                    >
+                      {t("backups.actions")}
+                      <span className={styles.dropdownArrow}>▼</span>
+                    </button>
+                    {openDropdowns.has(backup.id) && (
+                      <div
+                        className={styles.dropdownMenu}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => {
+                            handleRestoreBackup(backup.id, backup.name);
+                            closeAllDropdowns();
+                          }}
+                          className={styles.dropdownItem}
+                          disabled={restoringBackups.has(backup.id)}
+                        >
+                          {restoringBackups.has(backup.id)
+                            ? t("backups.restoring")
+                            : t("backups.restore")}
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleAdvancedRestore(backup.id, backup.name, {
+                              preservePlayerData: true,
+                              restoreSettings: true,
+                            });
+                            closeAllDropdowns();
+                          }}
+                          className={styles.dropdownItem}
+                          disabled={restoringBackups.has(backup.id)}
+                        >
+                          {restoringBackups.has(backup.id)
+                            ? t("backups.restoring")
+                            : t("backups.advancedRestore")}
+                        </button>
+                        <hr className={styles.dropdownDivider} />
+                        <button
+                          onClick={() => {
+                            handleDeleteBackup(backup.id, backup.name);
+                            closeAllDropdowns();
+                          }}
+                          className={`${styles.dropdownItem} ${styles.deleteItem}`}
+                        >
+                          {t("backups.delete")}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

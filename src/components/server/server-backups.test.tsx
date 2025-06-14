@@ -10,6 +10,8 @@ vi.mock("@/services/server", () => ({
   getBackupSettings: vi.fn(),
   createBackup: vi.fn(),
   restoreBackup: vi.fn(),
+  advancedRestoreBackup: vi.fn(),
+  downloadBackup: vi.fn(),
   deleteBackup: vi.fn(),
   updateBackupSettings: vi.fn(),
 }));
@@ -39,10 +41,17 @@ const translations: Record<string, string> = {
   "backups.noBackupsFound":
     "No backups found. Create your first backup to get started!",
   "backups.automatic": "Auto",
+  "backups.download": "Download",
+  "backups.downloading": "Downloading...",
+  "backups.actions": "Actions",
   "backups.restore": "Restore",
+  "backups.restoring": "Restoring...",
+  "backups.advancedRestore": "Advanced Restore",
   "backups.delete": "Delete",
   "backups.restoreConfirmation":
     "Are you sure you want to restore backup '{name}'? This will replace your current world data.",
+  "backups.advancedRestoreConfirmation":
+    "Restore backup '{name}' with advanced options? This will preserve player data and settings while restoring the world.",
   "backups.deleteConfirmation":
     "Are you sure you want to delete backup '{name}'? This action cannot be undone.",
   "backups.settings.edit": "Edit Settings",
@@ -160,7 +169,7 @@ describe("ServerBackups", () => {
 
     expect(screen.getByText("Auto Backup")).toBeInTheDocument();
     expect(screen.getByText("Auto")).toBeInTheDocument(); // automatic badge
-    expect(screen.getAllByText("Delete")).toHaveLength(2); // delete buttons for both backups
+    expect(screen.getAllByText("Actions")).toHaveLength(2); // action dropdown buttons for both backups
     expect(screen.getByText("Edit Settings")).toBeInTheDocument(); // edit button in readonly mode
   });
 
@@ -326,8 +335,15 @@ describe("ServerBackups", () => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
     });
 
-    const restoreButtons = screen.getAllByText("Restore");
-    fireEvent.click(restoreButtons[0]!);
+    const actionButtons = screen.getAllByText("Actions");
+    fireEvent.click(actionButtons[0]!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Restore")).toBeInTheDocument();
+    });
+
+    const restoreButton = screen.getByText("Restore");
+    fireEvent.click(restoreButton);
 
     expect(window.confirm).toHaveBeenCalledWith(
       "Are you sure you want to restore backup 'Test Backup'? This will replace your current world data."
@@ -347,8 +363,15 @@ describe("ServerBackups", () => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
     });
 
-    const restoreButtons = screen.getAllByText("Restore");
-    fireEvent.click(restoreButtons[0]!);
+    const actionButtons = screen.getAllByText("Actions");
+    fireEvent.click(actionButtons[0]!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Restore")).toBeInTheDocument();
+    });
+
+    const restoreButton = screen.getByText("Restore");
+    fireEvent.click(restoreButton);
 
     expect(window.confirm).toHaveBeenCalled();
     expect(serverService.restoreBackup).not.toHaveBeenCalled();
@@ -363,8 +386,15 @@ describe("ServerBackups", () => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByText("Delete");
-    fireEvent.click(deleteButtons[0]!);
+    const actionButtons = screen.getAllByText("Actions");
+    fireEvent.click(actionButtons[0]!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByText("Delete");
+    fireEvent.click(deleteButton);
 
     expect(window.confirm).toHaveBeenCalledWith(
       "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
@@ -384,8 +414,15 @@ describe("ServerBackups", () => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByText("Delete");
-    fireEvent.click(deleteButtons[0]!);
+    const actionButtons = screen.getAllByText("Actions");
+    fireEvent.click(actionButtons[0]!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByText("Delete");
+    fireEvent.click(deleteButton);
 
     expect(window.confirm).toHaveBeenCalled();
     expect(serverService.deleteBackup).not.toHaveBeenCalled();
@@ -437,8 +474,15 @@ describe("ServerBackups", () => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByText("Delete");
-    fireEvent.click(deleteButtons[0]!);
+    const actionButtons = screen.getAllByText("Actions");
+    fireEvent.click(actionButtons[0]!);
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByText("Delete");
+    fireEvent.click(deleteButton);
 
     await waitFor(() => {
       expect(screen.getByText("Backup deletion failed")).toBeInTheDocument();
