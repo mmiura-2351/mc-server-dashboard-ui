@@ -8,6 +8,7 @@ import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
 import { ServerBackups } from "@/components/server/server-backups";
+import { ConfirmationModal } from "@/components/modal";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -24,6 +25,9 @@ export default function ServerDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
   const [_statusPolling, setStatusPolling] = useState(false);
+
+  // Modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Get tab from URL params or default to "info"
   const tabFromUrl = searchParams.get("tab") as
@@ -164,13 +168,15 @@ export default function ServerDetailPage() {
     }
   };
 
-  const handleDeleteServer = async () => {
+  const handleDeleteServer = () => {
+    if (!server) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteServer = async () => {
     if (!server) return;
 
-    if (!confirm(t("servers.deleteConfirmation"))) {
-      return;
-    }
-
+    setShowDeleteConfirm(false);
     setIsActioning(true);
     const result = await serverService.deleteServer(server.id);
 
@@ -464,6 +470,16 @@ export default function ServerDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Server Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title={t("servers.actions.delete")}
+        message={t("servers.deleteConfirmation")}
+        variant="danger"
+        onConfirm={confirmDeleteServer}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

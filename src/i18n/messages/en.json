@@ -7,6 +7,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "confirm": "Confirm",
+    "ok": "OK",
     "yes": "Yes",
     "no": "No",
     "active": "Active",
@@ -277,5 +278,15 @@
     "alreadyHaveAccount": "Already have an account?",
     "registerHere": "Register here",
     "loginHere": "Login here"
+  },
+  "files": {
+    "deleteFile": "Delete File",
+    "deleteFiles": "Delete Files",
+    "deleteFileConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "deleteBulkConfirmation": "Are you sure you want to delete {count} selected files? This action cannot be undone.",
+    "securityWarning": "Security Warning",
+    "blockedFilesMessage": "Some files were blocked for security reasons:",
+    "uploadError": "Upload Error",
+    "noFilesAllowed": "No files could be uploaded due to security restrictions."
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/contexts/language";
+import { ConfirmationModal } from "@/components/modal";
 import * as serverService from "@/services/server";
 import type { ServerBackup } from "@/types/server";
 import { formatFileSize, formatDate } from "@/utils/format";
@@ -25,6 +26,20 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const [restoringBackups, setRestoringBackups] = useState<Set<number>>(
     new Set()
   );
+
+  // Modal states
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant?: "default" | "danger" | "warning";
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const loadBackups = async () => {
     setIsLoading(true);
@@ -92,34 +107,47 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     setIsCreatingBackup(false);
   };
 
-  const handleRestoreBackup = async (backupId: number, backupName: string) => {
-    if (!confirm(t("backups.restoreConfirmation", { name: backupName }))) {
-      return;
-    }
+  const handleRestoreBackup = (backupId: number, backupName: string) => {
+    const confirmRestore = async () => {
+      setRestoringBackups((prev) => new Set(prev).add(backupId));
+      setError(null);
 
-    setRestoringBackups((prev) => new Set(prev).add(backupId));
-    setError(null);
+      try {
+        const result = await serverService.restoreBackup(backupId);
 
-    try {
-      const result = await serverService.restoreBackup(backupId);
-
-      if (result.isOk()) {
-        await loadBackups();
-      } else {
-        setError(result.error.message);
+        if (result.isOk()) {
+          await loadBackups();
+        } else {
+          setError(result.error.message);
+        }
+      } catch {
+        setError(t("backups.errors.failedToRestoreBackup"));
+      } finally {
+        setRestoringBackups((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(backupId);
+          return newSet;
+        });
       }
-    } catch {
-      setError(t("backups.errors.failedToRestoreBackup"));
-    } finally {
-      setRestoringBackups((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(backupId);
-        return newSet;
+
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
       });
-    }
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("backups.restore"),
+      message: t("backups.restoreConfirmation", { name: backupName }),
+      variant: "warning",
+      onConfirm: confirmRestore,
+    });
   };
 
-  const handleAdvancedRestore = async (
+  const handleAdvancedRestore = (
     backupId: number,
     backupName: string,
     options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
@@ -128,53 +156,79 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
       ? t("backups.advancedRestoreConfirmation", { name: backupName })
       : t("backups.restoreConfirmation", { name: backupName });
 
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+    const confirmAdvancedRestore = async () => {
+      setRestoringBackups((prev) => new Set(prev).add(backupId));
+      setError(null);
 
-    setRestoringBackups((prev) => new Set(prev).add(backupId));
-    setError(null);
+      try {
+        const result = await serverService.advancedRestoreBackup(
+          backupId,
+          options
+        );
 
-    try {
-      const result = await serverService.advancedRestoreBackup(
-        backupId,
-        options
-      );
-
-      if (result.isOk()) {
-        await loadBackups();
-      } else {
-        setError(result.error.message);
+        if (result.isOk()) {
+          await loadBackups();
+        } else {
+          setError(result.error.message);
+        }
+      } catch {
+        setError(t("backups.errors.failedToRestoreBackup"));
+      } finally {
+        setRestoringBackups((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(backupId);
+          return newSet;
+        });
       }
-    } catch {
-      setError(t("backups.errors.failedToRestoreBackup"));
-    } finally {
-      setRestoringBackups((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(backupId);
-        return newSet;
+
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
       });
-    }
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("backups.advancedRestore"),
+      message: confirmMessage,
+      variant: "warning",
+      onConfirm: confirmAdvancedRestore,
+    });
   };
 
-  const handleDeleteBackup = async (backupId: number, backupName: string) => {
-    if (!confirm(t("backups.deleteConfirmation", { name: backupName }))) {
-      return;
-    }
+  const handleDeleteBackup = (backupId: number, backupName: string) => {
+    const confirmDelete = async () => {
+      setError(null);
 
-    setError(null);
+      try {
+        const result = await serverService.deleteBackup(backupId);
 
-    try {
-      const result = await serverService.deleteBackup(backupId);
-
-      if (result.isOk()) {
-        await loadBackups();
-      } else {
-        setError(result.error.message);
+        if (result.isOk()) {
+          await loadBackups();
+        } else {
+          setError(result.error.message);
+        }
+      } catch {
+        setError(t("backups.errors.failedToDeleteBackup"));
       }
-    } catch {
-      setError(t("backups.errors.failedToDeleteBackup"));
-    }
+
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
+      });
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("backups.delete"),
+      message: t("backups.deleteConfirmation", { name: backupName }),
+      variant: "danger",
+      onConfirm: confirmDelete,
+    });
   };
 
   const handleDownloadBackup = async (backupId: number, backupName: string) => {
@@ -402,6 +456,23 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: "",
+            message: "",
+            onConfirm: () => {},
+          })
+        }
+      />
     </div>
   );
 }
