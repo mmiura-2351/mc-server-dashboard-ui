@@ -548,7 +548,10 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
         ) : (
           <div className={styles.backupsList}>
             {backups.map((backup) => (
-              <div key={backup.id} className={styles.backupItem}>
+              <div
+                key={backup.id}
+                className={`${styles.backupItem} ${openDropdowns.has(backup.id) ? styles.backupItemActive : ""}`}
+              >
                 <div className={styles.backupInfo}>
                   <div className={styles.backupName}>
                     {backup.name}
