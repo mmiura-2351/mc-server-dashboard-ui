@@ -32,8 +32,12 @@ describe('TokenManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    // Reset token manager state by clearing tokens
-    tokenManager.clearTokens();
+    
+    // Reset the singleton instance to ensure clean state
+    (tokenManager as any).refreshPromise = null;
+    (tokenManager as any).refreshInProgress = false;
+    (tokenManager as any).lastRefreshTime = 0;
+    
     // Advance time to reset rate limiting
     vi.advanceTimersByTime(10000);
   });
@@ -180,6 +184,16 @@ describe('TokenManager', () => {
 
     test('should enforce rate limiting', async () => {
       vi.mocked(AuthStorage.getRefreshToken).mockReturnValue('refresh-token');
+      vi.mocked(AuthStorage.setAuthTokens).mockReturnValue(true);
+      
+      // Mock successful response for first refresh
+      vi.mocked(fetch).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          access_token: 'new-token',
+          refresh_token: 'new-refresh',
+        }),
+      } as Response);
       
       // First refresh
       await tokenManager.refreshTokens();
