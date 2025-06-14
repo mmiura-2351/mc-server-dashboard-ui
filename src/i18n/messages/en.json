@@ -428,6 +428,14 @@
       "badge": "Admin",
       "enableAllConfirmation": "Are you sure you want to enable {count} schedules?",
       "disableAllConfirmation": "Are you sure you want to disable {count} schedules?",
+      "searchPlaceholder": "Search schedules by name, description, or server...",
+      "searchResults": "Showing {showing} of {total} schedules matching '{search}'",
+      "showingPage": "Showing {showing} of {total} schedules (Page {page} of {totalPages})",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "pageInfo": "Page {current} of {total}"
+      },
       "deleteScheduleConfirmation": "Are you sure you want to delete schedule '{name}'? This action cannot be undone.",
       "errors": {
         "failedToLoadData": "Failed to load administration data",

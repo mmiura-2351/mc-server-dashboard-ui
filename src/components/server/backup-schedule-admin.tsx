@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "@/contexts/language";
 import * as backupSchedulerService from "@/services/backup-scheduler";
 import * as serverService from "@/services/server";
@@ -30,6 +30,7 @@ interface SystemStats {
 export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
   const { t } = useTranslation();
   const [schedules, setSchedules] = useState<BackupSchedule[]>([]);
+  const [allSchedules, setAllSchedules] = useState<BackupSchedule[]>([]);
   const [servers, setServers] = useState<MinecraftServer[]>([]);
   const [schedulerStatus, setSchedulerStatus] =
     useState<SchedulerStatus | null>(null);
@@ -38,6 +39,11 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<Set<string>>(new Set());
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [schedulesPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const loadAllData = async () => {
     setIsLoading(true);
@@ -57,6 +63,7 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
         ]);
 
       if (schedulesResult.isOk()) {
+        setAllSchedules(schedulesResult.value);
         setSchedules(schedulesResult.value);
       } else {
         console.warn(
@@ -152,10 +159,37 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
     });
   };
 
+  const getServerName = useCallback((serverId: number) => {
+    const server = servers.find((s) => s.id === serverId);
+    return server?.name || `Server ${serverId}`;
+  }, [servers]);
+
   useEffect(() => {
     loadAllData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Filter and paginate schedules
+  useEffect(() => {
+    let filtered = allSchedules;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (schedule) =>
+          schedule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          schedule.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          getServerName(schedule.server_id).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply pagination
+    const startIndex = (currentPage - 1) * schedulesPerPage;
+    const endIndex = startIndex + schedulesPerPage;
+    const paginatedSchedules = filtered.slice(startIndex, endIndex);
+
+    setSchedules(paginatedSchedules);
+  }, [allSchedules, searchTerm, currentPage, schedulesPerPage, getServerName]);
 
   const handleSchedulerAction = async (
     action: "start" | "stop" | "restart"
@@ -193,8 +227,35 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
     }
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const getFilteredSchedules = () => {
+    let filtered = allSchedules;
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (schedule) =>
+          schedule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          schedule.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          getServerName(schedule.server_id).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    return filtered;
+  };
+
+  const getTotalPages = () => {
+    const filteredSchedules = getFilteredSchedules();
+    return Math.ceil(filteredSchedules.length / schedulesPerPage);
+  };
+
   const handleBulkToggleSchedules = async (enabled: boolean) => {
-    const schedulesToToggle = schedules.filter((s) => s.enabled !== enabled);
+    const schedulesToToggle = allSchedules.filter((s) => s.enabled !== enabled);
 
     if (schedulesToToggle.length === 0) {
       return;
@@ -276,11 +337,6 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
         return newSet;
       });
     }
-  };
-
-  const getServerName = (serverId: number) => {
-    const server = servers.find((s) => s.id === serverId);
-    return server?.name || `Server ${serverId}`;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -468,29 +524,61 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
       <div className={styles.schedulesSection}>
         <div className={styles.schedulesHeader}>
           <h2>{t("schedules.admin.allSchedules")}</h2>
-          <div className={styles.bulkActions}>
-            <button
-              onClick={() => handleBulkToggleSchedules(true)}
-              disabled={actionLoading.has("bulk-toggle")}
-              className={`${styles.actionButton} ${styles.enableButton}`}
-            >
-              {t("schedules.admin.enableAll")}
-            </button>
-            <button
-              onClick={() => handleBulkToggleSchedules(false)}
-              disabled={actionLoading.has("bulk-toggle")}
-              className={`${styles.actionButton} ${styles.disableButton}`}
-            >
-              {t("schedules.admin.disableAll")}
-            </button>
-            <button
-              onClick={loadAllData}
-              disabled={isLoading}
-              className={styles.actionButton}
-            >
-              {t("common.refresh")}
-            </button>
+          <div className={styles.schedulesControls}>
+            <div className={styles.searchContainer}>
+              <input
+                type="text"
+                placeholder={t("schedules.admin.searchPlaceholder")}
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+            <div className={styles.bulkActions}>
+              <button
+                onClick={() => handleBulkToggleSchedules(true)}
+                disabled={actionLoading.has("bulk-toggle")}
+                className={`${styles.actionButton} ${styles.enableButton}`}
+              >
+                {t("schedules.admin.enableAll")}
+              </button>
+              <button
+                onClick={() => handleBulkToggleSchedules(false)}
+                disabled={actionLoading.has("bulk-toggle")}
+                className={`${styles.actionButton} ${styles.disableButton}`}
+              >
+                {t("schedules.admin.disableAll")}
+              </button>
+              <button
+                onClick={loadAllData}
+                disabled={isLoading}
+                className={styles.actionButton}
+              >
+                {t("common.refresh")}
+              </button>
+            </div>
           </div>
+        </div>
+
+        <div className={styles.schedulesInfo}>
+          {searchTerm ? (
+            <p>
+              {t("schedules.admin.searchResults", {
+                showing: schedules.length.toString(),
+                total: getFilteredSchedules().length.toString(),
+                search: searchTerm,
+              })}
+            </p>
+          ) : (
+            <p>
+              {t("schedules.admin.showingPage", {
+                showing: schedules.length.toString(),
+                total: allSchedules.length.toString(),
+                page: currentPage.toString(),
+                totalPages: getTotalPages().toString(),
+              })}
+            </p>
+          )}
         </div>
 
         {schedules.length === 0 ? (
@@ -560,6 +648,34 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {getTotalPages() > 1 && (
+          <div className={styles.pagination}>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={styles.paginationButton}
+            >
+              {t("schedules.admin.pagination.previous")}
+            </button>
+
+            <div className={styles.paginationInfo}>
+              {t("schedules.admin.pagination.pageInfo", {
+                current: currentPage.toString(),
+                total: getTotalPages().toString(),
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === getTotalPages()}
+              className={styles.paginationButton}
+            >
+              {t("schedules.admin.pagination.next")}
+            </button>
           </div>
         )}
       </div>
