@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type {
   MinecraftServer,
@@ -16,6 +17,7 @@ import styles from "./server-dashboard.module.css";
 export function ServerDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
   const [servers, setServers] = useState<MinecraftServer[]>([]);
   const [, setTemplates] = useState<ServerTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,11 +72,11 @@ export function ServerDashboard() {
         setTemplates(templatesResult.value);
       }
     } catch {
-      setError("Failed to load data");
+      setError(t("errors.generic"));
     } finally {
       setIsLoading(false);
     }
-  }, [logout]);
+  }, [logout, t]);
 
   useEffect(() => {
     loadData();
@@ -187,17 +189,17 @@ export function ServerDashboard() {
   const getStatusText = (status: ServerStatus) => {
     switch (status) {
       case ServerStatus.RUNNING:
-        return "Running";
+        return t("servers.status.running");
       case ServerStatus.STOPPED:
-        return "Stopped";
+        return t("servers.status.stopped");
       case ServerStatus.STARTING:
-        return "Starting...";
+        return t("servers.status.starting");
       case ServerStatus.STOPPING:
-        return "Stopping...";
+        return t("servers.status.stopping");
       case ServerStatus.ERROR:
-        return "Error";
+        return t("servers.status.error");
       default:
-        return "Unknown";
+        return t("servers.status.unknown");
     }
   };
 
@@ -206,13 +208,13 @@ export function ServerDashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.containerHeader}>
-        <h1 className={styles.title}>Minecraft Servers</h1>
+        <h1 className={styles.title}>{t("servers.title")}</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className={styles.createButton}
           disabled={isCreating}
         >
-          Create Server
+          {t("servers.createServer")}
         </button>
       </div>
 
@@ -229,18 +231,18 @@ export function ServerDashboard() {
       )}
 
       {isLoading && servers.length === 0 ? (
-        <div className={styles.loading}>Loading servers...</div>
+        <div className={styles.loading}>{t("servers.loadingServers")}</div>
       ) : (
         <>
           {servers.length === 0 ? (
             <div className={styles.emptyState}>
-              <h3>No servers found</h3>
-              <p>Create your first Minecraft server to get started!</p>
+              <h3>{t("servers.noServersFound")}</h3>
+              <p>{t("servers.createFirstServer")}</p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className={styles.createButton}
               >
-                Create Server
+                {t("servers.createServer")}
               </button>
             </div>
           ) : (
@@ -262,25 +264,35 @@ export function ServerDashboard() {
 
                   <div className={styles.serverInfo}>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Version:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.version")}:
+                      </span>
                       <span>{server.minecraft_version}</span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Type:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.type")}:
+                      </span>
                       <span className={styles.serverType}>
                         {server.server_type}
                       </span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Players:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.players")}:
+                      </span>
                       <span>0/{server.max_players}</span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Memory:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.memory")}:
+                      </span>
                       <span>{server.max_memory}MB</span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Port:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.port")}:
+                      </span>
                       <span>{server.port}</span>
                     </div>
                   </div>
@@ -293,7 +305,7 @@ export function ServerDashboard() {
 
                   <div className={styles.serverCardFooter}>
                     <span className={styles.clickHint}>
-                      Click to manage server
+                      {t("servers.clickToManage")}
                     </span>
                     <span className={styles.arrow}>→</span>
                   </div>
@@ -310,7 +322,9 @@ export function ServerDashboard() {
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2>
-                {modalTab === "create" ? "Create New Server" : "Import Server"}
+                {modalTab === "create"
+                  ? t("servers.create.title")
+                  : t("servers.import.title")}
               </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -325,20 +339,22 @@ export function ServerDashboard() {
                 className={`${styles.modalTab} ${modalTab === "create" ? styles.activeModalTab : ""}`}
                 onClick={() => setModalTab("create")}
               >
-                Create New
+                {t("servers.create.title")}
               </button>
               <button
                 className={`${styles.modalTab} ${modalTab === "import" ? styles.activeModalTab : ""}`}
                 onClick={() => setModalTab("import")}
               >
-                Import from ZIP
+                {t("servers.import.title")}
               </button>
             </div>
 
             {modalTab === "create" ? (
               <form onSubmit={handleCreateServer} className={styles.form}>
                 <div className={styles.field}>
-                  <label htmlFor="serverName">Server Name</label>
+                  <label htmlFor="serverName">
+                    {t("servers.create.serverName")}
+                  </label>
                   <input
                     id="serverName"
                     type="text"
@@ -347,12 +363,14 @@ export function ServerDashboard() {
                       setCreateForm({ ...createForm, name: e.target.value })
                     }
                     required
-                    placeholder="My Minecraft Server"
+                    placeholder={t("servers.create.defaultName")}
                   />
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverVersion">Minecraft Version</label>
+                  <label htmlFor="serverVersion">
+                    {t("servers.create.minecraftVersion")}
+                  </label>
                   <select
                     id="serverVersion"
                     value={createForm.minecraft_version}
@@ -372,7 +390,9 @@ export function ServerDashboard() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverType">Server Type</label>
+                  <label htmlFor="serverType">
+                    {t("servers.create.serverType")}
+                  </label>
                   <select
                     id="serverType"
                     value={createForm.server_type}
@@ -390,7 +410,9 @@ export function ServerDashboard() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverMemory">Memory (MB)</label>
+                  <label htmlFor="serverMemory">
+                    {t("servers.create.memory")}
+                  </label>
                   <select
                     id="serverMemory"
                     value={createForm.max_memory}
@@ -411,7 +433,7 @@ export function ServerDashboard() {
 
                 <div className={styles.field}>
                   <label htmlFor="serverDescription">
-                    Description (Optional)
+                    {t("servers.create.description")}
                   </label>
                   <textarea
                     id="serverDescription"
@@ -422,7 +444,7 @@ export function ServerDashboard() {
                         description: e.target.value,
                       })
                     }
-                    placeholder="Describe your server..."
+                    placeholder={t("servers.create.descriptionPlaceholder")}
                     rows={3}
                   />
                 </div>
@@ -433,21 +455,23 @@ export function ServerDashboard() {
                     onClick={() => setShowCreateModal(false)}
                     className={styles.cancelButton}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={isCreating}
                     className={styles.submitButton}
                   >
-                    {isCreating ? "Creating..." : "Create Server"}
+                    {isCreating
+                      ? t("servers.create.creating")
+                      : t("servers.create.createButton")}
                   </button>
                 </div>
               </form>
             ) : (
               <form onSubmit={handleImportServer} className={styles.form}>
                 <div className={styles.field}>
-                  <label htmlFor="importFile">Server Export File</label>
+                  <label htmlFor="importFile">{t("servers.import.file")}</label>
                   <input
                     id="importFile"
                     type="file"
@@ -457,12 +481,14 @@ export function ServerDashboard() {
                     className={styles.fileInput}
                   />
                   <small className={styles.fieldHelp}>
-                    Select a ZIP file exported from another server
+                    {t("servers.import.fileHelp")}
                   </small>
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="importServerName">Server Name</label>
+                  <label htmlFor="importServerName">
+                    {t("servers.import.serverName")}
+                  </label>
                   <input
                     id="importServerName"
                     type="text"
@@ -471,13 +497,13 @@ export function ServerDashboard() {
                       setImportForm({ ...importForm, name: e.target.value })
                     }
                     required
-                    placeholder="Imported Server"
+                    placeholder={t("servers.import.serverNamePlaceholder")}
                   />
                 </div>
 
                 <div className={styles.field}>
                   <label htmlFor="importServerDescription">
-                    Description (Optional)
+                    {t("servers.create.description")}
                   </label>
                   <textarea
                     id="importServerDescription"
@@ -488,7 +514,7 @@ export function ServerDashboard() {
                         description: e.target.value,
                       })
                     }
-                    placeholder="Describe your imported server..."
+                    placeholder={t("servers.import.descriptionPlaceholder")}
                     rows={3}
                   />
                 </div>
@@ -499,14 +525,16 @@ export function ServerDashboard() {
                     onClick={() => setShowCreateModal(false)}
                     className={styles.cancelButton}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={isImporting || !importFile}
                     className={styles.submitButton}
                   >
-                    {isImporting ? "Importing..." : "Import Server"}
+                    {isImporting
+                      ? t("servers.import.importing")
+                      : t("servers.import.importButton")}
                   </button>
                 </div>
               </form>

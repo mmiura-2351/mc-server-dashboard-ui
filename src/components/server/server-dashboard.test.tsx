@@ -31,9 +31,58 @@ const mockAuthContext = {
   isAuthenticated: true,
 };
 
+// Mock translation function
+const mockTranslations: Record<string, string> = {
+  "servers.title": "Minecraft Servers",
+  "servers.createServer": "Create Server",
+  "servers.loadingServers": "Loading servers...",
+  "servers.noServersFound": "No servers found",
+  "servers.createFirstServer":
+    "Create your first Minecraft server to get started!",
+  "servers.clickToManage": "Click to manage",
+  "servers.fields.version": "Version",
+  "servers.fields.type": "Type",
+  "servers.fields.players": "Players",
+  "servers.fields.memory": "Memory",
+  "servers.fields.port": "Port",
+  "servers.status.running": "Running",
+  "servers.status.stopped": "Stopped",
+  "servers.status.starting": "Starting...",
+  "servers.status.stopping": "Stopping...",
+  "servers.status.error": "Error",
+  "servers.status.unknown": "Unknown",
+  "servers.create.title": "Create New Server",
+  "servers.create.serverName": "Server Name",
+  "servers.create.defaultName": "My Minecraft Server",
+  "servers.create.minecraftVersion": "Minecraft Version",
+  "servers.create.serverType": "Server Type",
+  "servers.create.memory": "Memory (MB)",
+  "servers.create.description": "Description (Optional)",
+  "servers.create.descriptionPlaceholder": "Describe your server...",
+  "servers.create.creating": "Creating...",
+  "servers.create.createButton": "Create Server",
+  "servers.import.title": "Import Server",
+  "common.cancel": "Cancel",
+  "errors.generic": "Failed to load data",
+};
+
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = mockTranslations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
+
 // Mock modules
 vi.mock("@/contexts/auth", () => ({
   useAuth: () => mockAuthContext,
+}));
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT, locale: "en" }),
 }));
 
 // Use the existing mock from test setup, but override push function
@@ -340,7 +389,7 @@ describe("ServerDashboard", () => {
       });
       await user.click(createButton);
 
-      expect(screen.getByText("Create New Server")).toBeInTheDocument();
+      expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
       expect(screen.getByLabelText("Server Name")).toBeInTheDocument();
       expect(screen.getByLabelText("Minecraft Version")).toBeInTheDocument();
       expect(screen.getByLabelText("Server Type")).toBeInTheDocument();
@@ -366,7 +415,7 @@ describe("ServerDashboard", () => {
       }
       await user.click(emptyStateButton);
 
-      expect(screen.getByText("Create New Server")).toBeInTheDocument();
+      expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
     });
 
     test("closes modal when close button is clicked", async () => {
@@ -377,7 +426,7 @@ describe("ServerDashboard", () => {
       });
       await user.click(createButton);
 
-      expect(screen.getByText("Create New Server")).toBeInTheDocument();
+      expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
 
       const closeButton = screen.getByRole("button", { name: "×" });
       await user.click(closeButton);
@@ -625,7 +674,7 @@ describe("ServerDashboard", () => {
       await user.click(createButton);
 
       await waitFor(() => {
-        expect(screen.getByText("Create New Server")).toBeInTheDocument();
+        expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
       });
 
       expect(screen.getByLabelText("Server Name")).toHaveValue("");
@@ -695,8 +744,10 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Failed to create server")).toBeInTheDocument();
       });
 
-      // Modal should remain open
-      expect(screen.getByText("Create New Server")).toBeInTheDocument();
+      // Modal should remain open (check for tab which is only visible when modal is open)
+      expect(
+        screen.getByRole("button", { name: "Create New Server" })
+      ).toBeInTheDocument();
     });
 
     test("handles authentication errors during server loading", async () => {
@@ -963,7 +1014,7 @@ describe("ServerDashboard", () => {
 
       // Rapidly open and close modal
       await user.click(createButton);
-      expect(screen.getByText("Create New Server")).toBeInTheDocument();
+      expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
 
       const closeButton = screen.getByRole("button", { name: "×" });
       await user.click(closeButton);
@@ -971,7 +1022,7 @@ describe("ServerDashboard", () => {
 
       // Open again
       await user.click(createButton);
-      expect(screen.getByText("Create New Server")).toBeInTheDocument();
+      expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
     });
 
     test("prevents form submission with empty required fields", async () => {
