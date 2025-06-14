@@ -198,7 +198,9 @@ export async function getBackupSettings(
     enabled: boolean | null;
     interval_hours: number | null;
     max_backups: number | null;
-  }>(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
+  }>(
+    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`
+  );
 
   if (result.isErr()) {
     return err(result.error);
@@ -215,16 +217,18 @@ export async function updateBackupSettings(
   serverId: number,
   settings: BackupSettings
 ): Promise<Result<void, AuthError>> {
-  const url = new URL(
-    `${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        enabled: settings.enabled,
+        interval_hours: settings.interval,
+        max_backups: settings.maxBackups,
+        only_when_running: true, // Default value as expected by backend
+      }),
+    }
   );
-  url.searchParams.set("enabled", settings.enabled.toString());
-  url.searchParams.set("interval_hours", settings.interval.toString());
-  url.searchParams.set("max_backups", settings.maxBackups.toString());
-
-  return fetchEmpty(url.toString(), {
-    method: "PUT",
-  });
 }
 
 export async function downloadBackup(
