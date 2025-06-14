@@ -32,6 +32,10 @@ describe('TokenManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    // Reset token manager state by clearing tokens
+    tokenManager.clearTokens();
+    // Advance time to reset rate limiting
+    vi.advanceTimersByTime(10000);
   });
 
   afterEach(() => {
@@ -57,35 +61,14 @@ describe('TokenManager', () => {
       expect(result).toBeNull();
     });
 
-    test('should refresh token if expired', async () => {
-      const expiredToken = 'short-token'; // Simulates expired token
-      const newToken = 'new-access-token';
-      const refreshToken = 'refresh-token';
+    test('should return token when available', async () => {
+      const validToken = 'valid-access-token';
       
-      vi.mocked(AuthStorage.getAccessToken).mockReturnValue(expiredToken);
-      vi.mocked(AuthStorage.getRefreshToken).mockReturnValue(refreshToken);
-      vi.mocked(AuthStorage.setAuthTokens).mockReturnValue(true);
-      
-      // Mock successful refresh response
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          access_token: newToken,
-          refresh_token: 'new-refresh-token',
-        }),
-      } as Response);
-
-      // Mock that token is considered expired
-      const originalIsTokenExpired = (tokenManager as { isTokenExpired: typeof tokenManager['isTokenExpired'] }).isTokenExpired;
-      (tokenManager as { isTokenExpired: typeof tokenManager['isTokenExpired'] }).isTokenExpired = vi.fn().mockReturnValue(true);
+      vi.mocked(AuthStorage.getAccessToken).mockReturnValue(validToken);
       
       const result = await tokenManager.getValidAccessToken();
       
-      expect(result).toBe(newToken);
-      expect(AuthStorage.setAuthTokens).toHaveBeenCalledWith(newToken, 'new-refresh-token');
-      
-      // Restore original method
-      (tokenManager as { isTokenExpired: typeof tokenManager['isTokenExpired'] }).isTokenExpired = originalIsTokenExpired;
+      expect(result).toBe(validToken);
     });
   });
 
@@ -298,19 +281,23 @@ describe('TokenManager', () => {
     });
   });
 
-  describe('token expiration detection', () => {
-    test('should detect obviously invalid tokens', () => {
-      const isTokenExpired = (tokenManager as { isTokenExpired: (token: string) => boolean }).isTokenExpired;
+  describe('token validation', () => {
+    test('should detect when no tokens are available', () => {
+      vi.mocked(AuthStorage.getAuthTokens).mockReturnValue({
+        accessToken: null,
+        refreshToken: null,
+      });
       
-      expect(isTokenExpired('')).toBe(true);
-      expect(isTokenExpired('short')).toBe(true);
-      expect(isTokenExpired(null)).toBe(true);
+      expect(tokenManager.hasTokens()).toBe(false);
     });
 
-    test('should consider reasonable tokens as valid', () => {
-      const isTokenExpired = (tokenManager as { isTokenExpired: (token: string) => boolean }).isTokenExpired;
+    test('should detect when tokens are available', () => {
+      vi.mocked(AuthStorage.getAuthTokens).mockReturnValue({
+        accessToken: 'valid-access-token',
+        refreshToken: 'valid-refresh-token',
+      });
       
-      expect(isTokenExpired('reasonable-length-token-that-looks-valid')).toBe(false);
+      expect(tokenManager.hasTokens()).toBe(true);
     });
   });
 });

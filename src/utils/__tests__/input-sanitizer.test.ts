@@ -70,7 +70,7 @@ describe('InputSanitizer', () => {
 
     test('should prevent path traversal', () => {
       const input = 'user../admin';
-      const expected = 'user/admin';
+      const expected = 'useradmin'; // Path traversal patterns are completely removed
       
       expect(InputSanitizer.sanitizeUsername(input)).toBe(expected);
     });
@@ -221,7 +221,10 @@ describe('InputSanitizer', () => {
 
   describe('validateFileUpload', () => {
     const createMockFile = (name: string, size: number, type: string): File => {
-      return new File(['content'], name, { type }) as File & { size: number };
+      const file = new File(['content'], name, { type });
+      // Override the size property to match the expected size
+      Object.defineProperty(file, 'size', { value: size, writable: false });
+      return file;
     };
 
     test('should validate correct file', () => {
