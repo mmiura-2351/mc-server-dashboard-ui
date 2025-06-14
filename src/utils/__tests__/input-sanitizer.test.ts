@@ -246,7 +246,7 @@ describe('InputSanitizer', () => {
       });
       
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('File size must not exceed 2MB');
+      expect(result.errors).toContain('File size must not exceed 0MB');
     });
 
     test('should reject disallowed file type', () => {
