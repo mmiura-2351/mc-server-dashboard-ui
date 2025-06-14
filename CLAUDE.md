@@ -88,6 +88,14 @@ When completing issue resolution:
 3. **Regular Updates**: Keep feature branches updated with latest main changes
 
 **Pull Request Workflow:**
+
+**Pull Request Preparation:**
+1. **Update with Main**: Before creating PR, ensure feature branch is updated with latest main (`git pull origin main` or `git rebase origin/main`)
+2. **Resolve Conflicts**: Address any merge conflicts locally before pushing
+3. **Verify CI**: Ensure all tests pass and code quality checks succeed (`npm run lint`, `npm run type-check`, `npm test`)
+4. **Clean History**: Consider interactive rebase for cleaner commit history if needed
+
+**Pull Request Creation:**
 1. **Descriptive Titles**: Use clear, descriptive PR titles that explain the change
 2. **Comprehensive Descriptions**: Include summary, changes made, testing approach, and impact assessment
 3. **Link Issues**: Always link related issues using "Resolves #X" or "Fixes #X"
