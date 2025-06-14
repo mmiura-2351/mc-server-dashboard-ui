@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+// Get API URL from environment variables with fallback
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_DOMAIN = new URL(API_URL).host;
+
 const nextConfig: NextConfig = {
   /* Security-enhanced configuration */
   
@@ -49,7 +53,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'", // Allow inline styles for CSS modules
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' http://localhost:8000 ws://localhost:*", // Allow API and WebSocket connections
+              `connect-src 'self' ${API_URL} ws://${API_DOMAIN} ws://localhost:*`, // Allow API and WebSocket connections
               "media-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
@@ -100,7 +104,7 @@ const nextConfig: NextConfig = {
       ...(process.env.NODE_ENV === 'development' ? [
         {
           source: '/api/v1/:path*',
-          destination: 'http://localhost:8000/api/v1/:path*',
+          destination: `${API_URL}/api/v1/:path*`,
         },
       ] : []),
     ];
@@ -122,7 +126,7 @@ const nextConfig: NextConfig = {
   // Environment variables validation
   env: {
     // Ensure required environment variables are set
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_API_URL: API_URL,
   },
 
   // Output configuration for static export security
