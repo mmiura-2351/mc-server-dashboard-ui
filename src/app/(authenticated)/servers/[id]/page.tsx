@@ -23,6 +23,7 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
+  const [_statusPolling, setStatusPolling] = useState(false);
 
   // Get tab from URL params or default to "info"
   const tabFromUrl = searchParams.get("tab") as
@@ -89,6 +90,43 @@ export default function ServerDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverId, user, router, authLoading]);
 
+  // Status polling effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (
+      server &&
+      (server.status === ServerStatus.STARTING ||
+        server.status === ServerStatus.STOPPING)
+    ) {
+      setStatusPolling(true);
+
+      intervalId = setInterval(async () => {
+        const result = await serverService.getServer(serverId);
+        if (result.isOk()) {
+          const updatedServer = result.value;
+          setServer(updatedServer);
+
+          // Stop polling if server reaches a stable state
+          if (
+            updatedServer.status !== ServerStatus.STARTING &&
+            updatedServer.status !== ServerStatus.STOPPING
+          ) {
+            setStatusPolling(false);
+          }
+        }
+      }, 2000); // Poll every 2 seconds
+    } else {
+      setStatusPolling(false);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [server, serverId]);
+
   const handleServerAction = async (action: "start" | "stop" | "restart") => {
     if (!server) return;
 
@@ -110,7 +148,7 @@ export default function ServerDetailPage() {
       }
 
       if (result.isOk()) {
-        // Reload server data to get updated status
+        // Reload server data to get updated status and start polling
         await loadServerData();
       } else {
         if (result.error.status === 401) {

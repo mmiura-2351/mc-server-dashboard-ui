@@ -15,6 +15,12 @@
   --border-hover: #d1d5db;
   --card-bg: #ffffff;
 
+  /* Primary colors */
+  --primary-color: #1976d2;
+  --primary-hover: #1565c0;
+  --background-secondary: #f8fafc;
+  --background-hover: #f1f5f9;
+
   /* Status colors */
   --success-bg: #dcfce7;
   --success-text: #166534;
@@ -35,6 +41,12 @@
     --border-color: #374151;
     --border-hover: #4b5563;
     --card-bg: #1f2937;
+
+    /* Primary colors */
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --background-secondary: #1f2937;
+    --background-hover: #374151;
 
     --success-bg: #064e3b;
     --success-text: #34d399;
