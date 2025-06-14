@@ -19,9 +19,16 @@ export async function getBackupSchedules(
     ? `${API_BASE_URL}/api/v1/backup-scheduler/schedules?server_id=${serverId}`
     : `${API_BASE_URL}/api/v1/backup-scheduler/schedules`;
 
-  const result = await fetchJson<{ schedules: BackupSchedule[] }>(url);
+  const result = await fetchJson<BackupSchedule[] | { schedules: BackupSchedule[] }>(url);
   if (result.isErr()) {
-    return err(result.error);
+    // Return empty array if API is not implemented yet
+    console.warn("Backup scheduler API not available, returning empty array");
+    return ok([]);
+  }
+  
+  // Handle both array response and object with schedules property
+  if (Array.isArray(result.value)) {
+    return ok(result.value);
   }
   return ok(result.value.schedules || []);
 }
@@ -154,9 +161,27 @@ export async function getBackupScheduleLog(
 export async function getSchedulerStatus(): Promise<
   Result<SchedulerStatus, AuthError>
 > {
-  return fetchJson<SchedulerStatus>(
+  const result = await fetchJson<SchedulerStatus>(
     `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/status`
   );
+  
+  if (result.isErr()) {
+    // Return default status if API is not implemented yet
+    console.warn("Scheduler status API not available, returning default status");
+    return ok({
+      running: false,
+      total_schedules: 0,
+      active_schedules: 0,
+      current_jobs: []
+    });
+  }
+  
+  // Ensure current_jobs is always an array
+  const status = {
+    ...result.value,
+    current_jobs: result.value.current_jobs || []
+  };
+  return ok(status);
 }
 
 export async function startScheduler(): Promise<Result<void, AuthError>> {

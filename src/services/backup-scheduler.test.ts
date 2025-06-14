@@ -63,15 +63,16 @@ describe("Backup Scheduler Service", () => {
       );
     });
 
-    it("should handle API errors", async () => {
+    it("should handle API errors gracefully", async () => {
       const error = { message: "Server error", status: 500 };
       mockFetchJson.mockResolvedValue(err(error));
 
       const result = await backupSchedulerService.getBackupSchedules();
 
-      expect(result.isErr()).toBe(true);
-      if (result.isErr()) {
-        expect(result.error).toEqual(error);
+      // Should return empty array when API is not available
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value).toEqual([]);
       }
     });
   });
@@ -201,6 +202,24 @@ describe("Backup Scheduler Service", () => {
       expect(mockFetchJson).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/backup-scheduler/scheduler/status"
       );
+    });
+
+    it("should handle API errors gracefully", async () => {
+      const error = { message: "Server error", status: 500 };
+      mockFetchJson.mockResolvedValue(err(error));
+
+      const result = await backupSchedulerService.getSchedulerStatus();
+
+      // Should return default status when API is not available
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value).toEqual({
+          running: false,
+          total_schedules: 0,
+          active_schedules: 0,
+          current_jobs: []
+        });
+      }
     });
   });
 

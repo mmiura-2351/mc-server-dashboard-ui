@@ -432,11 +432,11 @@ export default function ServerDetailPage() {
           <div className={styles.fullWidthTabContent}>
             <ServerBackups serverId={server.id} />
           </div>
-        ) : (
+        ) : activeTab === "schedule" ? (
           <div className={styles.fullWidthTabContent}>
             <BackupScheduleManager serverId={server.id} userRole={user.role} />
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -267,7 +267,7 @@ export function BackupScheduleOverview({
                 {schedulerStatus.active_schedules}
               </div>
             </div>
-            {schedulerStatus.current_jobs.length > 0 && (
+            {schedulerStatus.current_jobs && schedulerStatus.current_jobs.length > 0 && (
               <div className={styles.statusItem}>
                 <div className={styles.statusLabel}>
                   {t("schedules.scheduler.runningJobs")}
