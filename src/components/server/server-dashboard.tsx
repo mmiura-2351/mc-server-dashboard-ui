@@ -68,6 +68,32 @@ export function ServerDashboard() {
     loadData();
   }, [loadData]);
 
+  // Status polling effect for servers in transitional states
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    const hasTransitionalServers = servers.some(
+      (server) =>
+        server.status === ServerStatus.STARTING ||
+        server.status === ServerStatus.STOPPING
+    );
+
+    if (hasTransitionalServers) {
+      intervalId = setInterval(async () => {
+        const result = await serverService.getServers();
+        if (result.isOk()) {
+          setServers(result.value);
+        }
+      }, 2000); // Poll every 2 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [servers]);
+
   const handleCreateServer = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreating(true);

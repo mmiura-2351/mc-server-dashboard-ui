@@ -9,6 +9,8 @@ import {
 } from "@/utils/file-upload-security";
 import { InputSanitizer } from "@/utils/input-sanitizer";
 import { formatFileSize } from "@/utils/format";
+import { ConfirmationModal, AlertModal } from "@/components/modal";
+import { useTranslation } from "@/contexts/language";
 import styles from "./file-explorer.module.css";
 import JSZip from "jszip";
 
@@ -84,6 +86,7 @@ interface ContextMenuState {
 }
 
 export function FileExplorer({ serverId }: FileExplorerProps) {
+  const { t } = useTranslation();
   const [currentPath, setCurrentPath] = useState("/");
   const [files, setFiles] = useState<FileSystemItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,6 +129,31 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Modal states
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant?: "default" | "danger" | "warning";
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type?: "info" | "warning" | "error" | "success";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   // File input refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -333,70 +361,100 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   const handleDeleteFile = async (file: FileSystemItem) => {
     hideContextMenu();
-    if (!confirm(`Are you sure you want to delete "${file.name}"?`)) {
-      return;
-    }
 
-    const filePath =
-      currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
-    const result = await fileService.deleteFile(serverId, filePath);
+    const confirmDelete = async () => {
+      const filePath =
+        currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+      const result = await fileService.deleteFile(serverId, filePath);
 
-    if (result.isOk()) {
-      // Update file list by removing the deleted file
-      setFiles((prevFiles) => prevFiles.filter((f) => f.name !== file.name));
-      showToast(`Successfully deleted ${file.name}`, "info");
-    } else {
-      showToast(`Failed to delete file: ${result.error.message}`, "error");
-    }
+      if (result.isOk()) {
+        // Update file list by removing the deleted file
+        setFiles((prevFiles) => prevFiles.filter((f) => f.name !== file.name));
+        showToast(`Successfully deleted ${file.name}`, "info");
+      } else {
+        showToast(`Failed to delete file: ${result.error.message}`, "error");
+      }
+
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
+      });
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("files.deleteFile"),
+      message: t("files.deleteFileConfirmation", { name: file.name }),
+      variant: "danger",
+      onConfirm: confirmDelete,
+    });
   };
 
   const handleBulkDelete = async () => {
     const selected = getSelectedFileObjects();
     if (selected.length === 0) return;
 
-    const confirmMessage =
-      selected.length === 1
-        ? `Are you sure you want to delete "${selected[0]?.name}"?`
-        : `Are you sure you want to delete ${selected.length} files?`;
+    const confirmBulkDelete = async () => {
+      let successCount = 0;
+      let failCount = 0;
+      const deletedFileNames: string[] = [];
 
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+      for (const file of selected) {
+        const filePath =
+          currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+        const result = await fileService.deleteFile(serverId, filePath);
 
-    let successCount = 0;
-    let failCount = 0;
-    const deletedFileNames: string[] = [];
-
-    for (const file of selected) {
-      const filePath =
-        currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
-      const result = await fileService.deleteFile(serverId, filePath);
-
-      if (result.isOk()) {
-        successCount++;
-        deletedFileNames.push(file.name);
-      } else {
-        failCount++;
+        if (result.isOk()) {
+          successCount++;
+          deletedFileNames.push(file.name);
+        } else {
+          failCount++;
+        }
       }
-    }
 
-    // Update file list by removing successfully deleted files
-    if (deletedFileNames.length > 0) {
-      setFiles((prevFiles) =>
-        prevFiles.filter((f) => !deletedFileNames.includes(f.name))
-      );
-    }
+      // Update file list by removing successfully deleted files
+      if (deletedFileNames.length > 0) {
+        setFiles((prevFiles) =>
+          prevFiles.filter((f) => !deletedFileNames.includes(f.name))
+        );
+      }
 
-    if (failCount === 0) {
-      showToast(`Successfully deleted ${successCount} file(s)`, "info");
-    } else {
-      showToast(
-        `Deleted ${successCount} file(s), failed ${failCount}`,
-        "error"
-      );
-    }
+      if (failCount === 0) {
+        showToast(`Successfully deleted ${successCount} file(s)`, "info");
+      } else {
+        showToast(
+          `Deleted ${successCount} file(s), failed ${failCount}`,
+          "error"
+        );
+      }
 
-    clearSelection();
+      clearSelection();
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
+      });
+    };
+
+    const message =
+      selected.length === 1
+        ? t("files.deleteFileConfirmation", {
+            name: selected[0]?.name || "Unknown",
+          })
+        : t("files.deleteBulkConfirmation", {
+            count: selected.length.toString(),
+          });
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("files.deleteFiles"),
+      message,
+      variant: "danger",
+      onConfirm: confirmBulkDelete,
+    });
   };
 
   const handleDownloadFile = async (file: FileSystemItem) => {
@@ -716,13 +774,23 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       const blockedMessage = securityResult.blocked
         .map((b) => `${b.file.name}: ${b.reason}`)
         .join("\n");
-      alert(`Some files were blocked for security reasons:\n${blockedMessage}`);
+      setAlertModal({
+        isOpen: true,
+        title: t("files.securityWarning"),
+        message: t("files.blockedFilesMessage") + "\n" + blockedMessage,
+        type: "warning",
+      });
     }
 
     // Use only allowed files
     const allowedFiles = securityResult.allowed;
     if (allowedFiles.length === 0) {
-      alert("No files could be uploaded due to security restrictions.");
+      setAlertModal({
+        isOpen: true,
+        title: t("files.uploadError"),
+        message: t("files.noFilesAllowed"),
+        type: "error",
+      });
       return;
     }
 
@@ -1670,6 +1738,32 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           {toast.message}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: "",
+            message: "",
+            onConfirm: () => {},
+          })
+        }
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "" })}
+      />
     </div>
   );
 }

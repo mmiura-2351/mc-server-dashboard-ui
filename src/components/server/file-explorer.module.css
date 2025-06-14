@@ -234,11 +234,11 @@
 }
 
 .fileItem.directory {
-  background: #fafafa;
+  background: white;
 }
 
 .fileItem.directory:hover {
-  background: #f0f0f0;
+  background: #f9f9f9;
 }
 
 .fileItem.clickable:hover {

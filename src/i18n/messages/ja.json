@@ -7,6 +7,7 @@
     "cancel": "キャンセル",
     "delete": "削除",
     "confirm": "確認",
+    "ok": "OK",
     "yes": "はい",
     "no": "いいえ",
     "active": "アクティブ",
@@ -68,6 +69,7 @@
     "actions": "操作",
     "userApprovedSuccessfully": "ユーザーを承認しました",
     "userRoleUpdatedSuccessfully": "ユーザーのロールを更新しました",
+    "deleteUser": "ユーザー削除",
     "areYouSureDeleteUser": "ユーザー「{username}」を削除してもよろしいですか？この操作は元に戻せません。",
     "userDeletedSuccessfully": "ユーザーを削除しました",
     "noUsersFound": "ユーザーが見つかりません。"
@@ -277,5 +279,15 @@
     "alreadyHaveAccount": "既にアカウントをお持ちの方は",
     "registerHere": "こちらから登録",
     "loginHere": "こちらからログイン"
+  },
+  "files": {
+    "deleteFile": "ファイルを削除",
+    "deleteFiles": "ファイルを削除",
+    "deleteFileConfirmation": "\"{name}\"を削除してもよろしいですか？この操作は元に戻すことができません。",
+    "deleteBulkConfirmation": "選択した{count}個のファイルを削除してもよろしいですか？この操作は元に戻すことができません。",
+    "securityWarning": "セキュリティ警告",
+    "blockedFilesMessage": "セキュリティ上の理由により、一部のファイルがブロックされました：",
+    "uploadError": "アップロードエラー",
+    "noFilesAllowed": "セキュリティ制限により、ファイルをアップロードできませんでした。"
   }
 }
