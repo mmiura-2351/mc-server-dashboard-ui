@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Standard Development Rules
 
 ### Rule 1: New Rule Addition Process
+
 **Continuously improve project standards through rule documentation.**
 
 When receiving instructions from users that appear to require ongoing compliance (not just one-time implementation):
@@ -16,20 +17,38 @@ When receiving instructions from users that appear to require ongoing compliance
 This process enables continuous improvement of project rules and ensures consistent behavior across sessions.
 
 ### Rule 2: Task Completion and CI Verification
+
 **Always verify CI passes and commit changes after completing any task.**
 
 When completing any significant task or feature implementation:
-1. **CI Verification**: Ensure all tests pass before committing
-2. **Code Quality**: Run lint and format checks (`npm run lint`, `npm run format`, `npm run type-check`)
+
+1. **Pre-commit Verification**: The pre-commit hook automatically runs all CI checks:
+   - **Lint-staged**: Automatically fixes ESLint and Prettier issues for staged files
+   - **Type Check**: Runs TypeScript type checking (`npm run type-check`)
+   - **Tests**: Runs full test suite (`npm test`)
+2. **Manual CI Verification**: If needed, manually run CI checks:
+   - `npm run lint` - ESLint checking
+   - `npm run format:check` - Prettier formatting check
+   - `npm run type-check` - TypeScript type checking
+   - `npm test` - Run test suite
 3. **Commit Changes**: Create meaningful commit messages with proper documentation
 4. **Status Update**: Update relevant tracking documents if applicable
 
+**Pre-commit Hook Features:**
+
+- Automatically fixes linting and formatting issues for staged files
+- Prevents commits with type errors or failing tests
+- Matches all CI pipeline checks for consistency
+- Provides clear error messages with fix instructions
+
 ### Rule 3: Test Code Development Process
+
 **Follow systematic approach for test coverage improvement.**
 
 When creating test coverage for components or services:
+
 1. **Establish Target Coverage**: Set target coverage percentage based on component criticality
-2. **Analyze Required Testing Elements**: 
+2. **Analyze Required Testing Elements**:
    - Analyze the component/service implementation thoroughly
    - Identify uncovered lines, error paths, and edge cases
    - Understand props, state changes, user interactions, and API calls
@@ -44,18 +63,22 @@ When creating test coverage for components or services:
    - Ensure all tests pass and maintain code quality standards
 
 ### Rule 4: Code Review Issue Creation
+
 **Create GitHub Issues for improvements, bugs, and missing features found during code reviews.**
 
 When reviewing source code and identifying areas for improvement:
+
 1. **Create GitHub Issues**: For any bugs, improvement opportunities, or missing features discovered during code review
 2. **Categorize Issues**: Use appropriate labels (bug, enhancement, feature-request, etc.)
 3. **Provide Context**: Include relevant code references, file paths, and line numbers
 4. **Document Impact**: Describe the potential impact and benefits of addressing the issue
 
 ### Rule 5: Standard Issue Resolution Process
+
 **Follow systematic approach when fixing GitHub Issues.**
 
 When addressing GitHub Issues, follow this standard procedure:
+
 1. **Create Issue Branch**: Create a dedicated branch for the issue and attach it to the issue
 2. **Analyze Issue Details**: Thoroughly understand the issue requirements and perform necessary analysis
 3. **Create Sub-Issues**: If needed, create sub-issues to break down complex problems into manageable parts
@@ -64,25 +87,31 @@ When addressing GitHub Issues, follow this standard procedure:
 6. **Verify and Create PR**: Confirm the issue has been properly addressed and create a pull request
 
 ### Rule 6: Test Execution Guidelines
+
 **Be mindful of test execution performance and timeouts.**
 
 When running tests, follow these guidelines:
+
 1. **Avoid Full Test Suite Timeouts**: Running all tests may result in timeouts. Focus on running minimal, targeted tests when possible
 2. **Extend Timeout for Full Suite**: When running the complete test suite is necessary, explicitly extend the timeout duration (e.g., use `--timeout=300000` parameter)
 
 ### Rule 7: Issue Resolution Completion Process
+
 **Always close resolved Issues with proper documentation and status updates.**
 
 When completing issue resolution:
+
 1. **Verify Resolution**: Ensure all issue requirements have been fully addressed
 2. **Document Changes**: Update relevant documentation (README, CLAUDE.md, etc.) if needed
 3. **Test Validation**: Confirm all tests pass and functionality works as expected
 4. **Close with Summary**: Close issues with a summary of changes made and references to related PRs
 
 ### Rule 8: Git/GitHub Workflow Standards
+
 **Follow standardized Git and GitHub practices for consistent project management.**
 
 **Branch Management:**
+
 1. **Issue-based Branches**: Create branches following pattern `fix/issue-{number}-{brief-description}` or `feature/issue-{number}-{brief-description}`
 2. **Keep Branches Focused**: One branch per issue/feature to maintain clear history
 3. **Regular Updates**: Keep feature branches updated with latest main changes
@@ -90,48 +119,57 @@ When completing issue resolution:
 **Pull Request Workflow:**
 
 **Pull Request Preparation:**
+
 1. **Update with Main**: Before creating PR, ensure feature branch is updated with latest main (`git pull origin main` or `git rebase origin/main`)
 2. **Resolve Conflicts**: Address any merge conflicts locally before pushing
 3. **Verify CI**: Ensure all tests pass and code quality checks succeed (`npm run lint`, `npm run type-check`, `npm test`)
 4. **Clean History**: Consider interactive rebase for cleaner commit history if needed
 
 **Pull Request Creation:**
+
 1. **Descriptive Titles**: Use clear, descriptive PR titles that explain the change
 2. **Comprehensive Descriptions**: Include summary, changes made, testing approach, and impact assessment
 3. **Link Issues**: Always link related issues using "Resolves #X" or "Fixes #X"
 4. **Request Reviews**: Assign appropriate reviewers and respond to feedback promptly
 
 **Issue Management:**
+
 1. **Clear Descriptions**: Write detailed issue descriptions with clear acceptance criteria
 2. **Proper Labels**: Use appropriate labels (bug, enhancement, documentation, etc.)
 3. **Priority Setting**: Assign priority levels to help with work planning
 4. **Progress Updates**: Keep issues updated with progress and blockers
 
 ### Rule 9: Pull Request Review Process
+
 **Conduct thorough code reviews and provide comprehensive feedback on GitHub Pull Requests.**
 
 **Review Guidelines:**
+
 1. **Comprehensive Coverage**: Review code quality, functionality, tests, documentation, and security implications
 2. **Constructive Feedback**: Provide specific, actionable feedback with suggestions for improvement
 3. **Code Standards**: Verify adherence to project coding standards and architectural patterns
 4. **Testing Verification**: Ensure adequate test coverage and that all tests pass
 
 **Review Process:**
+
 1. **Use GitHub CLI**: Utilize `gh pr view` and `gh pr review` commands for efficient review workflow
 2. **Structured Comments**: Organize feedback into categories (bugs, improvements, questions, suggestions)
 3. **Approval Criteria**: Only approve PRs that meet all quality standards and fully address the issue
 4. **Follow-up Actions**: Track that feedback is addressed before final approval and merge
 
 ### Rule 10: Pull Request Merge Strategy
+
 **Use squash merge as the default merge strategy for pull requests.**
 
 When merging pull requests:
+
 1. **Default to Squash Merge**: Use `gh pr merge <number> --squash` to maintain a clean commit history
 2. **Clean Commit Message**: Ensure the squashed commit has a clear, descriptive message
 3. **Delete Merged Branches**: Always delete the feature branch after successful merge
 4. **Update Related Issues**: Ensure linked issues are properly closed with the merge
 
 Benefits of squash merge:
+
 - Maintains clean, linear commit history
 - Groups all PR changes into a single commit
 - Makes it easier to revert changes if needed
@@ -144,6 +182,7 @@ This is a Minecraft Server Management Dashboard frontend built with Next.js 15 (
 **Backend Dependency**: This frontend depends on the FastAPI backend located at `../mc-server-dashboard-api/`. The backend must be running before starting the frontend.
 
 ### Backend API Features
+
 - FastAPI-based Python backend with SQLAlchemy ORM
 - JWT token authentication with role-based access control
 - Real-time WebSocket communication for logs and status
@@ -211,6 +250,7 @@ const user = result.value;
 ### API Communication Pattern
 
 All API calls go through `fetchWithErrorHandling` in services, which:
+
 1. Automatically adds Authorization headers from localStorage
 2. Returns Result types for consistent error handling
 3. Centralizes error response parsing
@@ -219,7 +259,7 @@ All API calls go through `fetchWithErrorHandling` in services, which:
 ```typescript
 // Example service pattern
 export async function getServers(): Promise<Result<Server[], string>> {
-  return fetchWithErrorHandling<Server[]>('/api/v1/servers');
+  return fetchWithErrorHandling<Server[]>("/api/v1/servers");
 }
 
 // All endpoints are prefixed with /api/v1/
@@ -234,7 +274,8 @@ export async function getServers(): Promise<Result<Server[], string>> {
 
 Two main contexts manage global state:
 
-1. **AuthContext** (`src/contexts/auth.tsx`): 
+1. **AuthContext** (`src/contexts/auth.tsx`):
+
    - Manages user authentication state and tokens
    - Provides login/logout/register functions
    - Persists auth data to localStorage
@@ -277,12 +318,15 @@ src/components/auth/
 ### Server Management
 
 #### Server Types
+
 The system supports three Minecraft server types:
+
 - `vanilla`: Official Minecraft server
 - `paper`: Paper server (performance-optimized)
 - `forge`: Forge server (modded)
 
 #### Server Status Types
+
 - `stopped`: Server is not running
 - `starting`: Server is in startup process
 - `running`: Server is active and accepting connections
@@ -290,6 +334,7 @@ The system supports three Minecraft server types:
 - `error`: Server encountered an error
 
 #### Real-time Features
+
 - WebSocket connections for live server logs
 - Real-time server status monitoring
 - System notifications via WebSocket
@@ -320,7 +365,7 @@ import { useTranslation } from "@/contexts/language";
 
 export function MyComponent() {
   const { t } = useTranslation();
-  
+
   return (
     <div>
       <h1>{t("servers.title")}</h1>
@@ -351,7 +396,7 @@ When writing tests, mock the translation function appropriately:
 const translations: Record<string, string> = {
   "servers.title": "Servers",
   "common.save": "Save",
-  "errors.operationFailed": "Failed to {action} server"
+  "errors.operationFailed": "Failed to {action} server",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
@@ -374,11 +419,13 @@ vi.mock("@/contexts/language", () => ({
 ### Frontend Environment Setup
 
 1. **Copy the environment template:**
+
    ```bash
    cp .env.example .env.local
    ```
 
 2. **Configure environment variables** (optional - defaults work for development):
+
    ```bash
    # .env.local
    NEXT_PUBLIC_API_URL=http://localhost:8000
@@ -394,7 +441,9 @@ vi.mock("@/contexts/language", () => ({
    - `NODE_ENV`: Environment mode (development/production)
 
 ### Backend Environment
+
 The backend requires these environment variables in `../mc-server-dashboard-api/.env`:
+
 ```
 SECRET_KEY=your-secret-key-here
 DATABASE_URL=sqlite:///./app.db
