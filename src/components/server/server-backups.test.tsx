@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { vi } from "vitest";
 import { ServerBackups } from "./server-backups";
 import * as serverService from "@/services/server";
@@ -117,7 +123,9 @@ describe("ServerBackups", () => {
   });
 
   it("renders backup interface correctly", async () => {
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Backups")).toBeInTheDocument();
@@ -127,13 +135,22 @@ describe("ServerBackups", () => {
     expect(screen.getByText("Existing Backups")).toBeInTheDocument();
   });
 
-  it("displays loading state initially", () => {
-    render(<ServerBackups serverId={1} />);
+  it("displays loading state initially", async () => {
+    act(() => {
+      render(<ServerBackups serverId={1} />);
+    });
     expect(screen.getByText("Loading...")).toBeInTheDocument();
+
+    // Wait for loading to complete to prevent act warnings
+    await waitFor(() => {
+      expect(screen.getByText("Backups")).toBeInTheDocument();
+    });
   });
 
   it("displays backup list after loading", async () => {
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
@@ -149,7 +166,9 @@ describe("ServerBackups", () => {
   });
 
   it("handles backup creation", async () => {
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Backups")).toBeInTheDocument();
@@ -170,7 +189,9 @@ describe("ServerBackups", () => {
   });
 
   it("prevents backup creation with empty name", async () => {
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Backups")).toBeInTheDocument();
@@ -183,7 +204,9 @@ describe("ServerBackups", () => {
   it("handles backup restoration with confirmation", async () => {
     vi.mocked(window.confirm).mockReturnValue(true);
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
@@ -211,7 +234,9 @@ describe("ServerBackups", () => {
   it("cancels backup restoration when not confirmed", async () => {
     vi.mocked(window.confirm).mockReturnValue(false);
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
@@ -234,7 +259,9 @@ describe("ServerBackups", () => {
   it("handles backup deletion with confirmation", async () => {
     vi.mocked(window.confirm).mockReturnValue(true);
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
@@ -262,7 +289,9 @@ describe("ServerBackups", () => {
   it("cancels backup deletion when not confirmed", async () => {
     vi.mocked(window.confirm).mockReturnValue(false);
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
@@ -287,7 +316,9 @@ describe("ServerBackups", () => {
       err({ message: "Backup creation failed" })
     );
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Backups")).toBeInTheDocument();
@@ -309,7 +340,9 @@ describe("ServerBackups", () => {
       err({ message: "Failed to load backups" })
     );
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Failed to load backups")).toBeInTheDocument();
@@ -322,7 +355,9 @@ describe("ServerBackups", () => {
     );
     vi.mocked(window.confirm).mockReturnValue(true);
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Test Backup")).toBeInTheDocument();
@@ -346,7 +381,9 @@ describe("ServerBackups", () => {
   it("shows no backups message when list is empty", async () => {
     vi.mocked(serverService.getServerBackups).mockResolvedValue(ok([]));
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(
@@ -385,7 +422,9 @@ describe("ServerBackups", () => {
       ok(backupsWithZeroSize)
     );
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Zero Size Backup")).toBeInTheDocument();
@@ -413,7 +452,9 @@ describe("ServerBackups", () => {
       ok(backupsWithStringSize)
     );
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("String Size Backup")).toBeInTheDocument();
@@ -461,7 +502,9 @@ describe("ServerBackups", () => {
       ok(backupsWithEdgeCases)
     );
 
-    render(<ServerBackups serverId={1} />);
+    await act(async () => {
+      render(<ServerBackups serverId={1} />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Empty String Backup")).toBeInTheDocument();

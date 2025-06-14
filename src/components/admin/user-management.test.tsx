@@ -9,7 +9,6 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { ok, err } from "neverthrow";
 import { UserManagement } from "./user-management";
 import { useAuth } from "@/contexts/auth";
-import { LanguageProvider } from "@/contexts/language";
 import * as authService from "@/services/auth";
 import { Role } from "@/types/auth";
 import type { User } from "@/types/auth";
@@ -19,6 +18,44 @@ vi.mock("@/contexts/auth");
 
 // Mock the auth service
 vi.mock("@/services/auth");
+
+// Mock the language context
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({
+    t: (key: string, params?: Record<string, string>) => {
+      const translations: Record<string, string> = {
+        "userManagement.title": "User Management",
+        "userManagement.accessDenied": "Access Denied",
+        "userManagement.needAdministratorPrivileges":
+          "You need administrator privileges to access this page.",
+        "userManagement.loadingUsers": "Loading users...",
+        "userManagement.id": "ID",
+        "auth.username": "Username",
+        "auth.email": "Email",
+        "userManagement.role": "Role",
+        "userManagement.status": "Status",
+        "common.approved": "Approved",
+        "userManagement.actions": "Actions",
+        "common.active": "Active",
+        "common.pending": "Pending",
+        "common.approve": "Approve",
+        "common.delete": "Delete",
+        "common.refresh": "Refresh",
+        "userManagement.noUsersFound": "No users found.",
+        "userManagement.areYouSureDeleteUser":
+          'Are you sure you want to delete user "{username}"? This action cannot be undone.',
+      };
+      let translation = translations[key] || key;
+      if (params) {
+        Object.entries(params).forEach(([paramKey, paramValue]) => {
+          translation = translation.replace(`{${paramKey}}`, paramValue);
+        });
+      }
+      return translation;
+    },
+    locale: "en",
+  }),
+}));
 
 const mockAdminUser: User = {
   id: 1,
@@ -70,7 +107,7 @@ Object.defineProperty(window, "confirm", {
 });
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <LanguageProvider>{children}</LanguageProvider>
+  <>{children}</>
 );
 
 describe("UserManagement", () => {
@@ -83,14 +120,16 @@ describe("UserManagement", () => {
   });
 
   it("renders user management for admin users", async () => {
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
-      expect(screen.getByText("userManagement.title")).toBeInTheDocument();
+      expect(screen.getByText("User Management")).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -105,24 +144,28 @@ describe("UserManagement", () => {
       user: { ...mockAdminUser, role: Role.USER },
     });
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    act(() => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
-    expect(screen.getByText("userManagement.accessDenied")).toBeInTheDocument();
+    expect(screen.getByText("Access Denied")).toBeInTheDocument();
     expect(
-      screen.getByText("userManagement.needAdministratorPrivileges")
+      screen.getByText("You need administrator privileges to access this page.")
     ).toBeInTheDocument();
   });
 
   it("displays user information in table", async () => {
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("admin")).toBeInTheDocument();
@@ -146,11 +189,13 @@ describe("UserManagement", () => {
       ok(mockRegularUser)
     );
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Approve")).toBeInTheDocument();
@@ -168,11 +213,13 @@ describe("UserManagement", () => {
       ok(mockRegularUser)
     );
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       const roleSelects = screen.getAllByRole("combobox");
@@ -200,11 +247,13 @@ describe("UserManagement", () => {
       authService.deleteUserByAdmin as ReturnType<typeof vi.fn>
     ).mockResolvedValue(ok({ message: "User deleted" }));
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       const deleteButtons = screen.getAllByText("Delete");
@@ -228,11 +277,13 @@ describe("UserManagement", () => {
   it("does not delete user when confirmation is cancelled", async () => {
     (window.confirm as ReturnType<typeof vi.fn>).mockReturnValue(false);
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Delete")).toBeInTheDocument();
@@ -245,11 +296,13 @@ describe("UserManagement", () => {
   });
 
   it("refreshes user list when refresh button is clicked", async () => {
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Refresh")).toBeInTheDocument();
@@ -268,11 +321,13 @@ describe("UserManagement", () => {
       err({ message: "Failed to load users" })
     );
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Failed to load users")).toBeInTheDocument();
@@ -292,11 +347,13 @@ describe("UserManagement", () => {
       })
     );
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       const roleSelects = screen.getAllByRole("combobox");
@@ -317,11 +374,11 @@ describe("UserManagement", () => {
     });
   });
 
-  it("shows loading state", () => {
-    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
-      ...mockAuthContext,
-      isLoading: true,
-    });
+  it("shows loading state", async () => {
+    // Mock getAllUsers to never resolve, keeping component in loading state
+    (authService.getAllUsers as ReturnType<typeof vi.fn>).mockImplementation(
+      () => new Promise(() => {}) // Never resolves
+    );
 
     act(() => {
       render(
@@ -331,7 +388,7 @@ describe("UserManagement", () => {
       );
     });
 
-    expect(screen.getByText("userManagement.loadingUsers")).toBeInTheDocument();
+    expect(screen.getByText("Loading users...")).toBeInTheDocument();
   });
 
   it("shows no users message when list is empty", async () => {
@@ -339,11 +396,13 @@ describe("UserManagement", () => {
       ok([])
     );
 
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("No users found.")).toBeInTheDocument();
@@ -351,11 +410,13 @@ describe("UserManagement", () => {
   });
 
   it("disables role select for current user", async () => {
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       const roleSelects = screen.getAllByRole("combobox");
@@ -365,11 +426,13 @@ describe("UserManagement", () => {
   });
 
   it("does not show delete button for current user", async () => {
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       // Should only have one delete button (for the other user, not admin)
@@ -379,11 +442,13 @@ describe("UserManagement", () => {
   });
 
   it("shows approve button only for unapproved users", async () => {
-    render(
-      <TestWrapper>
-        <UserManagement />
-      </TestWrapper>
-    );
+    await act(async () => {
+      render(
+        <TestWrapper>
+          <UserManagement />
+        </TestWrapper>
+      );
+    });
 
     await waitFor(() => {
       // Should only have one approve button (for the unapproved user)

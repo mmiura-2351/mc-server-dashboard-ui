@@ -13,6 +13,11 @@
     "type-check": "tsc --noEmit",
     "test": "vitest --run",
     "test:watch": "vitest --watch",
+    "test:coverage": "vitest --run --coverage",
+    "test:coverage:watch": "vitest --watch --coverage",
+    "test:coverage:ui": "vitest --run --coverage && open coverage/index.html",
+    "coverage:report": "vitest --run --coverage --reporter=verbose",
+    "coverage:open": "open coverage/index.html || xdg-open coverage/index.html || start coverage/index.html",
     "prepare": "husky"
   },
   "dependencies": {
@@ -32,6 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "eslint-config-prettier": "latest",

@@ -226,6 +226,12 @@ npm run type-check      # TypeScript type checking
 npm run test            # Run tests once
 npm run test:watch      # Run tests in watch mode
 
+# Testing with Coverage
+npm run test:coverage              # Run tests with coverage report
+npm run test:coverage:watch        # Run tests with coverage in watch mode
+npm run coverage:report            # Generate detailed coverage report
+npm run coverage:open              # Open HTML coverage report in browser
+
 # Running a single test file
 npm test -- src/components/auth/login-form.test.tsx
 ```
@@ -301,6 +307,33 @@ src/components/auth/
 - Test setup in `src/test/setup.ts` provides global mocks for Next.js router and localStorage
 - Tests focus on user behavior rather than implementation details
 - Mock API responses using `vi.mock()` for service modules
+
+#### Coverage Reporting
+
+This project has comprehensive test coverage reporting configured with the following targets:
+
+- **Lines**: 80% coverage target
+- **Functions**: 80% coverage target
+- **Branches**: 75% coverage target
+- **Statements**: 80% coverage target
+
+**Coverage Commands:**
+
+```bash
+npm run test:coverage              # Run tests with coverage report
+npm run test:coverage:watch        # Run tests with coverage in watch mode
+npm run coverage:report            # Generate detailed coverage report
+npm run coverage:open              # Open HTML coverage report in browser
+```
+
+**Coverage Reports:**
+
+- **Terminal**: Summary displayed in terminal after test runs
+- **HTML Report**: Detailed interactive report at `./coverage/index.html`
+- **LCOV**: Standard format for CI/CD integration at `./coverage/lcov.info`
+- **JSON**: Programmatic access at `./coverage/coverage-final.json`
+
+The coverage configuration excludes test files, type definitions, and Next.js boilerplate files to focus on actual application logic. Current coverage is maintained above 80% for all metrics.
 
 ## Key Implementation Details
 
