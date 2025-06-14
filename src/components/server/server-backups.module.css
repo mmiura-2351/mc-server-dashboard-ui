@@ -462,60 +462,8 @@
 .backupActions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.downloadButton {
-  padding: 0.5rem 1rem;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.downloadButton:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.downloadButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.restoreButton {
-  padding: 0.5rem 1rem;
-  background: var(--warning-color);
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.restoreButton:hover {
-  background: var(--warning-hover);
-}
-
-.deleteButton {
-  padding: 0.5rem 1rem;
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.deleteButton:hover {
-  background: #b91c1c;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Action Dropdown */
@@ -528,25 +476,38 @@
   padding: 0.5rem 1rem;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 80px;
+  justify-content: center;
+  position: relative;
+  white-space: nowrap;
 }
 
-.dropdownToggle:hover {
+.dropdownToggle:hover:not(:disabled) {
   background: var(--bg-hover);
   border-color: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .dropdownToggle[aria-expanded="true"] {
   background: var(--bg-hover);
   border-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dropdownToggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .dropdownArrow {
@@ -560,16 +521,31 @@
 
 .dropdownMenu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.25rem);
   right: 0;
-  min-width: 160px;
+  min-width: 180px;
   background: var(--card-bg);
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  margin-top: 0.25rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
   overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease-out;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dropdownItem {
@@ -583,7 +559,9 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+  border-radius: 0;
 }
 
 .dropdownItem:hover:not(:disabled) {
@@ -601,6 +579,14 @@
 
 .dropdownItem.deleteItem:hover:not(:disabled) {
   background: rgba(220, 38, 38, 0.1);
+}
+
+.dropdownItem.downloadItem {
+  color: #3b82f6;
+}
+
+.dropdownItem.downloadItem:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .dropdownDivider {

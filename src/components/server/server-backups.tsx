@@ -564,15 +564,6 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                   </div>
                 </div>
                 <div className={styles.backupActions}>
-                  <button
-                    onClick={() => handleDownloadBackup(backup.id, backup.name)}
-                    className={styles.downloadButton}
-                    disabled={downloadingBackups.has(backup.id)}
-                  >
-                    {downloadingBackups.has(backup.id)
-                      ? t("backups.downloading")
-                      : t("backups.download")}
-                  </button>
                   <div className={styles.actionDropdown}>
                     <button
                       onClick={(e) => {
@@ -590,6 +581,18 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                         className={styles.dropdownMenu}
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <button
+                          onClick={() => {
+                            handleDownloadBackup(backup.id, backup.name);
+                            closeAllDropdowns();
+                          }}
+                          className={`${styles.dropdownItem} ${styles.downloadItem}`}
+                          disabled={downloadingBackups.has(backup.id)}
+                        >
+                          {downloadingBackups.has(backup.id)
+                            ? t("backups.downloading")
+                            : t("backups.download")}
+                        </button>
                         <button
                           onClick={() => {
                             handleRestoreBackup(backup.id, backup.name);
