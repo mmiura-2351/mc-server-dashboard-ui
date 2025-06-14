@@ -24,6 +24,7 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
+  const [actioningButton, setActioningButton] = useState<string | null>(null);
   const [_statusPolling, setStatusPolling] = useState(false);
 
   // Modal state
@@ -135,6 +136,7 @@ export default function ServerDetailPage() {
     if (!server) return;
 
     setIsActioning(true);
+    setActioningButton(action);
     setError(null);
 
     try {
@@ -165,6 +167,7 @@ export default function ServerDetailPage() {
       setError(t("errors.operationFailed", { action }));
     } finally {
       setIsActioning(false);
+      setActioningButton(null);
     }
   };
 
@@ -178,6 +181,7 @@ export default function ServerDetailPage() {
 
     setShowDeleteConfirm(false);
     setIsActioning(true);
+    setActioningButton("delete");
     const result = await serverService.deleteServer(server.id);
 
     if (result.isOk()) {
@@ -189,6 +193,7 @@ export default function ServerDetailPage() {
       }
       setError(result.error.message);
       setIsActioning(false);
+      setActioningButton(null);
     }
   };
 
@@ -196,6 +201,7 @@ export default function ServerDetailPage() {
     if (!server) return;
 
     setIsActioning(true);
+    setActioningButton("export");
     setError(null);
 
     try {
@@ -223,6 +229,7 @@ export default function ServerDetailPage() {
       setError(t("errors.operationFailed", { action: "export" }));
     } finally {
       setIsActioning(false);
+      setActioningButton(null);
     }
   };
 
@@ -443,7 +450,7 @@ export default function ServerDetailPage() {
                     className={`${styles.actionButton} ${styles.startButton}`}
                     disabled={isActioning}
                   >
-                    {isActioning
+                    {actioningButton === "start"
                       ? t("servers.actions.starting")
                       : t("servers.actions.start")}
                   </button>
@@ -455,7 +462,7 @@ export default function ServerDetailPage() {
                     className={`${styles.actionButton} ${styles.stopButton}`}
                     disabled={isActioning}
                   >
-                    {isActioning
+                    {actioningButton === "stop"
                       ? t("servers.actions.stopping")
                       : t("servers.actions.stop")}
                   </button>
@@ -466,7 +473,7 @@ export default function ServerDetailPage() {
                     className={`${styles.actionButton} ${styles.restartButton}`}
                     disabled={isActioning}
                   >
-                    {isActioning
+                    {actioningButton === "restart"
                       ? t("servers.actions.restarting")
                       : t("servers.actions.restart")}
                   </button>
@@ -476,7 +483,7 @@ export default function ServerDetailPage() {
                   className={`${styles.actionButton} ${styles.exportButton}`}
                   disabled={isActioning}
                 >
-                  {isActioning
+                  {actioningButton === "export"
                     ? t("servers.actions.exporting")
                     : t("servers.actions.export")}
                 </button>
@@ -485,7 +492,7 @@ export default function ServerDetailPage() {
                   className={`${styles.actionButton} ${styles.deleteButton}`}
                   disabled={isActioning}
                 >
-                  {isActioning
+                  {actioningButton === "delete"
                     ? t("servers.actions.deleting")
                     : t("servers.actions.delete")}
                 </button>
