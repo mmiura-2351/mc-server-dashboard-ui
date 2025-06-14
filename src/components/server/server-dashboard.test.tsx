@@ -5,7 +5,7 @@ import { ServerDashboard } from "./server-dashboard";
 import * as serverService from "@/services/server";
 import { ok, err } from "neverthrow";
 import { ServerType, ServerStatus } from "@/types/server";
-import type { MinecraftServer, CreateServerRequest } from "@/types/server";
+import type { MinecraftServer } from "@/types/server";
 
 // Mock functions
 const mockLogout = vi.fn();
@@ -567,7 +567,7 @@ describe("ServerDashboard", () => {
       ).find((button) => button.getAttribute("type") === "submit");
       await user.click(formSubmitButton!);
 
-      const expectedRequest: CreateServerRequest = {
+      const expectedRequest = {
         name: "New Server",
         minecraft_version: "1.21.5",
         server_type: ServerType.VANILLA,
@@ -602,12 +602,12 @@ describe("ServerDashboard", () => {
       ).find((button) => button.getAttribute("type") === "submit");
       await user.click(formSubmitButton!);
 
-      const expectedRequest: CreateServerRequest = {
+      const expectedRequest = {
         name: "Custom Server",
         minecraft_version: "1.20.6",
         server_type: ServerType.PAPER,
         max_memory: 4096,
-        description: "",
+        description: undefined,
       };
 
       expect(serverService.createServer).toHaveBeenCalledWith(expectedRequest);

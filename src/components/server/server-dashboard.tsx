@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
-import type {
-  MinecraftServer,
-  ServerTemplate,
-  CreateServerRequest,
-} from "@/types/server";
+import type { MinecraftServer, ServerTemplate } from "@/types/server";
 import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
 import styles from "./server-dashboard.module.css";
 
@@ -27,7 +23,13 @@ export function ServerDashboard() {
   const [isImporting, setIsImporting] = useState(false);
 
   // Create server form
-  const [createForm, setCreateForm] = useState<CreateServerRequest>({
+  const [createForm, setCreateForm] = useState<{
+    name: string;
+    minecraft_version: string;
+    server_type: ServerType;
+    max_memory: number;
+    description: string;
+  }>({
     name: "",
     minecraft_version: "1.21.5",
     server_type: ServerType.VANILLA,
@@ -45,10 +47,7 @@ export function ServerDashboard() {
   });
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const closeModal = () => {
-    setShowCreateModal(false);
-    setModalTab("create");
-    // Reset forms
+  const resetForms = () => {
     setCreateForm({
       name: "",
       minecraft_version: "1.21.5",
@@ -61,6 +60,17 @@ export function ServerDashboard() {
       description: "",
     });
     setImportFile(null);
+  };
+
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setModalTab("create");
+    resetForms();
+  };
+
+  const switchTab = (tab: "create" | "import") => {
+    setModalTab(tab);
+    resetForms();
   };
 
   const loadData = useCallback(async () => {
@@ -132,7 +142,13 @@ export function ServerDashboard() {
 
     // Removed debug logging for security
 
-    const result = await serverService.createServer(createForm);
+    const result = await serverService.createServer({
+      name: createForm.name,
+      minecraft_version: createForm.minecraft_version,
+      server_type: createForm.server_type,
+      max_memory: createForm.max_memory,
+      description: createForm.description || undefined,
+    });
     if (result.isOk()) {
       setServers([...servers, result.value]);
       closeModal();
@@ -341,13 +357,13 @@ export function ServerDashboard() {
             <div className={styles.modalTabs}>
               <button
                 className={`${styles.modalTab} ${modalTab === "create" ? styles.activeModalTab : ""}`}
-                onClick={() => setModalTab("create")}
+                onClick={() => switchTab("create")}
               >
                 {t("servers.create.title")}
               </button>
               <button
                 className={`${styles.modalTab} ${modalTab === "import" ? styles.activeModalTab : ""}`}
-                onClick={() => setModalTab("import")}
+                onClick={() => switchTab("import")}
               >
                 {t("servers.import.title")}
               </button>
@@ -441,7 +457,7 @@ export function ServerDashboard() {
                   </label>
                   <textarea
                     id="serverDescription"
-                    value={createForm.description || ""}
+                    value={createForm.description}
                     onChange={(e) =>
                       setCreateForm({
                         ...createForm,
