@@ -12,6 +12,39 @@ import { ok, err } from "neverthrow";
 import { FileExplorer } from "./file-explorer";
 import type { FileSystemItem } from "@/types/files";
 
+// Mock useTranslation hook
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  const translations: Record<string, string> = {
+    "files.deleteFile": "Delete File",
+    "files.deleteFiles": "Delete Files",
+    "files.deleteFileConfirmation":
+      'Are you sure you want to delete "{name}"? This action cannot be undone.',
+    "files.deleteBulkConfirmation":
+      "Are you sure you want to delete {count} selected files? This action cannot be undone.",
+    "files.securityWarning": "Security Warning",
+    "files.blockedFilesMessage":
+      "Some files were blocked for security reasons:",
+    "files.uploadError": "Upload Error",
+    "files.noFilesAllowed":
+      "No files could be uploaded due to security restrictions.",
+    "common.cancel": "Cancel",
+    "common.confirm": "Confirm",
+    "common.ok": "OK",
+  };
+
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT, locale: "en" }),
+}));
+
 // Mock the file service
 vi.mock("@/services/files", () => ({
   listFiles: vi.fn(),
@@ -629,9 +662,6 @@ describe("FileExplorer", () => {
       vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
       vi.mocked(deleteFile).mockResolvedValue(ok(undefined));
 
-      // Mock window.confirm to return true
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-
       render(<FileExplorer serverId={1} />);
 
       await waitFor(() => {
@@ -648,18 +678,24 @@ describe("FileExplorer", () => {
 
       await user.click(screen.getByText("🗑️ Delete"));
 
-      // Check that confirmation was shown and delete was called
+      // Check that confirmation modal appears
       await waitFor(() => {
-        expect(confirmSpy).toHaveBeenCalledWith(
-          'Are you sure you want to delete "old-file.txt"?'
-        );
+        expect(screen.getByText("Delete File")).toBeInTheDocument();
+        expect(
+          screen.getByText(/Are you sure you want to delete "old-file.txt"/)
+        ).toBeInTheDocument();
+      });
+
+      // Click confirm button in modal
+      await user.click(screen.getByText("Confirm"));
+
+      // Check that delete was called and success message appears
+      await waitFor(() => {
         expect(deleteFile).toHaveBeenCalledWith(1, "old-file.txt");
         expect(
           screen.getByText(/Successfully deleted old-file.txt/)
         ).toBeInTheDocument();
       });
-
-      confirmSpy.mockRestore();
     });
 
     test("cancels delete when confirmation is denied", async () => {
@@ -680,9 +716,6 @@ describe("FileExplorer", () => {
 
       vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
 
-      // Mock window.confirm to return false (cancel)
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-
       render(<FileExplorer serverId={1} />);
 
       await waitFor(() => {
@@ -699,11 +732,22 @@ describe("FileExplorer", () => {
 
       await user.click(screen.getByText("🗑️ Delete"));
 
-      // Check that confirmation was shown but delete was not called
-      expect(confirmSpy).toHaveBeenCalled();
-      expect(deleteFile).not.toHaveBeenCalled();
+      // Check that confirmation modal appears
+      await waitFor(() => {
+        expect(screen.getByText("Delete File")).toBeInTheDocument();
+        expect(
+          screen.getByText(/Are you sure you want to delete "important.txt"/)
+        ).toBeInTheDocument();
+      });
 
-      confirmSpy.mockRestore();
+      // Click cancel button in modal
+      await user.click(screen.getByText("Cancel"));
+
+      // Check that delete was not called and modal is gone
+      await waitFor(() => {
+        expect(screen.queryByText("Delete File")).not.toBeInTheDocument();
+      });
+      expect(deleteFile).not.toHaveBeenCalled();
     });
 
     test("views file from context menu", async () => {
@@ -1720,9 +1764,6 @@ describe("FileExplorer", () => {
       vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
       vi.mocked(deleteFile).mockResolvedValue(ok(undefined));
 
-      // Mock window.confirm to return true
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-
       render(<FileExplorer serverId={1} />);
 
       await waitFor(() => {
@@ -1748,16 +1789,92 @@ describe("FileExplorer", () => {
 
       await user.click(screen.getByText("🗑️ Delete Selected (2)"));
 
-      // Check that confirmation was shown and delete was called for both files
+      // Check that confirmation modal appears
       await waitFor(() => {
-        expect(confirmSpy).toHaveBeenCalledWith(
-          "Are you sure you want to delete 2 files?"
-        );
+        expect(screen.getByText("Delete Files")).toBeInTheDocument();
+        expect(
+          screen.getByText(/Are you sure you want to delete 2 selected files/)
+        ).toBeInTheDocument();
+      });
+
+      // Click confirm button in modal
+      await user.click(screen.getByText("Confirm"));
+
+      // Check that delete was called for both files
+      await waitFor(() => {
         expect(deleteFile).toHaveBeenCalledWith(1, "file1.txt");
         expect(deleteFile).toHaveBeenCalledWith(1, "file2.txt");
       });
+    });
 
-      confirmSpy.mockRestore();
+    test("cancels bulk delete when confirmation is denied", async () => {
+      const user = userEvent.setup();
+      const { listFiles, deleteFile } = await import("@/services/files");
+
+      const mockFiles: FileSystemItem[] = [
+        {
+          name: "important1.txt",
+          type: "text",
+          is_directory: false,
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/important1.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+        {
+          name: "important2.txt",
+          type: "text",
+          is_directory: false,
+          size: 512,
+          modified: "2023-01-01T00:00:00Z",
+          path: "/important2.txt",
+          permissions: { read: true, write: true, execute: false },
+        },
+      ];
+
+      vi.mocked(listFiles).mockResolvedValue(ok(mockFiles));
+
+      render(<FileExplorer serverId={1} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("important1.txt")).toBeInTheDocument();
+        expect(screen.getByText("important2.txt")).toBeInTheDocument();
+      });
+
+      // Select both files
+      const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+      const file1Checkbox = checkboxes[1]!; // First file checkbox
+      const file2Checkbox = checkboxes[2]!; // Second file checkbox
+
+      fireEvent.click(file1Checkbox);
+      fireEvent.click(file2Checkbox);
+
+      // Right click and select delete
+      const file1Row = screen.getByText("important1.txt").closest("div");
+      fireEvent.contextMenu(file1Row!);
+
+      await waitFor(() => {
+        expect(screen.getByText("🗑️ Delete Selected (2)")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("🗑️ Delete Selected (2)"));
+
+      // Check that confirmation modal appears
+      await waitFor(() => {
+        expect(screen.getByText("Delete Files")).toBeInTheDocument();
+        expect(
+          screen.getByText(/Are you sure you want to delete 2 selected files/)
+        ).toBeInTheDocument();
+      });
+
+      // Click cancel button in modal
+      await user.click(screen.getByText("Cancel"));
+
+      // Check that delete was not called and modal is gone
+      await waitFor(() => {
+        expect(screen.queryByText("Delete Files")).not.toBeInTheDocument();
+      });
+      expect(deleteFile).not.toHaveBeenCalled();
     });
   });
 

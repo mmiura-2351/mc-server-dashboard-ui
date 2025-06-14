@@ -26,6 +26,7 @@ const translations: Record<string, string> = {
   "common.save": "Save",
   "common.saving": "Saving...",
   "common.cancel": "Cancel",
+  "common.confirm": "Confirm",
   "servers.backups": "Backups",
   "backups.description": "Manage your server backups",
   "backups.createBackup": "Create New Backup",
@@ -70,12 +71,6 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({ t: mockT, locale: "en" }),
 }));
-
-// Mock window.confirm
-Object.defineProperty(window, "confirm", {
-  writable: true,
-  value: vi.fn(),
-});
 
 describe("ServerBackups", () => {
   const mockBackups = [
@@ -202,8 +197,6 @@ describe("ServerBackups", () => {
   });
 
   it("handles backup restoration with confirmation", async () => {
-    vi.mocked(window.confirm).mockReturnValue(true);
-
     await act(async () => {
       render(<ServerBackups serverId={1} />);
     });
@@ -222,9 +215,18 @@ describe("ServerBackups", () => {
     const restoreButton = screen.getByText("Restore");
     fireEvent.click(restoreButton);
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Are you sure you want to restore backup 'Test Backup'? This will replace your current world data."
-    );
+    // Check that confirmation modal appears
+    await waitFor(() => {
+      expect(screen.getByText("Restore")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Are you sure you want to restore backup 'Test Backup'? This will replace your current world data."
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Click confirm button in modal
+    fireEvent.click(screen.getByText("Confirm"));
 
     await waitFor(() => {
       expect(serverService.restoreBackup).toHaveBeenCalledWith(1);
@@ -232,8 +234,6 @@ describe("ServerBackups", () => {
   });
 
   it("cancels backup restoration when not confirmed", async () => {
-    vi.mocked(window.confirm).mockReturnValue(false);
-
     await act(async () => {
       render(<ServerBackups serverId={1} />);
     });
@@ -252,13 +252,31 @@ describe("ServerBackups", () => {
     const restoreButton = screen.getByText("Restore");
     fireEvent.click(restoreButton);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Check that confirmation modal appears
+    await waitFor(() => {
+      expect(screen.getByText("Restore")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Are you sure you want to restore backup 'Test Backup'? This will replace your current world data."
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Click cancel button in modal
+    fireEvent.click(screen.getByText("Cancel"));
+
+    // Check that restore was not called and modal is gone
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          "Are you sure you want to restore backup 'Test Backup'? This will replace your current world data."
+        )
+      ).not.toBeInTheDocument();
+    });
     expect(serverService.restoreBackup).not.toHaveBeenCalled();
   });
 
   it("handles backup deletion with confirmation", async () => {
-    vi.mocked(window.confirm).mockReturnValue(true);
-
     await act(async () => {
       render(<ServerBackups serverId={1} />);
     });
@@ -277,9 +295,18 @@ describe("ServerBackups", () => {
     const deleteButton = screen.getByText("Delete");
     fireEvent.click(deleteButton);
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
-    );
+    // Check that confirmation modal appears
+    await waitFor(() => {
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Click confirm button in modal
+    fireEvent.click(screen.getByText("Confirm"));
 
     await waitFor(() => {
       expect(serverService.deleteBackup).toHaveBeenCalledWith(1);
@@ -287,8 +314,6 @@ describe("ServerBackups", () => {
   });
 
   it("cancels backup deletion when not confirmed", async () => {
-    vi.mocked(window.confirm).mockReturnValue(false);
-
     await act(async () => {
       render(<ServerBackups serverId={1} />);
     });
@@ -307,7 +332,27 @@ describe("ServerBackups", () => {
     const deleteButton = screen.getByText("Delete");
     fireEvent.click(deleteButton);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Check that confirmation modal appears
+    await waitFor(() => {
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Click cancel button in modal
+    fireEvent.click(screen.getByText("Cancel"));
+
+    // Check that delete was not called and modal is gone
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
+        )
+      ).not.toBeInTheDocument();
+    });
     expect(serverService.deleteBackup).not.toHaveBeenCalled();
   });
 
@@ -353,7 +398,6 @@ describe("ServerBackups", () => {
     vi.mocked(serverService.deleteBackup).mockResolvedValue(
       err({ message: "Backup deletion failed" })
     );
-    vi.mocked(window.confirm).mockReturnValue(true);
 
     await act(async () => {
       render(<ServerBackups serverId={1} />);
@@ -372,6 +416,19 @@ describe("ServerBackups", () => {
 
     const deleteButton = screen.getByText("Delete");
     fireEvent.click(deleteButton);
+
+    // Check that confirmation modal appears
+    await waitFor(() => {
+      expect(screen.getByText("Delete")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Are you sure you want to delete backup 'Test Backup'? This action cannot be undone."
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Click confirm button in modal
+    fireEvent.click(screen.getByText("Confirm"));
 
     await waitFor(() => {
       expect(screen.getByText("Backup deletion failed")).toBeInTheDocument();

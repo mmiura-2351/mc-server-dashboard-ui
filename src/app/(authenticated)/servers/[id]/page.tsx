@@ -8,6 +8,7 @@ import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
 import { ServerBackups } from "@/components/server/server-backups";
+import { ConfirmationModal } from "@/components/modal";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -23,6 +24,10 @@ export default function ServerDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
+  const [_statusPolling, setStatusPolling] = useState(false);
+
+  // Modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Get tab from URL params or default to "info"
   const tabFromUrl = searchParams.get("tab") as
@@ -89,6 +94,43 @@ export default function ServerDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverId, user, router, authLoading]);
 
+  // Status polling effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (
+      server &&
+      (server.status === ServerStatus.STARTING ||
+        server.status === ServerStatus.STOPPING)
+    ) {
+      setStatusPolling(true);
+
+      intervalId = setInterval(async () => {
+        const result = await serverService.getServer(serverId);
+        if (result.isOk()) {
+          const updatedServer = result.value;
+          setServer(updatedServer);
+
+          // Stop polling if server reaches a stable state
+          if (
+            updatedServer.status !== ServerStatus.STARTING &&
+            updatedServer.status !== ServerStatus.STOPPING
+          ) {
+            setStatusPolling(false);
+          }
+        }
+      }, 2000); // Poll every 2 seconds
+    } else {
+      setStatusPolling(false);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [server, serverId]);
+
   const handleServerAction = async (action: "start" | "stop" | "restart") => {
     if (!server) return;
 
@@ -110,7 +152,7 @@ export default function ServerDetailPage() {
       }
 
       if (result.isOk()) {
-        // Reload server data to get updated status
+        // Reload server data to get updated status and start polling
         await loadServerData();
       } else {
         if (result.error.status === 401) {
@@ -126,13 +168,15 @@ export default function ServerDetailPage() {
     }
   };
 
-  const handleDeleteServer = async () => {
+  const handleDeleteServer = () => {
+    if (!server) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteServer = async () => {
     if (!server) return;
 
-    if (!confirm(t("servers.deleteConfirmation"))) {
-      return;
-    }
-
+    setShowDeleteConfirm(false);
     setIsActioning(true);
     const result = await serverService.deleteServer(server.id);
 
@@ -426,6 +470,16 @@ export default function ServerDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Server Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        title={t("servers.actions.delete")}
+        message={t("servers.deleteConfirmation")}
+        variant="danger"
+        onConfirm={confirmDeleteServer}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

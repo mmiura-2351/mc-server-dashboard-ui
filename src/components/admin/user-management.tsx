@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
+import { ConfirmationModal } from "@/components/modal";
 import * as authService from "@/services/auth";
 import type { User, Role, RoleUpdate } from "@/types/auth";
 import { Role as RoleEnum } from "@/types/auth";
@@ -17,6 +18,19 @@ export function UserManagement() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const isAdmin = user?.role === RoleEnum.ADMIN;
 
@@ -86,28 +100,40 @@ export function UserManagement() {
     }
   };
 
-  const handleDeleteUser = async (userId: number, username: string) => {
-    if (!confirm(t("userManagement.areYouSureDeleteUser", { username }))) {
-      return;
-    }
+  const handleDeleteUser = (userId: number, username: string) => {
+    const confirmDelete = async () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
 
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
+      const result = await authService.deleteUserByAdmin(token, userId);
+      if (result.isOk()) {
+        setMessage({
+          type: "success",
+          text: t("userManagement.userDeletedSuccessfully"),
+        });
+        loadUsers();
+      } else {
+        const errorMessage =
+          typeof result.error.message === "string"
+            ? result.error.message
+            : "An error occurred while deleting user";
+        setMessage({ type: "error", text: errorMessage });
+      }
 
-    const result = await authService.deleteUserByAdmin(token, userId);
-    if (result.isOk()) {
-      setMessage({
-        type: "success",
-        text: t("userManagement.userDeletedSuccessfully"),
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
       });
-      loadUsers();
-    } else {
-      const errorMessage =
-        typeof result.error.message === "string"
-          ? result.error.message
-          : "An error occurred while deleting user";
-      setMessage({ type: "error", text: errorMessage });
-    }
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("userManagement.deleteUser"),
+      message: t("userManagement.areYouSureDeleteUser", { username }),
+      onConfirm: confirmDelete,
+    });
   };
 
   if (!isAdmin) {
@@ -228,6 +254,23 @@ export function UserManagement() {
           <p>{t("userManagement.noUsersFound")}</p>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant="danger"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: "",
+            message: "",
+            onConfirm: () => {},
+          })
+        }
+      />
     </div>
   );
 }

@@ -40,6 +40,8 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "servers.status.starting": "Starting",
     "servers.status.stopping": "Stopping",
     "servers.status.error": "Error",
+    "common.cancel": "Cancel",
+    "common.confirm": "Confirm",
   };
 
   let translation = translations[key] || key;
@@ -380,9 +382,6 @@ describe("ServerDetailPage", () => {
       const testServer = createMockServer({ status: ServerStatus.STOPPED });
       mockGetServer.mockResolvedValue(ok(testServer));
 
-      // Mock window.confirm to return true
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-
       render(<ServerDetailPage />);
 
       await waitFor(() => {
@@ -394,21 +393,29 @@ describe("ServerDetailPage", () => {
       });
       await user.click(deleteButton);
 
-      expect(confirmSpy).toHaveBeenCalledWith(
-        "Are you sure you want to delete this server? This action cannot be undone."
-      );
-      expect(mockDeleteServer).toHaveBeenCalledWith(1);
+      // Check that confirmation modal appears
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            "Are you sure you want to delete this server? This action cannot be undone."
+          )
+        ).toBeInTheDocument();
+      });
 
-      confirmSpy.mockRestore();
+      // Click confirm button in modal
+      await user.click(screen.getByText("Confirm"));
+
+      // Check that delete was called
+      await waitFor(() => {
+        expect(mockDeleteServer).toHaveBeenCalledWith(1);
+      });
     });
 
     test("should not delete server when confirmation is cancelled", async () => {
       const testServer = createMockServer({ status: ServerStatus.STOPPED });
       mockGetServer.mockResolvedValue(ok(testServer));
 
-      // Mock window.confirm to return false
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-
       render(<ServerDetailPage />);
 
       await waitFor(() => {
@@ -420,10 +427,24 @@ describe("ServerDetailPage", () => {
       });
       await user.click(deleteButton);
 
-      expect(confirmSpy).toHaveBeenCalled();
-      expect(mockDeleteServer).not.toHaveBeenCalled();
+      // Check that confirmation modal appears
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            "Are you sure you want to delete this server? This action cannot be undone."
+          )
+        ).toBeInTheDocument();
+      });
 
-      confirmSpy.mockRestore();
+      // Click cancel button in modal
+      await user.click(screen.getByText("Cancel"));
+
+      // Check that delete was not called and modal is gone
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      });
+      expect(mockDeleteServer).not.toHaveBeenCalled();
     });
   });
 
