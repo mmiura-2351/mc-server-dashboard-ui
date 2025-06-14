@@ -232,9 +232,13 @@
     "automatic": "Auto",
     "download": "Download",
     "downloading": "Downloading...",
+    "actions": "Actions",
     "restore": "Restore",
+    "restoring": "Restoring...",
+    "advancedRestore": "Advanced Restore",
     "delete": "Delete",
     "restoreConfirmation": "Are you sure you want to restore backup '{name}'? This will replace your current world data.",
+    "advancedRestoreConfirmation": "Restore backup '{name}' with advanced options? This will preserve player data and settings while restoring the world.",
     "deleteConfirmation": "Are you sure you want to delete backup '{name}'? This action cannot be undone.",
     "errors": {
       "backupNameRequired": "Backup name is required",

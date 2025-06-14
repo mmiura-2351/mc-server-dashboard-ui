@@ -269,6 +269,26 @@ export async function downloadBackup(
   }
 }
 
+export async function advancedRestoreBackup(
+  backupId: string,
+  options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
+): Promise<Result<void, AuthError>> {
+  const url = new URL(
+    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore-advanced`
+  );
+
+  if (options?.preservePlayerData) {
+    url.searchParams.set("preserve_player_data", "true");
+  }
+  if (options?.restoreSettings) {
+    url.searchParams.set("restore_settings", "true");
+  }
+
+  return fetchEmpty(url.toString(), {
+    method: "POST",
+  });
+}
+
 export async function getServerPlayers(
   _serverId: number
 ): Promise<Result<ServerPlayer[], AuthError>> {

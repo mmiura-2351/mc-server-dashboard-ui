@@ -232,9 +232,13 @@
     "automatic": "自動",
     "download": "ダウンロード",
     "downloading": "ダウンロード中...",
+    "actions": "アクション",
     "restore": "復元",
+    "restoring": "復元中...",
+    "advancedRestore": "詳細復元",
     "delete": "削除",
     "restoreConfirmation": "バックアップ'{name}'を復元しますか？これにより現在のワールドデータが置き換えられます。",
+    "advancedRestoreConfirmation": "バックアップ'{name}'を詳細オプションで復元しますか？プレイヤーデータと設定を保持しながらワールドを復元します。",
     "deleteConfirmation": "バックアップ'{name}'を削除しますか？この操作は元に戻せません。",
     "errors": {
       "backupNameRequired": "バックアップ名は必須です",
