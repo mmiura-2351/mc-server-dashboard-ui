@@ -21,9 +21,8 @@ export function BackupScheduleOverview({
 }: BackupScheduleOverviewProps) {
   const { t } = useTranslation();
   const [schedules, setSchedules] = useState<BackupSchedule[]>([]);
-  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(
-    null
-  );
+  const [schedulerStatus, setSchedulerStatus] =
+    useState<SchedulerStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<Set<string>>(new Set());
@@ -47,7 +46,10 @@ export function BackupScheduleOverview({
       if (statusResult.isOk()) {
         setSchedulerStatus(statusResult.value);
       } else {
-        console.warn("Failed to load scheduler status:", statusResult.error.message);
+        console.warn(
+          "Failed to load scheduler status:",
+          statusResult.error.message
+        );
       }
     } catch {
       setError(t("schedules.errors.failedToLoadSchedules"));
@@ -95,9 +97,8 @@ export function BackupScheduleOverview({
     setError(null);
 
     try {
-      const result = await backupSchedulerService.triggerBackupSchedule(
-        scheduleId
-      );
+      const result =
+        await backupSchedulerService.triggerBackupSchedule(scheduleId);
 
       if (result.isOk()) {
         await loadData();
@@ -118,11 +119,7 @@ export function BackupScheduleOverview({
   };
 
   const handleDeleteSchedule = async (schedule: BackupSchedule) => {
-    if (
-      !confirm(
-        t("schedules.deleteConfirmation", { name: schedule.name })
-      )
-    ) {
+    if (!confirm(t("schedules.deleteConfirmation", { name: schedule.name }))) {
       return;
     }
 
@@ -131,9 +128,8 @@ export function BackupScheduleOverview({
     setError(null);
 
     try {
-      const result = await backupSchedulerService.deleteBackupSchedule(
-        scheduleId
-      );
+      const result =
+        await backupSchedulerService.deleteBackupSchedule(scheduleId);
 
       if (result.isOk()) {
         await loadData();
@@ -155,24 +151,30 @@ export function BackupScheduleOverview({
 
   const formatNextRunTime = (nextRunAt?: string) => {
     if (!nextRunAt) return t("schedules.status.never");
-    
+
     try {
       const nextRun = new Date(nextRunAt);
       const now = new Date();
       const diffMs = nextRun.getTime() - now.getTime();
-      
+
       if (diffMs < 0) return t("schedules.status.overdue");
-      
+
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMinutes / 60);
       const diffDays = Math.floor(diffHours / 24);
-      
+
       if (diffDays > 0) {
-        return t("schedules.status.nextRunInDays", { days: diffDays.toString() });
+        return t("schedules.status.nextRunInDays", {
+          days: diffDays.toString(),
+        });
       } else if (diffHours > 0) {
-        return t("schedules.status.nextRunInHours", { hours: diffHours.toString() });
+        return t("schedules.status.nextRunInHours", {
+          hours: diffHours.toString(),
+        });
       } else {
-        return t("schedules.status.nextRunInMinutes", { minutes: diffMinutes.toString() });
+        return t("schedules.status.nextRunInMinutes", {
+          minutes: diffMinutes.toString(),
+        });
       }
     } catch {
       return t("schedules.status.unknown");
@@ -239,7 +241,9 @@ export function BackupScheduleOverview({
               </div>
               <div
                 className={`${styles.statusValue} ${
-                  schedulerStatus.running ? styles.statusActive : styles.statusInactive
+                  schedulerStatus.running
+                    ? styles.statusActive
+                    : styles.statusInactive
                 }`}
               >
                 {schedulerStatus.running
@@ -315,13 +319,16 @@ export function BackupScheduleOverview({
                   )}
                   <div className={styles.scheduleDetails}>
                     <span className={styles.scheduleDetail}>
-                      {t("schedules.overview.interval")}: {schedule.interval_hours}h
+                      {t("schedules.overview.interval")}:{" "}
+                      {schedule.interval_hours}h
                     </span>
                     <span className={styles.scheduleDetail}>
-                      {t("schedules.overview.maxBackups")}: {schedule.max_backups}
+                      {t("schedules.overview.maxBackups")}:{" "}
+                      {schedule.max_backups}
                     </span>
                     <span className={styles.scheduleDetail}>
-                      {t("schedules.overview.nextRun")}: {formatNextRunTime(schedule.next_run_at)}
+                      {t("schedules.overview.nextRun")}:{" "}
+                      {formatNextRunTime(schedule.next_run_at)}
                     </span>
                   </div>
                 </div>
@@ -330,14 +337,16 @@ export function BackupScheduleOverview({
                     onClick={() => handleToggleSchedule(schedule)}
                     disabled={actionLoading.has(schedule.id)}
                     className={`${styles.actionButton} ${
-                      schedule.enabled ? styles.disableButton : styles.enableButton
+                      schedule.enabled
+                        ? styles.disableButton
+                        : styles.enableButton
                     }`}
                   >
                     {actionLoading.has(schedule.id)
                       ? t("common.loading")
                       : schedule.enabled
-                      ? t("schedules.disable")
-                      : t("schedules.enable")}
+                        ? t("schedules.disable")
+                        : t("schedules.enable")}
                   </button>
                   {schedule.enabled && (
                     <button

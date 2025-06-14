@@ -100,7 +100,8 @@ describe("Backup Scheduler Service", () => {
 
       mockFetchJson.mockResolvedValue(ok(mockSchedule));
 
-      const result = await backupSchedulerService.createBackupSchedule(createRequest);
+      const result =
+        await backupSchedulerService.createBackupSchedule(createRequest);
 
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
@@ -165,7 +166,8 @@ describe("Backup Scheduler Service", () => {
 
       mockFetchEmpty.mockResolvedValue(ok(undefined));
 
-      const result = await backupSchedulerService.deleteBackupSchedule(scheduleId);
+      const result =
+        await backupSchedulerService.deleteBackupSchedule(scheduleId);
 
       expect(result.isOk()).toBe(true);
       expect(mockFetchEmpty).toHaveBeenCalledWith(
@@ -226,9 +228,9 @@ describe("Backup Scheduler Service", () => {
 
       const result = await backupSchedulerService.getBackupScheduleLogs(
         "1", // scheduleId
-        1,   // serverId
-        20,  // limit
-        0    // offset
+        1, // serverId
+        20, // limit
+        0 // offset
       );
 
       expect(result.isOk()).toBe(true);
@@ -283,41 +285,77 @@ describe("Backup Scheduler Service", () => {
   describe("Utility Functions", () => {
     describe("parseScheduleInterval", () => {
       it("should parse common cron expressions", () => {
-        expect(backupSchedulerService.parseScheduleInterval("0 * * * *")).toBe(1);
-        expect(backupSchedulerService.parseScheduleInterval("0 */6 * * *")).toBe(6);
-        expect(backupSchedulerService.parseScheduleInterval("0 0 * * *")).toBe(24);
-        expect(backupSchedulerService.parseScheduleInterval("0 0 */2 * *")).toBe(48);
-        expect(backupSchedulerService.parseScheduleInterval("0 0 * * 0")).toBe(168);
+        expect(backupSchedulerService.parseScheduleInterval("0 * * * *")).toBe(
+          1
+        );
+        expect(
+          backupSchedulerService.parseScheduleInterval("0 */6 * * *")
+        ).toBe(6);
+        expect(backupSchedulerService.parseScheduleInterval("0 0 * * *")).toBe(
+          24
+        );
+        expect(
+          backupSchedulerService.parseScheduleInterval("0 0 */2 * *")
+        ).toBe(48);
+        expect(backupSchedulerService.parseScheduleInterval("0 0 * * 0")).toBe(
+          168
+        );
       });
 
       it("should return null for unrecognized patterns", () => {
-        expect(backupSchedulerService.parseScheduleInterval("0 0 1 * *")).toBeNull();
-        expect(backupSchedulerService.parseScheduleInterval("invalid")).toBeNull();
+        expect(
+          backupSchedulerService.parseScheduleInterval("0 0 1 * *")
+        ).toBeNull();
+        expect(
+          backupSchedulerService.parseScheduleInterval("invalid")
+        ).toBeNull();
       });
     });
 
     describe("generateCronExpression", () => {
       it("should generate correct cron expressions", () => {
-        expect(backupSchedulerService.generateCronExpression(1)).toBe("0 * * * *");
-        expect(backupSchedulerService.generateCronExpression(6)).toBe("0 */6 * * *");
-        expect(backupSchedulerService.generateCronExpression(12)).toBe("0 */12 * * *");
-        expect(backupSchedulerService.generateCronExpression(24)).toBe("0 0 * * *");
-        expect(backupSchedulerService.generateCronExpression(48)).toBe("0 0 */2 * *");
-        expect(backupSchedulerService.generateCronExpression(168)).toBe("0 0 * * 0");
+        expect(backupSchedulerService.generateCronExpression(1)).toBe(
+          "0 * * * *"
+        );
+        expect(backupSchedulerService.generateCronExpression(6)).toBe(
+          "0 */6 * * *"
+        );
+        expect(backupSchedulerService.generateCronExpression(12)).toBe(
+          "0 */12 * * *"
+        );
+        expect(backupSchedulerService.generateCronExpression(24)).toBe(
+          "0 0 * * *"
+        );
+        expect(backupSchedulerService.generateCronExpression(48)).toBe(
+          "0 0 */2 * *"
+        );
+        expect(backupSchedulerService.generateCronExpression(168)).toBe(
+          "0 0 * * 0"
+        );
       });
 
       it("should default to daily for unrecognized intervals", () => {
-        expect(backupSchedulerService.generateCronExpression(25)).toBe("0 0 * * *");
-        expect(backupSchedulerService.generateCronExpression(0)).toBe("0 0 * * *");
+        expect(backupSchedulerService.generateCronExpression(25)).toBe(
+          "0 0 * * *"
+        );
+        expect(backupSchedulerService.generateCronExpression(0)).toBe(
+          "0 0 * * *"
+        );
       });
     });
 
     describe("formatScheduleDuration", () => {
       it("should format duration in seconds", () => {
         expect(backupSchedulerService.formatScheduleDuration(30)).toBe("30s");
-        expect(backupSchedulerService.formatScheduleDuration(90)).toBe("1m 30s");
-        expect(backupSchedulerService.formatScheduleDuration(3661)).toBe("1h 1m 1s");
-        expect(backupSchedulerService.formatScheduleDuration(undefined)).toBe("N/A");
+        expect(backupSchedulerService.formatScheduleDuration(90)).toBe(
+          "1m 30s"
+        );
+        expect(backupSchedulerService.formatScheduleDuration(3661)).toBe(
+          "1h 1m 1s"
+        );
+        expect(backupSchedulerService.formatScheduleDuration(undefined)).toBe(
+          "N/A"
+        );
       });
     });
 
@@ -325,7 +363,7 @@ describe("Backup Scheduler Service", () => {
       it("should calculate next run time for known patterns", () => {
         const now = new Date();
         const nextRun = backupSchedulerService.getNextRunTime("0 * * * *");
-        
+
         expect(nextRun).toBeInstanceOf(Date);
         if (nextRun) {
           expect(nextRun.getTime()).toBeGreaterThan(now.getTime());

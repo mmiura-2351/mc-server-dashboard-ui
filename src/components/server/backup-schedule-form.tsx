@@ -53,14 +53,17 @@ export function BackupScheduleForm({
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Predefined interval options
-  const intervalOptions = useMemo(() => [
-    { value: 1, label: t("schedules.intervals.hourly") },
-    { value: 6, label: t("schedules.intervals.6hours") },
-    { value: 12, label: t("schedules.intervals.12hours") },
-    { value: 24, label: t("schedules.intervals.daily") },
-    { value: 48, label: t("schedules.intervals.2days") },
-    { value: 168, label: t("schedules.intervals.weekly") },
-  ], [t]);
+  const intervalOptions = useMemo(
+    () => [
+      { value: 1, label: t("schedules.intervals.hourly") },
+      { value: 6, label: t("schedules.intervals.6hours") },
+      { value: 12, label: t("schedules.intervals.12hours") },
+      { value: 24, label: t("schedules.intervals.daily") },
+      { value: 48, label: t("schedules.intervals.2days") },
+      { value: 168, label: t("schedules.intervals.weekly") },
+    ],
+    [t]
+  );
 
   // Initialize form data when schedule prop changes
   useEffect(() => {
@@ -123,7 +126,11 @@ export function BackupScheduleForm({
       }
     }
 
-    if (isNaN(formData.maxBackups) || formData.maxBackups < 1 || formData.maxBackups > 100) {
+    if (
+      isNaN(formData.maxBackups) ||
+      formData.maxBackups < 1 ||
+      formData.maxBackups > 100
+    ) {
       newErrors.maxBackups = t("schedules.validation.maxBackupsRange");
     }
 
@@ -133,7 +140,7 @@ export function BackupScheduleForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -200,7 +207,7 @@ export function BackupScheduleForm({
     value: string | number | boolean
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    
+
     // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors((prev) => {
@@ -253,7 +260,7 @@ export function BackupScheduleForm({
           {/* Basic Information */}
           <div className={styles.section}>
             <h3>{t("schedules.form.basicInfo")}</h3>
-            
+
             <div className={styles.field}>
               <label htmlFor="name" className={styles.label}>
                 {t("schedules.form.name")}
@@ -280,7 +287,9 @@ export function BackupScheduleForm({
               <textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 className={`${styles.textarea} ${errors.description ? styles.inputError : ""}`}
                 placeholder={t("schedules.form.descriptionPlaceholder")}
                 rows={3}
@@ -296,7 +305,9 @@ export function BackupScheduleForm({
                 <input
                   type="checkbox"
                   checked={formData.enabled}
-                  onChange={(e) => handleInputChange("enabled", e.target.checked)}
+                  onChange={(e) =>
+                    handleInputChange("enabled", e.target.checked)
+                  }
                   className={styles.checkbox}
                 />
                 {t("schedules.form.enabled")}
@@ -307,7 +318,7 @@ export function BackupScheduleForm({
           {/* Schedule Configuration */}
           <div className={styles.section}>
             <h3>{t("schedules.form.scheduleConfig")}</h3>
-            
+
             <div className={styles.field}>
               <label className={styles.label}>
                 {t("schedules.form.intervalType")}
@@ -368,7 +379,9 @@ export function BackupScheduleForm({
                   id="customCron"
                   type="text"
                   value={formData.customCron}
-                  onChange={(e) => handleInputChange("customCron", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("customCron", e.target.value)
+                  }
                   className={`${styles.input} ${errors.customCron ? styles.inputError : ""}`}
                   placeholder="0 */6 * * *"
                 />
@@ -383,7 +396,8 @@ export function BackupScheduleForm({
 
             {formData.intervalType === "preset" && (
               <div className={styles.previewBox}>
-                <strong>{t("schedules.form.nextRunPreview")}:</strong> {getNextRunPreview()}
+                <strong>{t("schedules.form.nextRunPreview")}:</strong>{" "}
+                {getNextRunPreview()}
               </div>
             )}
           </div>
@@ -391,7 +405,7 @@ export function BackupScheduleForm({
           {/* Backup Options */}
           <div className={styles.section}>
             <h3>{t("schedules.form.backupOptions")}</h3>
-            
+
             <div className={styles.field}>
               <label htmlFor="maxBackups" className={styles.label}>
                 {t("schedules.form.maxBackups")}
@@ -454,8 +468,8 @@ export function BackupScheduleForm({
             {isSubmitting
               ? t("common.saving")
               : isEditMode
-              ? t("schedules.form.updateSchedule")
-              : t("schedules.form.createSchedule")}
+                ? t("schedules.form.updateSchedule")
+                : t("schedules.form.createSchedule")}
           </button>
         </div>
       </form>

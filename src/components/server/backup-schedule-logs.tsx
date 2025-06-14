@@ -103,7 +103,11 @@ export function BackupScheduleLogs({
 
       switch (filters.dateRange) {
         case "today":
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+          );
           break;
         case "week":
           startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -248,10 +252,14 @@ export function BackupScheduleLogs({
               </label>
               <select
                 value={filters.scheduleId}
-                onChange={(e) => handleFilterChange("scheduleId", e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("scheduleId", e.target.value)
+                }
                 className={styles.filterSelect}
               >
-                <option value="">{t("schedules.logs.filters.allSchedules")}</option>
+                <option value="">
+                  {t("schedules.logs.filters.allSchedules")}
+                </option>
                 {schedules.map((schedule) => (
                   <option key={schedule.id} value={schedule.id}>
                     {schedule.name}
@@ -317,7 +325,9 @@ export function BackupScheduleLogs({
                   showing: filteredLogs.length.toString(),
                   total: totalLogs.toString(),
                 })
-              : t("schedules.logs.showingTotal", { total: totalLogs.toString() })}
+              : t("schedules.logs.showingTotal", {
+                  total: totalLogs.toString(),
+                })}
           </div>
         </div>
 
@@ -380,7 +390,7 @@ export function BackupScheduleLogs({
                         <pre>{log.error_message}</pre>
                       </div>
                     )}
-                    
+
                     {log.logs && log.logs.length > 0 && (
                       <div className={styles.logOutput}>
                         <strong>{t("schedules.logs.output")}:</strong>
@@ -406,7 +416,8 @@ export function BackupScheduleLogs({
                       )}
                       {log.backup_id && (
                         <div className={styles.metadataItem}>
-                          <strong>{t("schedules.logs.backupId")}:</strong> {log.backup_id}
+                          <strong>{t("schedules.logs.backupId")}:</strong>{" "}
+                          {log.backup_id}
                         </div>
                       )}
                     </div>
@@ -427,14 +438,14 @@ export function BackupScheduleLogs({
             >
               {t("schedules.logs.pagination.previous")}
             </button>
-            
+
             <div className={styles.paginationInfo}>
               {t("schedules.logs.pagination.pageInfo", {
                 current: currentPage.toString(),
                 total: totalPages.toString(),
               })}
             </div>
-            
+
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}

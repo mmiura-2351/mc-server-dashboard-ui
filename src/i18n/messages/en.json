@@ -258,7 +258,7 @@
     "tabs": {
       "overview": "Overview",
       "settings": "Settings",
-      "history": "History", 
+      "history": "History",
       "admin": "Admin"
     },
     "overview": {
@@ -286,7 +286,7 @@
       "overdue": "Overdue",
       "unknown": "Unknown",
       "nextRunInDays": "In {days} days",
-      "nextRunInHours": "In {hours} hours", 
+      "nextRunInHours": "In {hours} hours",
       "nextRunInMinutes": "In {minutes} minutes"
     },
     "create": "Create Schedule",
@@ -393,7 +393,7 @@
       "recentActivity": "Recent Activity",
       "stats": {
         "totalServers": "Total Servers",
-        "serversWithSchedules": "Servers with Schedules", 
+        "serversWithSchedules": "Servers with Schedules",
         "totalSchedules": "Total Schedules",
         "activeSchedules": "Active Schedules",
         "backupsToday": "Backups Today",
@@ -419,7 +419,7 @@
       "noRecentActivity": "No recent backup activity.",
       "status": {
         "success": "Success",
-        "failed": "Failed", 
+        "failed": "Failed",
         "running": "Running",
         "cancelled": "Cancelled"
       },

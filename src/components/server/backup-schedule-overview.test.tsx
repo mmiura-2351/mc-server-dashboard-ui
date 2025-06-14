@@ -46,11 +46,15 @@ const translations: Record<string, string> = {
   "schedules.edit": "Edit",
   "schedules.viewLogs": "View Logs",
   "schedules.delete": "Delete",
-  "schedules.deleteConfirmation": "Are you sure you want to delete schedule '{name}'?",
+  "schedules.deleteConfirmation":
+    "Are you sure you want to delete schedule '{name}'?",
   "schedules.errors.failedToLoadSchedules": "Failed to load schedules",
-  "schedules.errors.failedToToggleSchedule": "Failed to toggle schedule '{name}'",
-  "schedules.errors.failedToTriggerSchedule": "Failed to trigger schedule '{name}'",
-  "schedules.errors.failedToDeleteSchedule": "Failed to delete schedule '{name}'",
+  "schedules.errors.failedToToggleSchedule":
+    "Failed to toggle schedule '{name}'",
+  "schedules.errors.failedToTriggerSchedule":
+    "Failed to trigger schedule '{name}'",
+  "schedules.errors.failedToDeleteSchedule":
+    "Failed to delete schedule '{name}'",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
@@ -67,12 +71,22 @@ vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({ t: mockT, locale: "en" }),
 }));
 
-const mockGetBackupSchedules = vi.mocked(backupSchedulerService.getBackupSchedules);
-const mockGetSchedulerStatus = vi.mocked(backupSchedulerService.getSchedulerStatus);
+const mockGetBackupSchedules = vi.mocked(
+  backupSchedulerService.getBackupSchedules
+);
+const mockGetSchedulerStatus = vi.mocked(
+  backupSchedulerService.getSchedulerStatus
+);
 // const mockEnableBackupSchedule = vi.mocked(backupSchedulerService.enableBackupSchedule);
-const mockDisableBackupSchedule = vi.mocked(backupSchedulerService.disableBackupSchedule);
-const mockTriggerBackupSchedule = vi.mocked(backupSchedulerService.triggerBackupSchedule);
-const mockDeleteBackupSchedule = vi.mocked(backupSchedulerService.deleteBackupSchedule);
+const mockDisableBackupSchedule = vi.mocked(
+  backupSchedulerService.disableBackupSchedule
+);
+const mockTriggerBackupSchedule = vi.mocked(
+  backupSchedulerService.triggerBackupSchedule
+);
+const mockDeleteBackupSchedule = vi.mocked(
+  backupSchedulerService.deleteBackupSchedule
+);
 
 const mockSchedule = {
   id: "1",
@@ -164,10 +178,12 @@ describe("BackupScheduleOverview", () => {
   it("should toggle schedule when enable/disable button is clicked", async () => {
     mockGetBackupSchedules.mockResolvedValue(ok([mockSchedule]));
     mockGetSchedulerStatus.mockResolvedValue(ok(mockSchedulerStatus));
-    mockDisableBackupSchedule.mockResolvedValue(ok({
-      ...mockSchedule,
-      enabled: false,
-    }));
+    mockDisableBackupSchedule.mockResolvedValue(
+      ok({
+        ...mockSchedule,
+        enabled: false,
+      })
+    );
 
     render(<BackupScheduleOverview />);
 
@@ -224,7 +240,7 @@ describe("BackupScheduleOverview", () => {
 
   it("should not delete schedule when delete is not confirmed", async () => {
     global.confirm = vi.fn(() => false);
-    
+
     mockGetBackupSchedules.mockResolvedValue(ok([mockSchedule]));
     mockGetSchedulerStatus.mockResolvedValue(ok(mockSchedulerStatus));
 
@@ -316,7 +332,7 @@ describe("BackupScheduleOverview", () => {
   it("should disable buttons when actions are in progress", async () => {
     mockGetBackupSchedules.mockResolvedValue(ok([mockSchedule]));
     mockGetSchedulerStatus.mockResolvedValue(ok(mockSchedulerStatus));
-    
+
     // Mock a slow API call
     mockDisableBackupSchedule.mockImplementation(() => new Promise(() => {}));
 

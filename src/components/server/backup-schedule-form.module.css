@@ -114,7 +114,9 @@
   background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 0.875rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .input:focus,

@@ -32,7 +32,8 @@ export function BackupScheduleManager({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [schedules, setSchedules] = useState<BackupSchedule[]>([]);
-  const [selectedSchedule, setSelectedSchedule] = useState<BackupSchedule | null>(null);
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<BackupSchedule | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [, setFormMode] = useState<"create" | "edit">("create");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +45,15 @@ export function BackupScheduleManager({
     { id: "overview", label: t("schedules.tabs.overview") },
     { id: "settings", label: t("schedules.tabs.settings") },
     { id: "history", label: t("schedules.tabs.history") },
-    ...(isAdmin ? [{ id: "admin" as TabId, label: t("schedules.tabs.admin"), requiresAdmin: true }] : []),
+    ...(isAdmin
+      ? [
+          {
+            id: "admin" as TabId,
+            label: t("schedules.tabs.admin"),
+            requiresAdmin: true,
+          },
+        ]
+      : []),
   ];
 
   const loadSchedules = async () => {

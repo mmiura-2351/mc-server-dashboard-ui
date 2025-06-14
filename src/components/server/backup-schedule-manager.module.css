@@ -229,7 +229,9 @@
   border: 1px solid var(--border-primary);
   border-radius: 0.5rem;
   padding: 1.5rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .scheduleCard:hover {
@@ -431,22 +433,22 @@
     background: var(--color-blue-900);
     color: var(--color-blue-100);
   }
-  
+
   .adminBadge {
     background: var(--color-purple-900);
     color: var(--color-purple-100);
   }
-  
+
   .scheduleStatus.enabled {
     background: var(--color-green-900);
     color: var(--color-green-100);
   }
-  
+
   .scheduleStatus.disabled {
     background: var(--color-red-900);
     color: var(--color-red-100);
   }
-  
+
   .editButton {
     background: var(--color-blue-900);
     color: var(--color-blue-100);

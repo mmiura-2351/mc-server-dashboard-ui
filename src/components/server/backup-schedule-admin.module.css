@@ -85,7 +85,9 @@
   border-radius: 0.5rem;
   padding: 1.5rem;
   text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .statCard:hover {
@@ -443,7 +445,7 @@
   padding: 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
 }
 
 /* Responsive Design */
@@ -538,7 +540,7 @@
     background: var(--color-blue-900);
     color: var(--color-blue-100);
   }
-  
+
   .activityServer {
     background: var(--color-gray-700);
     color: var(--color-gray-200);

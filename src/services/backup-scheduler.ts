@@ -111,7 +111,7 @@ export async function getBackupScheduleLogs(
   offset?: number
 ): Promise<Result<{ logs: BackupScheduleLog[]; total: number }, AuthError>> {
   const url = new URL(`${API_BASE_URL}/api/v1/backup-scheduler/logs`);
-  
+
   if (scheduleId) {
     url.searchParams.set("schedule_id", scheduleId);
   }
@@ -160,21 +160,15 @@ export async function getSchedulerStatus(): Promise<
 }
 
 export async function startScheduler(): Promise<Result<void, AuthError>> {
-  return fetchEmpty(
-    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/start`,
-    {
-      method: "POST",
-    }
-  );
+  return fetchEmpty(`${API_BASE_URL}/api/v1/backup-scheduler/scheduler/start`, {
+    method: "POST",
+  });
 }
 
 export async function stopScheduler(): Promise<Result<void, AuthError>> {
-  return fetchEmpty(
-    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/stop`,
-    {
-      method: "POST",
-    }
-  );
+  return fetchEmpty(`${API_BASE_URL}/api/v1/backup-scheduler/scheduler/stop`, {
+    method: "POST",
+  });
 }
 
 export async function restartScheduler(): Promise<Result<void, AuthError>> {
@@ -190,24 +184,24 @@ export async function restartScheduler(): Promise<Result<void, AuthError>> {
 export function parseScheduleInterval(cronExpression: string): number | null {
   // Parse common cron expressions to interval hours
   // This is a simplified parser for common patterns
-  
+
   // Every hour: "0 * * * *"
   if (cronExpression === "0 * * * *") return 1;
-  
+
   // Every N hours: "0 */N * * *"
   const hourlyMatch = cronExpression.match(/^0 \*\/(\d+) \* \* \*$/);
   if (hourlyMatch && hourlyMatch[1]) return parseInt(hourlyMatch[1]);
-  
+
   // Daily: "0 0 * * *"
   if (cronExpression === "0 0 * * *") return 24;
-  
+
   // Every N days: "0 0 */N * *"
   const dailyMatch = cronExpression.match(/^0 0 \*\/(\d+) \* \*$/);
   if (dailyMatch && dailyMatch[1]) return parseInt(dailyMatch[1]) * 24;
-  
+
   // Weekly: "0 0 * * 0"
   if (cronExpression === "0 0 * * 0") return 168;
-  
+
   return null;
 }
 
@@ -237,22 +231,22 @@ export function getNextRunTime(cronExpression: string): Date | null {
   // In a real application, you might want to use a proper cron parser library
   const now = new Date();
   const intervalHours = parseScheduleInterval(cronExpression);
-  
+
   if (intervalHours) {
     const nextRun = new Date(now.getTime() + intervalHours * 60 * 60 * 1000);
     return nextRun;
   }
-  
+
   return null;
 }
 
 export function formatScheduleDuration(durationSeconds?: number): string {
   if (!durationSeconds) return "N/A";
-  
+
   const hours = Math.floor(durationSeconds / 3600);
   const minutes = Math.floor((durationSeconds % 3600) / 60);
   const seconds = durationSeconds % 60;
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes}m ${seconds}s`;
   } else if (minutes > 0) {

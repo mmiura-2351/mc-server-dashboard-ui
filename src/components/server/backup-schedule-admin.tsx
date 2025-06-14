@@ -31,9 +31,8 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
   const { t } = useTranslation();
   const [schedules, setSchedules] = useState<BackupSchedule[]>([]);
   const [servers, setServers] = useState<MinecraftServer[]>([]);
-  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(
-    null
-  );
+  const [schedulerStatus, setSchedulerStatus] =
+    useState<SchedulerStatus | null>(null);
   const [recentLogs, setRecentLogs] = useState<BackupScheduleLog[]>([]);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,22 +44,25 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
     setError(null);
 
     try {
-      const [
-        schedulesResult,
-        serversResult,
-        statusResult,
-        logsResult,
-      ] = await Promise.all([
-        backupSchedulerService.getBackupSchedules(),
-        serverService.getServers(),
-        backupSchedulerService.getSchedulerStatus(),
-        backupSchedulerService.getBackupScheduleLogs(undefined, undefined, 10),
-      ]);
+      const [schedulesResult, serversResult, statusResult, logsResult] =
+        await Promise.all([
+          backupSchedulerService.getBackupSchedules(),
+          serverService.getServers(),
+          backupSchedulerService.getSchedulerStatus(),
+          backupSchedulerService.getBackupScheduleLogs(
+            undefined,
+            undefined,
+            10
+          ),
+        ]);
 
       if (schedulesResult.isOk()) {
         setSchedules(schedulesResult.value);
       } else {
-        console.warn("Failed to load schedules:", schedulesResult.error.message);
+        console.warn(
+          "Failed to load schedules:",
+          schedulesResult.error.message
+        );
       }
 
       if (serversResult.isOk()) {
@@ -72,7 +74,10 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
       if (statusResult.isOk()) {
         setSchedulerStatus(statusResult.value);
       } else {
-        console.warn("Failed to load scheduler status:", statusResult.error.message);
+        console.warn(
+          "Failed to load scheduler status:",
+          statusResult.error.message
+        );
       }
 
       if (logsResult.isOk()) {
@@ -104,9 +109,8 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const serversWithSchedules = new Set(
-      schedulesList.map((s) => s.server_id)
-    ).size;
+    const serversWithSchedules = new Set(schedulesList.map((s) => s.server_id))
+      .size;
 
     const activeSchedules = schedulesList.filter((s) => s.enabled).length;
 
@@ -153,7 +157,9 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSchedulerAction = async (action: "start" | "stop" | "restart") => {
+  const handleSchedulerAction = async (
+    action: "start" | "stop" | "restart"
+  ) => {
     setActionLoading((prev) => new Set(prev).add("scheduler"));
     setError(null);
 
@@ -189,7 +195,7 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
 
   const handleBulkToggleSchedules = async (enabled: boolean) => {
     const schedulesToToggle = schedules.filter((s) => s.enabled !== enabled);
-    
+
     if (schedulesToToggle.length === 0) {
       return;
     }
@@ -259,7 +265,9 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
       }
     } catch {
       setError(
-        t("schedules.admin.errors.failedToDeleteSchedule", { name: schedule.name })
+        t("schedules.admin.errors.failedToDeleteSchedule", {
+          name: schedule.name,
+        })
       );
     } finally {
       setActionLoading((prev) => {
@@ -344,7 +352,9 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
               </div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statValue}>{stats.serversWithSchedules}</div>
+              <div className={styles.statValue}>
+                {stats.serversWithSchedules}
+              </div>
               <div className={styles.statLabel}>
                 {t("schedules.admin.stats.serversWithSchedules")}
               </div>
@@ -516,16 +526,23 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
                     </p>
                   )}
                   <div className={styles.scheduleDetails}>
-                    <span>{t("schedules.admin.interval")}: {schedule.interval_hours}h</span>
-                    <span>{t("schedules.admin.maxBackups")}: {schedule.max_backups}</span>
+                    <span>
+                      {t("schedules.admin.interval")}: {schedule.interval_hours}
+                      h
+                    </span>
+                    <span>
+                      {t("schedules.admin.maxBackups")}: {schedule.max_backups}
+                    </span>
                     {schedule.last_run_at && (
                       <span>
-                        {t("schedules.admin.lastRun")}: {formatDate(schedule.last_run_at)}
+                        {t("schedules.admin.lastRun")}:{" "}
+                        {formatDate(schedule.last_run_at)}
                       </span>
                     )}
                     {schedule.next_run_at && (
                       <span>
-                        {t("schedules.admin.nextRun")}: {formatDate(schedule.next_run_at)}
+                        {t("schedules.admin.nextRun")}:{" "}
+                        {formatDate(schedule.next_run_at)}
                       </span>
                     )}
                   </div>
