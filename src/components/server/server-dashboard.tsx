@@ -9,7 +9,6 @@ import type {
   MinecraftServer,
   ServerTemplate,
   CreateServerRequest,
-  ServerImportRequest,
 } from "@/types/server";
 import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
 import styles from "./server-dashboard.module.css";
@@ -37,13 +36,32 @@ export function ServerDashboard() {
   });
 
   // Import server form
-  const [importForm, setImportForm] = useState<
-    Omit<ServerImportRequest, "file">
-  >({
+  const [importForm, setImportForm] = useState<{
+    name: string;
+    description: string;
+  }>({
     name: "",
     description: "",
   });
   const [importFile, setImportFile] = useState<File | null>(null);
+
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setModalTab("create");
+    // Reset forms
+    setCreateForm({
+      name: "",
+      minecraft_version: "1.21.5",
+      server_type: ServerType.VANILLA,
+      max_memory: 2048,
+      description: "",
+    });
+    setImportForm({
+      name: "",
+      description: "",
+    });
+    setImportFile(null);
+  };
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -117,14 +135,7 @@ export function ServerDashboard() {
     const result = await serverService.createServer(createForm);
     if (result.isOk()) {
       setServers([...servers, result.value]);
-      setShowCreateModal(false);
-      setCreateForm({
-        name: "",
-        minecraft_version: "1.21.5",
-        server_type: ServerType.VANILLA,
-        max_memory: 2048,
-        description: "",
-      });
+      closeModal();
     } else {
       // Handle authentication errors
       if (result.error.status === 401) {
@@ -143,18 +154,14 @@ export function ServerDashboard() {
     setIsImporting(true);
 
     const result = await serverService.importServer({
-      ...importForm,
+      name: importForm.name,
+      description: importForm.description || undefined,
       file: importFile,
     });
 
     if (result.isOk()) {
       setServers([...servers, result.value]);
-      setShowCreateModal(false);
-      setImportForm({
-        name: "",
-        description: "",
-      });
-      setImportFile(null);
+      closeModal();
     } else {
       if (result.error.status === 401) {
         logout();
@@ -326,10 +333,7 @@ export function ServerDashboard() {
                   ? t("servers.create.title")
                   : t("servers.import.title")}
               </h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className={styles.closeButton}
-              >
+              <button onClick={closeModal} className={styles.closeButton}>
                 ×
               </button>
             </div>
@@ -452,7 +456,7 @@ export function ServerDashboard() {
                 <div className={styles.modalActions}>
                   <button
                     type="button"
-                    onClick={() => setShowCreateModal(false)}
+                    onClick={closeModal}
                     className={styles.cancelButton}
                   >
                     {t("common.cancel")}
@@ -507,7 +511,7 @@ export function ServerDashboard() {
                   </label>
                   <textarea
                     id="importServerDescription"
-                    value={importForm.description || ""}
+                    value={importForm.description}
                     onChange={(e) =>
                       setImportForm({
                         ...importForm,
@@ -522,7 +526,7 @@ export function ServerDashboard() {
                 <div className={styles.modalActions}>
                   <button
                     type="button"
-                    onClick={() => setShowCreateModal(false)}
+                    onClick={closeModal}
                     className={styles.cancelButton}
                   >
                     {t("common.cancel")}
