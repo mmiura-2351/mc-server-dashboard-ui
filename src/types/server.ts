@@ -107,6 +107,89 @@ export interface BackupSettings {
   maxBackups: number;
 }
 
+// Enhanced backup scheduling interfaces
+export interface BackupSchedule {
+  id: string;
+  server_id: number;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  cron_expression: string;
+  interval_hours?: number;
+  max_backups: number;
+  only_when_running: boolean;
+  backup_type: "scheduled" | "manual";
+  created_at: string;
+  updated_at: string;
+  last_run_at?: string;
+  next_run_at?: string;
+  created_by: number;
+}
+
+export interface BackupScheduleCreateRequest {
+  server_id: number;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  cron_expression?: string;
+  interval_hours?: number;
+  max_backups: number;
+  only_when_running: boolean;
+}
+
+export interface BackupScheduleUpdateRequest {
+  name?: string;
+  description?: string;
+  enabled?: boolean;
+  cron_expression?: string;
+  interval_hours?: number;
+  max_backups?: number;
+  only_when_running?: boolean;
+}
+
+export interface BackupScheduleLog {
+  id: string;
+  schedule_id: string;
+  server_id: number;
+  backup_id?: string;
+  status: "success" | "failed" | "running" | "cancelled";
+  started_at: string;
+  completed_at?: string;
+  duration_seconds?: number;
+  error_message?: string;
+  backup_size_bytes?: number;
+  logs?: string[];
+}
+
+export interface SchedulerStatus {
+  running: boolean;
+  total_schedules: number;
+  active_schedules: number;
+  last_check_at?: string;
+  next_check_at?: string;
+  current_jobs: SchedulerJob[];
+}
+
+export interface SchedulerJob {
+  id: string;
+  schedule_id: string;
+  server_id: number;
+  status: "pending" | "running" | "completed" | "failed";
+  started_at: string;
+  progress_percentage?: number;
+  estimated_completion_at?: string;
+}
+
+export enum BackupScheduleInterval {
+  HOURLY = 1,
+  EVERY_6_HOURS = 6,
+  EVERY_12_HOURS = 12,
+  DAILY = 24,
+  EVERY_2_DAYS = 48,
+  WEEKLY = 168,
+  CUSTOM = -1,
+}
+
 export interface ServerPlayer {
   name: string;
   uuid: string;

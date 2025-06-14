@@ -216,10 +216,13 @@
       "disabled": "Disabled"
     },
     "intervals": {
+      "hourly": "Every hour",
       "6hours": "Every 6 hours",
       "12hours": "Every 12 hours",
       "24hours": "Every 24 hours",
+      "daily": "Daily",
       "48hours": "Every 48 hours",
+      "2days": "Every 2 days",
       "weekly": "Weekly"
     },
     "createBackup": "Create New Backup",
@@ -245,6 +248,202 @@
       "failedToCreateBackup": "Failed to create backup",
       "failedToRestoreBackup": "Failed to restore backup",
       "failedToDeleteBackup": "Failed to delete backup"
+    }
+  },
+  "schedules": {
+    "manager": {
+      "title": "Backup Schedule Management",
+      "description": "Comprehensive backup scheduling system for automated world protection and data management."
+    },
+    "tabs": {
+      "overview": "Overview",
+      "settings": "Settings",
+      "history": "History", 
+      "admin": "Admin"
+    },
+    "overview": {
+      "title": "Backup Schedules Overview",
+      "description": "View and manage all backup schedules with real-time status updates and quick actions.",
+      "schedulesList": "Active Schedules",
+      "noSchedulesFound": "No backup schedules found. Create your first schedule to get started!",
+      "interval": "Interval",
+      "maxBackups": "Max Backups",
+      "nextRun": "Next Run"
+    },
+    "scheduler": {
+      "title": "Scheduler Status",
+      "status": "Status",
+      "running": "Running",
+      "stopped": "Stopped",
+      "totalSchedules": "Total Schedules",
+      "activeSchedules": "Active Schedules",
+      "runningJobs": "Running Jobs"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "never": "Never",
+      "overdue": "Overdue",
+      "unknown": "Unknown",
+      "nextRunInDays": "In {days} days",
+      "nextRunInHours": "In {hours} hours", 
+      "nextRunInMinutes": "In {minutes} minutes"
+    },
+    "create": "Create Schedule",
+    "createFirst": "Create First Schedule",
+    "edit": "Edit",
+    "enable": "Enable",
+    "disable": "Disable",
+    "runNow": "Run Now",
+    "viewLogs": "View Logs",
+    "delete": "Delete",
+    "deleteConfirmation": "Are you sure you want to delete schedule '{name}'? This action cannot be undone.",
+    "settings": {
+      "title": "Schedule Settings",
+      "description": "Create and configure backup schedules with flexible timing and retention options.",
+      "noSchedules": "No schedules configured",
+      "noSchedulesDescription": "Create your first backup schedule to automate your world protection.",
+      "existingSchedules": "Existing Schedules"
+    },
+    "form": {
+      "createTitle": "Create Backup Schedule",
+      "editTitle": "Edit Backup Schedule",
+      "description": "Configure automatic backup scheduling with custom intervals and retention policies.",
+      "basicInfo": "Basic Information",
+      "name": "Schedule Name",
+      "namePlaceholder": "Enter schedule name",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe this backup schedule (optional)",
+      "enabled": "Enable this schedule",
+      "scheduleConfig": "Schedule Configuration",
+      "intervalType": "Interval Type",
+      "presetInterval": "Use preset interval",
+      "customCron": "Custom cron expression",
+      "interval": "Backup Interval",
+      "cronExpression": "Cron Expression",
+      "cronHelp": "Format: minute hour day month weekday (e.g., '0 */6 * * *' for every 6 hours)",
+      "nextRunPreview": "Next run",
+      "nextRunUnknown": "Unknown (custom cron)",
+      "backupOptions": "Backup Options",
+      "maxBackups": "Maximum Backups",
+      "maxBackupsHelp": "Older backups will be automatically deleted when this limit is reached",
+      "onlyWhenRunning": "Only backup when server is running",
+      "onlyWhenRunningHelp": "Skip backup if server is offline to avoid empty backups",
+      "createSchedule": "Create Schedule",
+      "updateSchedule": "Update Schedule",
+      "validation": {
+        "nameRequired": "Schedule name is required",
+        "nameTooLong": "Schedule name must be 100 characters or less",
+        "descriptionTooLong": "Description must be 500 characters or less",
+        "cronRequired": "Cron expression is required",
+        "cronInvalid": "Invalid cron expression format",
+        "maxBackupsRange": "Maximum backups must be between 1 and 100",
+        "serverRequired": "Server is required"
+      }
+    },
+    "logs": {
+      "title": "Schedule Execution History",
+      "description": "View detailed logs and execution history for all backup schedules.",
+      "logsList": "Execution Logs",
+      "noLogsFound": "No execution logs found.",
+      "showingTotal": "Showing {total} logs",
+      "showingFiltered": "Showing {showing} of {total} logs",
+      "filters": {
+        "title": "Filters",
+        "schedule": "Schedule",
+        "allSchedules": "All Schedules",
+        "status": "Status",
+        "allStatuses": "All Statuses",
+        "dateRange": "Date Range",
+        "allTime": "All Time",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month"
+      },
+      "status": {
+        "success": "Success",
+        "failed": "Failed",
+        "running": "Running",
+        "cancelled": "Cancelled"
+      },
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "viewBackup": "View Backup",
+      "errorMessage": "Error Message",
+      "output": "Output",
+      "logId": "Log ID",
+      "completedAt": "Completed At",
+      "backupId": "Backup ID",
+      "noSize": "Unknown",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "pageInfo": "Page {current} of {total}"
+      },
+      "errors": {
+        "failedToLoadLogs": "Failed to load execution logs"
+      }
+    },
+    "admin": {
+      "title": "Schedule Administration",
+      "description": "System-wide backup schedule management and monitoring for administrators.",
+      "systemStats": "System Statistics",
+      "schedulerControl": "Scheduler Control",
+      "allSchedules": "All Schedules",
+      "recentActivity": "Recent Activity",
+      "stats": {
+        "totalServers": "Total Servers",
+        "serversWithSchedules": "Servers with Schedules", 
+        "totalSchedules": "Total Schedules",
+        "activeSchedules": "Active Schedules",
+        "backupsToday": "Backups Today",
+        "averageBackupSize": "Average Backup Size"
+      },
+      "schedulerStatus": "Scheduler Status",
+      "running": "Running",
+      "stopped": "Stopped",
+      "lastCheck": "Last Check",
+      "nextCheck": "Next Check",
+      "startScheduler": "Start Scheduler",
+      "stopScheduler": "Stop Scheduler",
+      "restartScheduler": "Restart Scheduler",
+      "enableAll": "Enable All",
+      "disableAll": "Disable All",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "interval": "Interval",
+      "maxBackups": "Max Backups",
+      "lastRun": "Last Run",
+      "nextRun": "Next Run",
+      "noSchedulesFound": "No schedules found across all servers.",
+      "noRecentActivity": "No recent backup activity.",
+      "status": {
+        "success": "Success",
+        "failed": "Failed", 
+        "running": "Running",
+        "cancelled": "Cancelled"
+      },
+      "accessDenied": "Access Denied",
+      "accessDeniedDescription": "You need administrator privileges to access the schedule administration panel.",
+      "badge": "Admin",
+      "enableAllConfirmation": "Are you sure you want to enable {count} schedules?",
+      "disableAllConfirmation": "Are you sure you want to disable {count} schedules?",
+      "deleteScheduleConfirmation": "Are you sure you want to delete schedule '{name}'? This action cannot be undone.",
+      "errors": {
+        "failedToLoadData": "Failed to load administration data",
+        "schedulerActionFailed": "Failed to {action} scheduler",
+        "failedToEnableSchedules": "Failed to enable schedules",
+        "failedToDisableSchedules": "Failed to disable schedules",
+        "failedToDeleteSchedule": "Failed to delete schedule '{name}'"
+      }
+    },
+    "errors": {
+      "failedToLoadSchedules": "Failed to load backup schedules",
+      "failedToToggleSchedule": "Failed to toggle schedule '{name}'",
+      "failedToTriggerSchedule": "Failed to trigger schedule '{name}'",
+      "failedToDeleteSchedule": "Failed to delete schedule '{name}'",
+      "failedToCreateSchedule": "Failed to create backup schedule",
+      "failedToUpdateSchedule": "Failed to update backup schedule"
     }
   },
   "errors": {

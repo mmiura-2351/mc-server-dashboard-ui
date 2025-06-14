@@ -1,0 +1,440 @@
+.container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  background: var(--bg-primary);
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h2 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.error {
+  background: var(--color-red-50);
+  border: 1px solid var(--color-red-200);
+  color: var(--color-red-800);
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  color: var(--color-red-800);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dismissButton:hover {
+  background: var(--color-red-100);
+  border-radius: 50%;
+}
+
+/* Filters Section */
+.filtersSection {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.filtersSection h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterLabel {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.filterSelect {
+  padding: 0.5rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.375rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--color-blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filterActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.refreshButton {
+  padding: 0.5rem 1rem;
+  background: var(--color-blue-600);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: var(--color-blue-700);
+}
+
+.refreshButton:disabled {
+  background: var(--color-gray-400);
+  cursor: not-allowed;
+}
+
+/* Logs Section */
+.logsSection h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.logsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.logsInfo {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.noLogs {
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+}
+
+.noLogs p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.logsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.logItem {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.logHeader {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.logMainInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.logTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.scheduleName {
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--color-blue-50);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.logStatus {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.logMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.logActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.viewBackupButton,
+.expandButton {
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.viewBackupButton:hover,
+.expandButton:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.viewBackupButton {
+  background: var(--color-blue-50);
+  color: var(--color-blue-700);
+  border-color: var(--color-blue-200);
+}
+
+.viewBackupButton:hover {
+  background: var(--color-blue-100);
+  border-color: var(--color-blue-300);
+}
+
+.logDetails {
+  border-top: 1px solid var(--border-primary);
+  padding: 1.5rem;
+  background: var(--bg-primary);
+}
+
+.errorMessage {
+  background: var(--color-red-50);
+  border: 1px solid var(--color-red-200);
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.errorMessage strong {
+  color: var(--color-red-800);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.errorMessage pre {
+  color: var(--color-red-700);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.logOutput {
+  margin-bottom: 1rem;
+}
+
+.logOutput strong {
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.logLines {
+  background: var(--color-gray-900);
+  color: var(--color-gray-100);
+  border-radius: 0.375rem;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.logLine {
+  margin-bottom: 0.25rem;
+}
+
+.logMetadata {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 0.375rem;
+}
+
+.metadataItem {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.metadataItem strong {
+  color: var(--text-primary);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.paginationButton {
+  padding: 0.5rem 1rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.paginationButton:disabled {
+  background: var(--color-gray-100);
+  color: var(--color-gray-400);
+  border-color: var(--color-gray-200);
+  cursor: not-allowed;
+}
+
+.paginationInfo {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .filtersGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filterActions {
+    justify-content: stretch;
+  }
+
+  .refreshButton {
+    width: 100%;
+  }
+
+  .logsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .logHeader {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .logActions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .logMeta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .logMetadata {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .scheduleName {
+    background: var(--color-blue-900);
+    color: var(--color-blue-100);
+  }
+  
+  .logLines {
+    background: var(--color-gray-800);
+    color: var(--color-gray-100);
+  }
+}

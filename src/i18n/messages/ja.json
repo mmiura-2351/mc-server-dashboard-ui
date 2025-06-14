@@ -216,10 +216,13 @@
       "disabled": "無効"
     },
     "intervals": {
+      "hourly": "1時間ごと",
       "6hours": "6時間ごと",
       "12hours": "12時間ごと",
       "24hours": "24時間ごと",
+      "daily": "毎日",
       "48hours": "48時間ごと",
+      "2days": "2日ごと",
       "weekly": "週次"
     },
     "createBackup": "新しいバックアップを作成",
@@ -245,6 +248,202 @@
       "failedToCreateBackup": "バックアップの作成に失敗しました",
       "failedToRestoreBackup": "バックアップの復元に失敗しました",
       "failedToDeleteBackup": "バックアップの削除に失敗しました"
+    }
+  },
+  "schedules": {
+    "manager": {
+      "title": "バックアップスケジュール管理",
+      "description": "自動化されたワールド保護とデータ管理のための包括的なバックアップスケジューリングシステム。"
+    },
+    "tabs": {
+      "overview": "概要",
+      "settings": "設定",
+      "history": "履歴",
+      "admin": "管理者"
+    },
+    "overview": {
+      "title": "バックアップスケジュール概要",
+      "description": "リアルタイムステータス更新とクイックアクションですべてのバックアップスケジュールを表示・管理します。",
+      "schedulesList": "アクティブなスケジュール",
+      "noSchedulesFound": "バックアップスケジュールが見つかりません。最初のスケジュールを作成して始めましょう！",
+      "interval": "間隔",
+      "maxBackups": "最大バックアップ数",
+      "nextRun": "次回実行"
+    },
+    "scheduler": {
+      "title": "スケジューラステータス",
+      "status": "状態",
+      "running": "実行中",
+      "stopped": "停止中",
+      "totalSchedules": "総スケジュール数",
+      "activeSchedules": "アクティブなスケジュール",
+      "runningJobs": "実行中のジョブ"
+    },
+    "status": {
+      "enabled": "有効",
+      "disabled": "無効",
+      "never": "実行なし",
+      "overdue": "遅延中",
+      "unknown": "不明",
+      "nextRunInDays": "{days}日後",
+      "nextRunInHours": "{hours}時間後",
+      "nextRunInMinutes": "{minutes}分後"
+    },
+    "create": "スケジュール作成",
+    "createFirst": "最初のスケジュールを作成",
+    "edit": "編集",
+    "enable": "有効化",
+    "disable": "無効化",
+    "runNow": "今すぐ実行",
+    "viewLogs": "ログを表示",
+    "delete": "削除",
+    "deleteConfirmation": "スケジュール'{name}'を削除しますか？この操作は元に戻せません。",
+    "settings": {
+      "title": "スケジュール設定",
+      "description": "柔軟なタイミングと保持オプションでバックアップスケジュールを作成・設定します。",
+      "noSchedules": "スケジュールが設定されていません",
+      "noSchedulesDescription": "ワールド保護を自動化するための最初のバックアップスケジュールを作成してください。",
+      "existingSchedules": "既存のスケジュール"
+    },
+    "form": {
+      "createTitle": "バックアップスケジュールを作成",
+      "editTitle": "バックアップスケジュールを編集",
+      "description": "カスタム間隔と保持ポリシーで自動バックアップスケジューリングを設定します。",
+      "basicInfo": "基本情報",
+      "name": "スケジュール名",
+      "namePlaceholder": "スケジュール名を入力",
+      "description": "説明",
+      "descriptionPlaceholder": "このバックアップスケジュールを説明してください（任意）",
+      "enabled": "このスケジュールを有効にする",
+      "scheduleConfig": "スケジュール設定",
+      "intervalType": "間隔タイプ",
+      "presetInterval": "プリセット間隔を使用",
+      "customCron": "カスタムcron式",
+      "interval": "バックアップ間隔",
+      "cronExpression": "Cron式",
+      "cronHelp": "形式: 分 時 日 月 曜日（例: '0 */6 * * *'は6時間ごと）",
+      "nextRunPreview": "次回実行",
+      "nextRunUnknown": "不明（カスタムcron）",
+      "backupOptions": "バックアップオプション",
+      "maxBackups": "最大バックアップ数",
+      "maxBackupsHelp": "この制限に達すると古いバックアップが自動的に削除されます",
+      "onlyWhenRunning": "サーバー実行中のみバックアップ",
+      "onlyWhenRunningHelp": "空のバックアップを避けるため、サーバーがオフラインの場合はバックアップをスキップします",
+      "createSchedule": "スケジュール作成",
+      "updateSchedule": "スケジュール更新",
+      "validation": {
+        "nameRequired": "スケジュール名は必須です",
+        "nameTooLong": "スケジュール名は100文字以下にしてください",
+        "descriptionTooLong": "説明は500文字以下にしてください",
+        "cronRequired": "Cron式は必須です",
+        "cronInvalid": "無効なCron式形式です",
+        "maxBackupsRange": "最大バックアップ数は1から100の間にしてください",
+        "serverRequired": "サーバーは必須です"
+      }
+    },
+    "logs": {
+      "title": "スケジュール実行履歴",
+      "description": "すべてのバックアップスケジュールの詳細ログと実行履歴を表示します。",
+      "logsList": "実行ログ",
+      "noLogsFound": "実行ログが見つかりません。",
+      "showingTotal": "{total}件のログを表示",
+      "showingFiltered": "{total}件中{showing}件のログを表示",
+      "filters": {
+        "title": "フィルター",
+        "schedule": "スケジュール",
+        "allSchedules": "すべてのスケジュール",
+        "status": "状態",
+        "allStatuses": "すべての状態",
+        "dateRange": "日付範囲",
+        "allTime": "すべての期間",
+        "today": "今日",
+        "thisWeek": "今週",
+        "thisMonth": "今月"
+      },
+      "status": {
+        "success": "成功",
+        "failed": "失敗",
+        "running": "実行中",
+        "cancelled": "キャンセル済み"
+      },
+      "expand": "展開",
+      "collapse": "折りたたみ",
+      "viewBackup": "バックアップを表示",
+      "errorMessage": "エラーメッセージ",
+      "output": "出力",
+      "logId": "ログID",
+      "completedAt": "完了時刻",
+      "backupId": "バックアップID",
+      "noSize": "不明",
+      "pagination": {
+        "previous": "前へ",
+        "next": "次へ",
+        "pageInfo": "{total}ページ中{current}ページ"
+      },
+      "errors": {
+        "failedToLoadLogs": "実行ログの読み込みに失敗しました"
+      }
+    },
+    "admin": {
+      "title": "スケジュール管理",
+      "description": "管理者向けのシステム全体のバックアップスケジュール管理とモニタリング。",
+      "systemStats": "システム統計",
+      "schedulerControl": "スケジューラ制御",
+      "allSchedules": "すべてのスケジュール",
+      "recentActivity": "最近のアクティビティ",
+      "stats": {
+        "totalServers": "総サーバー数",
+        "serversWithSchedules": "スケジュール設定済みサーバー",
+        "totalSchedules": "総スケジュール数",
+        "activeSchedules": "アクティブなスケジュール",
+        "backupsToday": "今日のバックアップ",
+        "averageBackupSize": "平均バックアップサイズ"
+      },
+      "schedulerStatus": "スケジューラステータス",
+      "running": "実行中",
+      "stopped": "停止中",
+      "lastCheck": "最終チェック",
+      "nextCheck": "次回チェック",
+      "startScheduler": "スケジューラ開始",
+      "stopScheduler": "スケジューラ停止",
+      "restartScheduler": "スケジューラ再起動",
+      "enableAll": "すべて有効化",
+      "disableAll": "すべて無効化",
+      "enabled": "有効",
+      "disabled": "無効",
+      "interval": "間隔",
+      "maxBackups": "最大バックアップ数",
+      "lastRun": "最終実行",
+      "nextRun": "次回実行",
+      "noSchedulesFound": "すべてのサーバーでスケジュールが見つかりません。",
+      "noRecentActivity": "最近のバックアップアクティビティはありません。",
+      "status": {
+        "success": "成功",
+        "failed": "失敗",
+        "running": "実行中",
+        "cancelled": "キャンセル済み"
+      },
+      "accessDenied": "アクセス拒否",
+      "accessDeniedDescription": "スケジュール管理パネルにアクセスするには管理者権限が必要です。",
+      "badge": "管理者",
+      "enableAllConfirmation": "{count}個のスケジュールを有効化しますか？",
+      "disableAllConfirmation": "{count}個のスケジュールを無効化しますか？",
+      "deleteScheduleConfirmation": "スケジュール'{name}'を削除しますか？この操作は元に戻せません。",
+      "errors": {
+        "failedToLoadData": "管理データの読み込みに失敗しました",
+        "schedulerActionFailed": "スケジューラの{action}に失敗しました",
+        "failedToEnableSchedules": "スケジュールの有効化に失敗しました",
+        "failedToDisableSchedules": "スケジュールの無効化に失敗しました",
+        "failedToDeleteSchedule": "スケジュール'{name}'の削除に失敗しました"
+      }
+    },
+    "errors": {
+      "failedToLoadSchedules": "バックアップスケジュールの読み込みに失敗しました",
+      "failedToToggleSchedule": "スケジュール'{name}'の切り替えに失敗しました",
+      "failedToTriggerSchedule": "スケジュール'{name}'のトリガーに失敗しました",
+      "failedToDeleteSchedule": "スケジュール'{name}'の削除に失敗しました",
+      "failedToCreateSchedule": "バックアップスケジュールの作成に失敗しました",
+      "failedToUpdateSchedule": "バックアップスケジュールの更新に失敗しました"
     }
   },
   "errors": {
