@@ -30,7 +30,9 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const [newBackupName, setNewBackupName] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isEditingSettings, setIsEditingSettings] = useState(false);
-  const [downloadingBackups, setDownloadingBackups] = useState<Set<string>>(new Set());
+  const [downloadingBackups, setDownloadingBackups] = useState<Set<string>>(
+    new Set()
+  );
 
   const loadBackupsAndSettings = async () => {
     setIsLoading(true);
@@ -147,7 +149,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   };
 
   const handleDownloadBackup = async (backupId: string, backupName: string) => {
-    setDownloadingBackups(prev => new Set(prev).add(backupId));
+    setDownloadingBackups((prev) => new Set(prev).add(backupId));
     setError(null);
 
     try {
@@ -169,7 +171,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     } catch {
       setError(t("errors.operationFailed", { action: "download backup" }));
     } finally {
-      setDownloadingBackups(prev => {
+      setDownloadingBackups((prev) => {
         const newSet = new Set(prev);
         newSet.delete(backupId);
         return newSet;
@@ -487,8 +489,8 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                     className={styles.downloadButton}
                     disabled={downloadingBackups.has(backup.id)}
                   >
-                    {downloadingBackups.has(backup.id) 
-                      ? t("backups.downloading") 
+                    {downloadingBackups.has(backup.id)
+                      ? t("backups.downloading")
                       : t("backups.download")}
                   </button>
                   <button
