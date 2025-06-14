@@ -72,11 +72,11 @@ export function ServerDashboard() {
         setTemplates(templatesResult.value);
       }
     } catch {
-      setError(t("errors.generic"));
+      setError("Failed to load data");
     } finally {
       setIsLoading(false);
     }
-  }, [logout, t]);
+  }, [logout]);
 
   useEffect(() => {
     loadData();
