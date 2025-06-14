@@ -168,11 +168,11 @@ export function BackupScheduleOverview({
       const diffDays = Math.floor(diffHours / 24);
       
       if (diffDays > 0) {
-        return t("schedules.status.nextRunInDays", { days: diffDays });
+        return t("schedules.status.nextRunInDays", { days: diffDays.toString() });
       } else if (diffHours > 0) {
-        return t("schedules.status.nextRunInHours", { hours: diffHours });
+        return t("schedules.status.nextRunInHours", { hours: diffHours.toString() });
       } else {
-        return t("schedules.status.nextRunInMinutes", { minutes: diffMinutes });
+        return t("schedules.status.nextRunInMinutes", { minutes: diffMinutes.toString() });
       }
     } catch {
       return t("schedules.status.unknown");

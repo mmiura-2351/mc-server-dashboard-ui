@@ -138,7 +138,7 @@ export function BackupScheduleLogs({
     if (scheduleId && filters.scheduleId !== scheduleId) {
       setFilters((prev) => ({ ...prev, scheduleId }));
     }
-  }, [scheduleId]);
+  }, [scheduleId, filters.scheduleId]);
 
   const handleFilterChange = (field: keyof LogFilters, value: string) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
@@ -314,10 +314,10 @@ export function BackupScheduleLogs({
           <div className={styles.logsInfo}>
             {filteredLogs.length !== totalLogs
               ? t("schedules.logs.showingFiltered", {
-                  showing: filteredLogs.length,
-                  total: totalLogs,
+                  showing: filteredLogs.length.toString(),
+                  total: totalLogs.toString(),
                 })
-              : t("schedules.logs.showingTotal", { total: totalLogs })}
+              : t("schedules.logs.showingTotal", { total: totalLogs.toString() })}
           </div>
         </div>
 
@@ -430,8 +430,8 @@ export function BackupScheduleLogs({
             
             <div className={styles.paginationInfo}>
               {t("schedules.logs.pagination.pageInfo", {
-                current: currentPage,
-                total: totalPages,
+                current: currentPage.toString(),
+                total: totalPages.toString(),
               })}
             </div>
             

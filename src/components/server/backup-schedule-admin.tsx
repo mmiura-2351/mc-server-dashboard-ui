@@ -198,10 +198,10 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
       !confirm(
         enabled
           ? t("schedules.admin.enableAllConfirmation", {
-              count: schedulesToToggle.length,
+              count: schedulesToToggle.length.toString(),
             })
           : t("schedules.admin.disableAllConfirmation", {
-              count: schedulesToToggle.length,
+              count: schedulesToToggle.length.toString(),
             })
       )
     ) {

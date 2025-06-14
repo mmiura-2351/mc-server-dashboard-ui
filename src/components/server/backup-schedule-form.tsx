@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "@/contexts/language";
 import * as backupSchedulerService from "@/services/backup-scheduler";
 import type {
@@ -47,20 +47,20 @@ export function BackupScheduleForm({
     maxBackups: 7,
     onlyWhenRunning: true,
   });
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Predefined interval options
-  const intervalOptions = [
+  const intervalOptions = useMemo(() => [
     { value: 1, label: t("schedules.intervals.hourly") },
     { value: 6, label: t("schedules.intervals.6hours") },
     { value: 12, label: t("schedules.intervals.12hours") },
     { value: 24, label: t("schedules.intervals.daily") },
     { value: 48, label: t("schedules.intervals.2days") },
     { value: 168, label: t("schedules.intervals.weekly") },
-  ];
+  ], [t]);
 
   // Initialize form data when schedule prop changes
   useEffect(() => {
@@ -96,10 +96,10 @@ export function BackupScheduleForm({
     }
     setErrors({});
     setSubmitError(null);
-  }, [schedule]);
+  }, [schedule, intervalOptions]);
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = t("schedules.validation.nameRequired");
@@ -123,7 +123,7 @@ export function BackupScheduleForm({
       }
     }
 
-    if (formData.maxBackups < 1 || formData.maxBackups > 100) {
+    if (isNaN(formData.maxBackups) || formData.maxBackups < 1 || formData.maxBackups > 100) {
       newErrors.maxBackups = t("schedules.validation.maxBackupsRange");
     }
 
@@ -203,7 +203,11 @@ export function BackupScheduleForm({
     
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
