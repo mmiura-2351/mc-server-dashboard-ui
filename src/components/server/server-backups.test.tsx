@@ -7,13 +7,11 @@ import { ok, err } from "neverthrow";
 // Mock the server service
 vi.mock("@/services/server", () => ({
   getServerBackups: vi.fn(),
-  getBackupSettings: vi.fn(),
   createBackup: vi.fn(),
   restoreBackup: vi.fn(),
   advancedRestoreBackup: vi.fn(),
   downloadBackup: vi.fn(),
   deleteBackup: vi.fn(),
-  updateBackupSettings: vi.fn(),
 }));
 
 // Mock useTranslation
@@ -24,15 +22,6 @@ const translations: Record<string, string> = {
   "common.cancel": "Cancel",
   "servers.backups": "Backups",
   "backups.description": "Manage your server backups",
-  "backups.settings.title": "Backup Settings",
-  "backups.settings.enableAutoBackup": "Enable Automatic Backups",
-  "backups.settings.interval": "Backup Interval",
-  "backups.settings.maxBackups": "Maximum Backups to Keep",
-  "backups.intervals.6hours": "Every 6 hours",
-  "backups.intervals.12hours": "Every 12 hours",
-  "backups.intervals.24hours": "Every 24 hours",
-  "backups.intervals.48hours": "Every 48 hours",
-  "backups.intervals.weekly": "Weekly",
   "backups.createBackup": "Create New Backup",
   "backups.backupNamePlaceholder": "Enter backup name...",
   "backups.create": "Create Backup",
@@ -54,10 +43,6 @@ const translations: Record<string, string> = {
     "Restore backup '{name}' with advanced options? This will preserve player data and settings while restoring the world.",
   "backups.deleteConfirmation":
     "Are you sure you want to delete backup '{name}'? This action cannot be undone.",
-  "backups.settings.edit": "Edit Settings",
-  "backups.settings.status": "Status",
-  "backups.settings.enabled": "Enabled",
-  "backups.settings.disabled": "Disabled",
   "backups.errors.backupNameRequired": "Backup name is required",
   "errors.failedToLoadBackups": "Failed to load backups",
   "errors.operationFailed": "Failed to {action}",
@@ -89,7 +74,7 @@ Object.defineProperty(window, "confirm", {
 describe("ServerBackups", () => {
   const mockBackups = [
     {
-      id: "backup-1",
+      id: 1,
       server_id: 1,
       name: "Test Backup",
       description: "Test backup description",
@@ -99,7 +84,7 @@ describe("ServerBackups", () => {
       file_path: "/backups/backup-1.tar.gz",
     },
     {
-      id: "backup-2",
+      id: 2,
       server_id: 1,
       name: "Auto Backup",
       description: "Scheduled backup",
@@ -110,23 +95,14 @@ describe("ServerBackups", () => {
     },
   ];
 
-  const mockBackupSettings = {
-    enabled: true,
-    interval: 24,
-    maxBackups: 7,
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(serverService.getServerBackups).mockResolvedValue(
       ok(mockBackups)
     );
-    vi.mocked(serverService.getBackupSettings).mockResolvedValue(
-      ok(mockBackupSettings)
-    );
     vi.mocked(serverService.createBackup).mockResolvedValue(
       ok({
-        id: "new-backup",
+        id: 3,
         server_id: 1,
         name: "New Backup",
         description: "Newly created backup",
@@ -138,9 +114,6 @@ describe("ServerBackups", () => {
     );
     vi.mocked(serverService.restoreBackup).mockResolvedValue(ok(undefined));
     vi.mocked(serverService.deleteBackup).mockResolvedValue(ok(undefined));
-    vi.mocked(serverService.updateBackupSettings).mockResolvedValue(
-      ok(undefined)
-    );
   });
 
   it("renders backup interface correctly", async () => {
@@ -150,7 +123,6 @@ describe("ServerBackups", () => {
       expect(screen.getByText("Backups")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Backup Settings")).toBeInTheDocument();
     expect(screen.getByText("Create New Backup")).toBeInTheDocument();
     expect(screen.getByText("Existing Backups")).toBeInTheDocument();
   });
@@ -170,7 +142,10 @@ describe("ServerBackups", () => {
     expect(screen.getByText("Auto Backup")).toBeInTheDocument();
     expect(screen.getByText("Auto")).toBeInTheDocument(); // automatic badge
     expect(screen.getAllByText("Actions")).toHaveLength(2); // action dropdown buttons for both backups
-    expect(screen.getByText("Edit Settings")).toBeInTheDocument(); // edit button in readonly mode
+
+    // Check that backup sizes are displayed correctly
+    expect(screen.getByText("1000 KB")).toBeInTheDocument(); // First backup: 1024000 bytes
+    expect(screen.getByText("1.95 MB")).toBeInTheDocument(); // Second backup: 2048000 bytes
   });
 
   it("handles backup creation", async () => {
@@ -205,127 +180,6 @@ describe("ServerBackups", () => {
     expect(createButton).toBeDisabled();
   });
 
-  it("displays readonly mode initially and switches to edit mode", async () => {
-    render(<ServerBackups serverId={1} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Backups")).toBeInTheDocument();
-    });
-
-    // Should show readonly view initially
-    expect(screen.getByText("Edit Settings")).toBeInTheDocument();
-    expect(screen.getByText("Enabled")).toBeInTheDocument(); // shows enabled status
-
-    // Should not show form controls initially
-    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-
-    // Click edit button
-    const editButton = screen.getByText("Edit Settings");
-    fireEvent.click(editButton);
-
-    // Should now show edit form and action buttons
-    await waitFor(() => {
-      expect(screen.getByRole("checkbox")).toBeInTheDocument();
-      expect(screen.getByText("Cancel")).toBeInTheDocument();
-      expect(screen.getByText("Save")).toBeInTheDocument();
-    });
-
-    // Edit button should be hidden
-    expect(screen.queryByText("Edit Settings")).not.toBeInTheDocument();
-
-    // Save button should be disabled initially (no changes)
-    expect(screen.getByText("Save")).toBeDisabled();
-  });
-
-  it("handles backup settings changes with save button", async () => {
-    render(<ServerBackups serverId={1} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Backups")).toBeInTheDocument();
-    });
-
-    // Enter edit mode
-    const editButton = screen.getByText("Edit Settings");
-    fireEvent.click(editButton);
-
-    await waitFor(() => {
-      expect(screen.getByRole("checkbox")).toBeInTheDocument();
-    });
-
-    // Save button should be disabled initially
-    expect(screen.getByText("Save")).toBeDisabled();
-
-    const enableCheckbox = screen.getByRole("checkbox");
-    fireEvent.click(enableCheckbox);
-
-    // Save button should be enabled after making changes
-    await waitFor(() => {
-      expect(screen.getByText("Save")).not.toBeDisabled();
-    });
-
-    const saveButton = screen.getByText("Save");
-    fireEvent.click(saveButton);
-
-    await waitFor(() => {
-      expect(serverService.updateBackupSettings).toHaveBeenCalledWith(1, {
-        enabled: false, // toggled from true to false
-        interval: 24,
-        maxBackups: 7,
-      });
-    });
-
-    // Should return to readonly mode after save
-    await waitFor(() => {
-      expect(screen.getByText("Edit Settings")).toBeInTheDocument();
-    });
-  });
-
-  it("shows cancel button when settings are changed", async () => {
-    render(<ServerBackups serverId={1} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Backups")).toBeInTheDocument();
-    });
-
-    // Enter edit mode
-    const editButton = screen.getByText("Edit Settings");
-    fireEvent.click(editButton);
-
-    await waitFor(() => {
-      expect(screen.getByRole("checkbox")).toBeInTheDocument();
-    });
-
-    // Both save and cancel buttons should be visible in edit mode
-    expect(screen.getByText("Save")).toBeInTheDocument();
-    expect(screen.getByText("Cancel")).toBeInTheDocument();
-
-    // Save should be disabled initially
-    expect(screen.getByText("Save")).toBeDisabled();
-
-    const enableCheckbox = screen.getByRole("checkbox");
-    fireEvent.click(enableCheckbox);
-
-    // Save button should be enabled after making changes
-    await waitFor(() => {
-      expect(screen.getByText("Save")).not.toBeDisabled();
-    });
-
-    const cancelButton = screen.getByText("Cancel");
-    fireEvent.click(cancelButton);
-
-    // Should return to readonly mode after cancel
-    await waitFor(() => {
-      expect(screen.getByText("Edit Settings")).toBeInTheDocument();
-    });
-
-    // Buttons should disappear after canceling
-    expect(screen.queryByText("Save")).not.toBeInTheDocument();
-    expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
-
-    // Settings should not have been saved
-    expect(serverService.updateBackupSettings).not.toHaveBeenCalled();
-  });
-
   it("handles backup restoration with confirmation", async () => {
     vi.mocked(window.confirm).mockReturnValue(true);
 
@@ -350,7 +204,7 @@ describe("ServerBackups", () => {
     );
 
     await waitFor(() => {
-      expect(serverService.restoreBackup).toHaveBeenCalledWith("backup-1");
+      expect(serverService.restoreBackup).toHaveBeenCalledWith(1);
     });
   });
 
@@ -401,7 +255,7 @@ describe("ServerBackups", () => {
     );
 
     await waitFor(() => {
-      expect(serverService.deleteBackup).toHaveBeenCalledWith("backup-1");
+      expect(serverService.deleteBackup).toHaveBeenCalledWith(1);
     });
   });
 
@@ -501,5 +355,120 @@ describe("ServerBackups", () => {
         )
       ).toBeInTheDocument();
     });
+  });
+
+  it("displays 0 B for backups with zero or null size", async () => {
+    const backupsWithZeroSize = [
+      {
+        id: 1,
+        server_id: 1,
+        name: "Zero Size Backup",
+        description: "Backup with zero size",
+        size_bytes: 0,
+        created_at: "2024-01-01T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/zero-size.tar.gz",
+      },
+      {
+        id: 2,
+        server_id: 1,
+        name: "Null Size Backup",
+        description: "Backup with null size",
+        size_bytes: null as unknown as number,
+        created_at: "2024-01-02T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/null-size.tar.gz",
+      },
+    ];
+
+    vi.mocked(serverService.getServerBackups).mockResolvedValue(
+      ok(backupsWithZeroSize)
+    );
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Zero Size Backup")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Null Size Backup")).toBeInTheDocument();
+    expect(screen.getAllByText("0 B")).toHaveLength(2); // Both backups should show "0 B"
+  });
+
+  it("handles backend returning string size_bytes", async () => {
+    const backupsWithStringSize = [
+      {
+        id: 1,
+        server_id: 1,
+        name: "String Size Backup",
+        description: "Backup with string size",
+        size_bytes: "1024000", // Backend might return as string
+        created_at: "2024-01-01T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/string-size.tar.gz",
+      },
+    ];
+
+    vi.mocked(serverService.getServerBackups).mockResolvedValue(
+      ok(backupsWithStringSize)
+    );
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("String Size Backup")).toBeInTheDocument();
+    });
+
+    // Should still display formatted size even if backend returns string
+    expect(screen.getByText("1000 KB")).toBeInTheDocument();
+  });
+
+  it("handles edge cases for size_bytes values", async () => {
+    const backupsWithEdgeCases = [
+      {
+        id: 1,
+        server_id: 1,
+        name: "Empty String Backup",
+        description: "Backup with empty string size",
+        size_bytes: "",
+        created_at: "2024-01-01T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/empty-string.tar.gz",
+      },
+      {
+        id: 2,
+        server_id: 1,
+        name: "Invalid String Backup",
+        description: "Backup with invalid string size",
+        size_bytes: "invalid",
+        created_at: "2024-01-02T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/invalid-string.tar.gz",
+      },
+      {
+        id: 3,
+        server_id: 1,
+        name: "Undefined Backup",
+        description: "Backup with undefined size",
+        size_bytes: undefined as unknown as number,
+        created_at: "2024-01-03T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/undefined.tar.gz",
+      },
+    ];
+
+    vi.mocked(serverService.getServerBackups).mockResolvedValue(
+      ok(backupsWithEdgeCases)
+    );
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Empty String Backup")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Invalid String Backup")).toBeInTheDocument();
+    expect(screen.getByText("Undefined Backup")).toBeInTheDocument();
+    expect(screen.getAllByText("0 B")).toHaveLength(3); // All should show "0 B"
   });
 });

@@ -91,20 +91,14 @@ export interface ServerTemplate {
 }
 
 export interface ServerBackup {
-  id: string;
+  id: number;
   server_id: number;
   name: string;
   description?: string;
-  size_bytes: number;
+  size_bytes: number | string; // Backend might return as string
   created_at: string;
   backup_type: "manual" | "scheduled" | "pre_update";
   file_path: string;
-}
-
-export interface BackupSettings {
-  enabled: boolean;
-  interval: number; // hours
-  maxBackups: number;
 }
 
 export interface ServerPlayer {

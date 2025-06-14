@@ -1,1 +1,29 @@
+#!/bin/sh
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged (auto-fix linting and formatting issues for staged files)
+echo "📋 Running lint-staged (ESLint + Prettier)..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ Lint-staged failed. Please fix the issues and try again."
+  exit 1
+fi
+
+# Run type check (must check entire project for type consistency)
+echo "🔍 Running TypeScript type check..."
+npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript type check failed. Please fix type errors before committing."
+  exit 1
+fi
+
+# Run tests (check if any changes break existing functionality)
+echo "🧪 Running tests..."
 npm test
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Please fix failing tests before committing."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"

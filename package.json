@@ -42,5 +42,14 @@
     "prettier": "latest",
     "typescript": "^5",
     "vitest": "^2.0.0"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.{json,css}": [
+      "prettier --write"
+    ]
   }
 }

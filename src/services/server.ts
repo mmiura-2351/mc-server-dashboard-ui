@@ -9,7 +9,6 @@ import type {
   ServerCommandRequest,
   ServerTemplate,
   ServerBackup,
-  BackupSettings,
   ServerPlayer,
   ServerProperties,
 } from "@/types/server";
@@ -145,21 +144,59 @@ export async function getServerTemplates(): Promise<
 export async function getServerBackups(
   serverId: number
 ): Promise<Result<ServerBackup[], AuthError>> {
-  const result = await fetchJson<{ backups: ServerBackup[] }>(
+  // Define the backend response structure
+  interface BackupAPIResponse {
+    id: number;
+    server_id: number;
+    name: string;
+    description?: string;
+    file_size: number; // Backend returns 'file_size'
+    created_at: string;
+    backup_type: "manual" | "scheduled" | "pre_update";
+    file_path: string;
+  }
+
+  const result = await fetchJson<{ backups: BackupAPIResponse[] }>(
     `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`
   );
   if (result.isErr()) {
     return err(result.error);
   }
-  // Return the backups array, handling the case where it might be undefined
-  return ok(result.value.backups || []);
+
+  // Transform backend response to match frontend expectations
+  const backups: ServerBackup[] = (result.value.backups || []).map(
+    (backup) => ({
+      id: backup.id,
+      server_id: backup.server_id,
+      name: backup.name,
+      description: backup.description,
+      size_bytes: backup.file_size, // Map file_size to size_bytes
+      created_at: backup.created_at,
+      backup_type: backup.backup_type,
+      file_path: backup.file_path,
+    })
+  );
+
+  return ok(backups);
 }
 
 export async function createBackup(
   serverId: number,
   name: string
 ): Promise<Result<ServerBackup, AuthError>> {
-  return fetchJson<ServerBackup>(
+  // Define the backend response structure
+  interface BackupAPIResponse {
+    id: number;
+    server_id: number;
+    name: string;
+    description?: string;
+    file_size: number; // Backend returns 'file_size'
+    created_at: string;
+    backup_type: "manual" | "scheduled" | "pre_update";
+    file_path: string;
+  }
+
+  const result = await fetchJson<BackupAPIResponse>(
     `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`,
     {
       method: "POST",
@@ -170,69 +207,50 @@ export async function createBackup(
       }),
     }
   );
+
+  if (result.isErr()) {
+    return err(result.error);
+  }
+
+  // Transform backend response to match frontend expectations
+  const backup: ServerBackup = {
+    id: result.value.id,
+    server_id: result.value.server_id,
+    name: result.value.name,
+    description: result.value.description,
+    size_bytes: result.value.file_size, // Map file_size to size_bytes
+    created_at: result.value.created_at,
+    backup_type: result.value.backup_type,
+    file_path: result.value.file_path,
+  };
+
+  return ok(backup);
 }
 
 export async function restoreBackup(
-  backupId: string
+  backupId: number
 ): Promise<Result<void, AuthError>> {
   return fetchEmpty(
     `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`,
     {
       method: "POST",
+      body: JSON.stringify({
+        confirm: true,
+      }),
     }
   );
 }
 
 export async function deleteBackup(
-  backupId: string
+  backupId: number
 ): Promise<Result<void, AuthError>> {
   return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}`, {
     method: "DELETE",
   });
 }
 
-export async function getBackupSettings(
-  serverId: number
-): Promise<Result<BackupSettings, AuthError>> {
-  const result = await fetchJson<{
-    enabled: boolean | null;
-    interval_hours: number | null;
-    max_backups: number | null;
-  }>(
-    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`
-  );
-
-  if (result.isErr()) {
-    return err(result.error);
-  }
-
-  return ok({
-    enabled: result.value.enabled ?? false,
-    interval: result.value.interval_hours ?? 24,
-    maxBackups: result.value.max_backups ?? 7,
-  });
-}
-
-export async function updateBackupSettings(
-  serverId: number,
-  settings: BackupSettings
-): Promise<Result<void, AuthError>> {
-  return fetchEmpty(
-    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`,
-    {
-      method: "PUT",
-      body: JSON.stringify({
-        enabled: settings.enabled,
-        interval_hours: settings.interval,
-        max_backups: settings.maxBackups,
-        only_when_running: true, // Default value as expected by backend
-      }),
-    }
-  );
-}
-
 export async function downloadBackup(
-  backupId: string
+  backupId: number
 ): Promise<Result<Blob, AuthError>> {
   try {
     const token = await tokenManager.getValidAccessToken();
@@ -274,23 +292,20 @@ export async function downloadBackup(
 }
 
 export async function advancedRestoreBackup(
-  backupId: string,
-  options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
+  backupId: number,
+  _options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
 ): Promise<Result<void, AuthError>> {
-  const url = new URL(
-    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore-advanced`
+  // For now, just use the same basic restore endpoint
+  // Advanced options like preservePlayerData are not yet supported by backend
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        confirm: true,
+      }),
+    }
   );
-
-  if (options?.preservePlayerData) {
-    url.searchParams.set("preserve_player_data", "true");
-  }
-  if (options?.restoreSettings) {
-    url.searchParams.set("restore_settings", "true");
-  }
-
-  return fetchEmpty(url.toString(), {
-    method: "POST",
-  });
 }
 
 export async function getServerPlayers(
