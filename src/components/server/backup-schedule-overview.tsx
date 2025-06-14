@@ -267,16 +267,17 @@ export function BackupScheduleOverview({
                 {schedulerStatus.active_schedules}
               </div>
             </div>
-            {schedulerStatus.current_jobs && schedulerStatus.current_jobs.length > 0 && (
-              <div className={styles.statusItem}>
-                <div className={styles.statusLabel}>
-                  {t("schedules.scheduler.runningJobs")}
+            {schedulerStatus.current_jobs &&
+              schedulerStatus.current_jobs.length > 0 && (
+                <div className={styles.statusItem}>
+                  <div className={styles.statusLabel}>
+                    {t("schedules.scheduler.runningJobs")}
+                  </div>
+                  <div className={styles.statusValue}>
+                    {schedulerStatus.current_jobs.length}
+                  </div>
                 </div>
-                <div className={styles.statusValue}>
-                  {schedulerStatus.current_jobs.length}
-                </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       )}

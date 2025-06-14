@@ -217,7 +217,7 @@ describe("Backup Scheduler Service", () => {
           running: false,
           total_schedules: 0,
           active_schedules: 0,
-          current_jobs: []
+          current_jobs: [],
         });
       }
     });

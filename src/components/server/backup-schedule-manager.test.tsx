@@ -11,14 +11,18 @@ vi.mock("@/services/backup-scheduler", () => ({
 
 // Mock child components
 vi.mock("./backup-schedule-overview", () => ({
-  BackupScheduleOverview: vi.fn(({ onCreateSchedule, onEditSchedule, onViewLogs }) => (
-    <div data-testid="overview">
-      Overview Component
-      <button onClick={onCreateSchedule}>Create Schedule</button>
-      <button onClick={() => onEditSchedule({ id: "1", name: "Test" })}>Edit Schedule</button>
-      <button onClick={() => onViewLogs("1")}>View Logs</button>
-    </div>
-  )),
+  BackupScheduleOverview: vi.fn(
+    ({ onCreateSchedule, onEditSchedule, onViewLogs }) => (
+      <div data-testid="overview">
+        Overview Component
+        <button onClick={onCreateSchedule}>Create Schedule</button>
+        <button onClick={() => onEditSchedule({ id: "1", name: "Test" })}>
+          Edit Schedule
+        </button>
+        <button onClick={() => onViewLogs("1")}>View Logs</button>
+      </div>
+    )
+  ),
 }));
 
 vi.mock("./backup-schedule-form", () => ({
@@ -32,9 +36,7 @@ vi.mock("./backup-schedule-form", () => ({
 }));
 
 vi.mock("./backup-schedule-logs", () => ({
-  BackupScheduleLogs: vi.fn(() => (
-    <div data-testid="logs">Logs Component</div>
-  )),
+  BackupScheduleLogs: vi.fn(() => <div data-testid="logs">Logs Component</div>),
 }));
 
 vi.mock("./backup-schedule-admin", () => ({
@@ -100,7 +102,9 @@ describe("BackupScheduleManager", () => {
     render(<BackupScheduleManager serverId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText("Backup Schedule Management")).toBeInTheDocument();
+      expect(
+        screen.getByText("Backup Schedule Management")
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByText("Overview")).toBeInTheDocument();
@@ -277,7 +281,7 @@ describe("BackupScheduleManager", () => {
       expect(screen.getByText("Overview")).toBeInTheDocument();
     });
 
-    // Click create schedule button to show form  
+    // Click create schedule button to show form
     const createButton = screen.getByText("Create Schedule");
     fireEvent.click(createButton);
 

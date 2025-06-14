@@ -39,7 +39,7 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<Set<string>>(new Set());
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [schedulesPerPage] = useState(10);
@@ -159,10 +159,13 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
     });
   };
 
-  const getServerName = useCallback((serverId: number) => {
-    const server = servers.find((s) => s.id === serverId);
-    return server?.name || `Server ${serverId}`;
-  }, [servers]);
+  const getServerName = useCallback(
+    (serverId: number) => {
+      const server = servers.find((s) => s.id === serverId);
+      return server?.name || `Server ${serverId}`;
+    },
+    [servers]
+  );
 
   useEffect(() => {
     loadAllData();
@@ -178,8 +181,12 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
       filtered = filtered.filter(
         (schedule) =>
           schedule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          schedule.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          getServerName(schedule.server_id).toLowerCase().includes(searchTerm.toLowerCase())
+          schedule.description
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          getServerName(schedule.server_id)
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
 
@@ -242,8 +249,12 @@ export function BackupScheduleAdmin({ className }: BackupScheduleAdminProps) {
       filtered = filtered.filter(
         (schedule) =>
           schedule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          schedule.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          getServerName(schedule.server_id).toLowerCase().includes(searchTerm.toLowerCase())
+          schedule.description
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          getServerName(schedule.server_id)
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
     return filtered;

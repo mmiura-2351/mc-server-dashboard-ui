@@ -29,7 +29,8 @@ const translations: Record<string, string> = {
   "schedules.form.customCron": "Custom Cron",
   "schedules.form.interval": "Interval",
   "schedules.form.cronExpression": "Cron Expression",
-  "schedules.form.cronHelp": "Standard cron format: minute hour day month weekday",
+  "schedules.form.cronHelp":
+    "Standard cron format: minute hour day month weekday",
   "schedules.form.nextRunPreview": "Next Run",
   "schedules.form.nextRunUnknown": "Unknown",
   "schedules.form.backupOptions": "Backup Options",
@@ -50,7 +51,8 @@ const translations: Record<string, string> = {
   "schedules.validation.descriptionTooLong": "Description is too long",
   "schedules.validation.cronRequired": "Cron expression is required",
   "schedules.validation.cronInvalid": "Invalid cron expression",
-  "schedules.validation.maxBackupsRange": "Max backups must be between 1 and 100",
+  "schedules.validation.maxBackupsRange":
+    "Max backups must be between 1 and 100",
   "schedules.validation.serverRequired": "Server is required",
   "schedules.errors.failedToCreateSchedule": "Failed to create schedule",
   "schedules.errors.failedToUpdateSchedule": "Failed to update schedule",
@@ -152,7 +154,9 @@ describe("BackupScheduleForm", () => {
     const nameInput = screen.getByPlaceholderText("Enter schedule name");
     fireEvent.change(nameInput, { target: { value: "Valid Name" } });
 
-    const descriptionInput = screen.getByPlaceholderText("Optional description");
+    const descriptionInput = screen.getByPlaceholderText(
+      "Optional description"
+    );
     fireEvent.change(descriptionInput, { target: { value: "a".repeat(501) } });
 
     const submitButton = screen.getByText("Create Schedule");
@@ -176,7 +180,9 @@ describe("BackupScheduleForm", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Cron expression is required")).toBeInTheDocument();
+      expect(
+        screen.getByText("Cron expression is required")
+      ).toBeInTheDocument();
     });
   });
 

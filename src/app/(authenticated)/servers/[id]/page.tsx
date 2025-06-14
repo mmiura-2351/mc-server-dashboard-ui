@@ -38,9 +38,14 @@ export default function ServerDetailPage() {
     "info" | "properties" | "settings" | "files" | "backups" | "schedule"
   >(
     tabFromUrl &&
-      ["info", "properties", "settings", "files", "backups", "schedule"].includes(
-        tabFromUrl
-      )
+      [
+        "info",
+        "properties",
+        "settings",
+        "files",
+        "backups",
+        "schedule",
+      ].includes(tabFromUrl)
       ? tabFromUrl
       : "info"
   );

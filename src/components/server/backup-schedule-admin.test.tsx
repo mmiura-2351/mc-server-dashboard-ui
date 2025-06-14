@@ -68,8 +68,10 @@ const translations: Record<string, string> = {
   "schedules.admin.deleteScheduleConfirmation": "Delete schedule '{name}'?",
   "schedules.admin.errors.failedToLoadData": "Failed to load data",
   "schedules.admin.errors.schedulerActionFailed": "Scheduler action failed",
-  "schedules.admin.errors.failedToEnableSchedules": "Failed to enable schedules",
-  "schedules.admin.errors.failedToDisableSchedules": "Failed to disable schedules",
+  "schedules.admin.errors.failedToEnableSchedules":
+    "Failed to enable schedules",
+  "schedules.admin.errors.failedToDisableSchedules":
+    "Failed to disable schedules",
   "schedules.admin.errors.failedToDeleteSchedule": "Failed to delete schedule",
 };
 
