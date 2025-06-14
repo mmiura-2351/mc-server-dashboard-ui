@@ -15,6 +15,7 @@ import type {
 } from "@/types/server";
 import type { AuthError } from "@/types/auth";
 import { fetchEmpty, fetchJson } from "@/services/api";
+import { tokenManager } from "@/utils/token-manager";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -224,6 +225,48 @@ export async function updateBackupSettings(
   return fetchEmpty(url.toString(), {
     method: "PUT",
   });
+}
+
+export async function downloadBackup(
+  backupId: string
+): Promise<Result<Blob, AuthError>> {
+  try {
+    const token = await tokenManager.getValidAccessToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/backups/backups/${backupId}/download`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let message = "Download failed";
+      try {
+        const errorData = JSON.parse(errorText);
+        message = errorData.message || errorData.detail || message;
+      } catch {
+        // If not JSON, use the text as error message
+        message = errorText || message;
+      }
+
+      return err({
+        message,
+        status: response.status,
+      });
+    }
+
+    const blob = await response.blob();
+    return ok(blob);
+  } catch (error) {
+    return err({
+      message: error instanceof Error ? error.message : "Network error",
+      status: 0,
+    });
+  }
 }
 
 export async function getServerPlayers(

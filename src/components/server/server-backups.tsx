@@ -30,6 +30,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const [newBackupName, setNewBackupName] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isEditingSettings, setIsEditingSettings] = useState(false);
+  const [downloadingBackups, setDownloadingBackups] = useState<Set<string>>(new Set());
 
   const loadBackupsAndSettings = async () => {
     setIsLoading(true);
@@ -142,6 +143,37 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
       }
     } catch {
       setError(t("backups.errors.failedToDeleteBackup"));
+    }
+  };
+
+  const handleDownloadBackup = async (backupId: string, backupName: string) => {
+    setDownloadingBackups(prev => new Set(prev).add(backupId));
+    setError(null);
+
+    try {
+      const result = await serverService.downloadBackup(backupId);
+
+      if (result.isOk()) {
+        // Create download link
+        const url = URL.createObjectURL(result.value);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${backupName}.zip`; // Assume backup files are ZIP format
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        setError(result.error.message);
+      }
+    } catch {
+      setError(t("errors.operationFailed", { action: "download backup" }));
+    } finally {
+      setDownloadingBackups(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(backupId);
+        return newSet;
+      });
     }
   };
 
@@ -450,6 +482,15 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                   </div>
                 </div>
                 <div className={styles.backupActions}>
+                  <button
+                    onClick={() => handleDownloadBackup(backup.id, backup.name)}
+                    className={styles.downloadButton}
+                    disabled={downloadingBackups.has(backup.id)}
+                  >
+                    {downloadingBackups.has(backup.id) 
+                      ? t("backups.downloading") 
+                      : t("backups.download")}
+                  </button>
                   <button
                     onClick={() => handleRestoreBackup(backup.id, backup.name)}
                     className={styles.restoreButton}

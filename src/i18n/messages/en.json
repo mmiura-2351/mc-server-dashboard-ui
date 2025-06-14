@@ -230,6 +230,8 @@
     "existingBackups": "Existing Backups",
     "noBackupsFound": "No backups found. Create your first backup to get started!",
     "automatic": "Auto",
+    "download": "Download",
+    "downloading": "Downloading...",
     "restore": "Restore",
     "delete": "Delete",
     "restoreConfirmation": "Are you sure you want to restore backup '{name}'? This will replace your current world data.",
