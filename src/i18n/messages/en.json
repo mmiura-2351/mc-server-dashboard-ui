@@ -69,6 +69,7 @@
     "actions": "Actions",
     "userApprovedSuccessfully": "User approved successfully",
     "userRoleUpdatedSuccessfully": "User role updated successfully",
+    "deleteUser": "Delete User",
     "areYouSureDeleteUser": "Are you sure you want to delete user \"{username}\"? This action cannot be undone.",
     "userDeletedSuccessfully": "User deleted successfully",
     "noUsersFound": "No users found."

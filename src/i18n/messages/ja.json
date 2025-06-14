@@ -69,6 +69,7 @@
     "actions": "操作",
     "userApprovedSuccessfully": "ユーザーを承認しました",
     "userRoleUpdatedSuccessfully": "ユーザーのロールを更新しました",
+    "deleteUser": "ユーザー削除",
     "areYouSureDeleteUser": "ユーザー「{username}」を削除してもよろしいですか？この操作は元に戻せません。",
     "userDeletedSuccessfully": "ユーザーを削除しました",
     "noUsersFound": "ユーザーが見つかりません。"

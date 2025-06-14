@@ -44,6 +44,11 @@ vi.mock("@/contexts/language", () => ({
         "userManagement.noUsersFound": "No users found.",
         "userManagement.areYouSureDeleteUser":
           'Are you sure you want to delete user "{username}"? This action cannot be undone.',
+        "userManagement.deleteUser": "Delete User",
+        "userManagement.userApprovedSuccessfully": "User approved successfully",
+        "userManagement.userRoleUpdatedSuccessfully":
+          "User role updated successfully",
+        "userManagement.userDeletedSuccessfully": "User deleted successfully",
       };
       let translation = translations[key] || key;
       if (params) {
@@ -93,18 +98,46 @@ const mockAuthContext = {
 // Mock localStorage
 Object.defineProperty(window, "localStorage", {
   value: {
-    getItem: vi.fn(() => "mock-token"),
+    getItem: vi.fn((key) => {
+      if (key === "access_token") return "mock-token";
+      return null;
+    }),
     setItem: vi.fn(),
     removeItem: vi.fn(),
   },
   writable: true,
 });
 
-// Mock window.confirm
-Object.defineProperty(window, "confirm", {
-  value: vi.fn(),
-  writable: true,
-});
+// Mock the ConfirmationModal component
+vi.mock("@/components/modal", () => ({
+  ConfirmationModal: ({
+    isOpen,
+    title,
+    message,
+    onConfirm,
+    onCancel,
+  }: {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  }) => {
+    if (!isOpen) return null;
+    return (
+      <div data-testid="confirmation-modal">
+        <h2>{title}</h2>
+        <p>{message}</p>
+        <button onClick={onConfirm} data-testid="confirm-button">
+          Confirm
+        </button>
+        <button onClick={onCancel} data-testid="cancel-button">
+          Cancel
+        </button>
+      </div>
+    );
+  },
+}));
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <>{children}</>
@@ -242,7 +275,6 @@ describe("UserManagement", () => {
   });
 
   it("deletes user successfully after confirmation", async () => {
-    (window.confirm as ReturnType<typeof vi.fn>).mockReturnValue(true);
     (
       authService.deleteUserByAdmin as ReturnType<typeof vi.fn>
     ).mockResolvedValue(ok({ message: "User deleted" }));
@@ -260,11 +292,22 @@ describe("UserManagement", () => {
       expect(deleteButtons).toHaveLength(1); // Only one delete button (can't delete self)
     });
 
+    // Click delete button to open modal
     fireEvent.click(screen.getByText("Delete"));
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      'Are you sure you want to delete user "user"? This action cannot be undone.'
-    );
+    // Verify modal is displayed with correct content
+    await waitFor(() => {
+      expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
+      expect(screen.getByText("Delete User")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Are you sure you want to delete user "user"? This action cannot be undone.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    // Click confirm button in modal
+    fireEvent.click(screen.getByTestId("confirm-button"));
 
     await waitFor(() => {
       expect(authService.deleteUserByAdmin).toHaveBeenCalledWith(
@@ -275,8 +318,6 @@ describe("UserManagement", () => {
   });
 
   it("does not delete user when confirmation is cancelled", async () => {
-    (window.confirm as ReturnType<typeof vi.fn>).mockReturnValue(false);
-
     await act(async () => {
       render(
         <TestWrapper>
@@ -289,9 +330,24 @@ describe("UserManagement", () => {
       expect(screen.getByText("Delete")).toBeInTheDocument();
     });
 
+    // Click delete button to open modal
     fireEvent.click(screen.getByText("Delete"));
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Verify modal is displayed
+    await waitFor(() => {
+      expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
+    });
+
+    // Click cancel button in modal
+    fireEvent.click(screen.getByTestId("cancel-button"));
+
+    // Verify modal is closed and delete was not called
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("confirmation-modal")
+      ).not.toBeInTheDocument();
+    });
+
     expect(authService.deleteUserByAdmin).not.toHaveBeenCalled();
   });
 
