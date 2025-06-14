@@ -230,6 +230,8 @@
     "existingBackups": "既存のバックアップ",
     "noBackupsFound": "バックアップが見つかりません。最初のバックアップを作成して始めましょう！",
     "automatic": "自動",
+    "download": "ダウンロード",
+    "downloading": "ダウンロード中...",
     "restore": "復元",
     "delete": "削除",
     "restoreConfirmation": "バックアップ'{name}'を復元しますか？これにより現在のワールドデータが置き換えられます。",
