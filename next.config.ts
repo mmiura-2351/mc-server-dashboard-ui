@@ -9,8 +9,34 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const nextConfig: NextConfig = {
   /* Environment-aware security configuration */
 
-  // Enable security headers (environment-specific)
+  // Enable security headers (optimized for LAN access in development)
   async headers() {
+    // Minimal security headers for development that don't interfere with LAN access
+    if (isDevelopment) {
+      return [
+        {
+          source: "/(.*)",
+          headers: [
+            // Basic XSS protection (doesn't affect network access)
+            {
+              key: "X-XSS-Protection",
+              value: "1; mode=block",
+            },
+            // Prevent MIME type sniffing (safe for LAN access)
+            {
+              key: "X-Content-Type-Options",
+              value: "nosniff",
+            },
+            // Allow same-origin framing for development tools
+            {
+              key: "X-Frame-Options",
+              value: "SAMEORIGIN",
+            },
+          ],
+        },
+      ];
+    }
+
     const commonHeaders = [
       // Prevent XSS attacks
       {
@@ -65,39 +91,11 @@ const nextConfig: NextConfig = {
       },
     ];
 
-    const developmentHeaders = [
-      // Less restrictive frame options for development tools
-      {
-        key: "X-Frame-Options",
-        value: "SAMEORIGIN",
-      },
-      // Development-friendly CSP
-      {
-        key: "Content-Security-Policy",
-        value: [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Allow Next.js dev tools and hot reload
-          "style-src 'self' 'unsafe-inline'", // Allow inline styles for CSS modules
-          "img-src 'self' data: blob:",
-          "font-src 'self'",
-          `connect-src 'self' ${API_URL} ws://${API_DOMAIN} ws://localhost:* wss://localhost:*`, // Allow API, WebSocket, and dev server connections
-          "media-src 'self'",
-          "object-src 'none'",
-          "base-uri 'self'",
-          "form-action 'self'",
-          "frame-ancestors 'self'", // Allow iframe for development tools
-        ].join("; "),
-      },
-    ];
-
     return [
       {
         // Apply to all routes
         source: "/(.*)",
-        headers: [
-          ...commonHeaders,
-          ...(isProduction ? productionHeaders : developmentHeaders),
-        ],
+        headers: [...commonHeaders, ...productionHeaders],
       },
     ];
   },
