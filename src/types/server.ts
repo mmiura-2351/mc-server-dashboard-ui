@@ -95,7 +95,7 @@ export interface ServerBackup {
   server_id: number;
   name: string;
   description?: string;
-  size_bytes: number;
+  size_bytes: number | string; // Backend might return as string
   created_at: string;
   backup_type: "manual" | "scheduled" | "pre_update";
   file_path: string;

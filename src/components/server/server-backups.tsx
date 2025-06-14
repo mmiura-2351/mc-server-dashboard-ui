@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type { ServerBackup } from "@/types/server";
+import { formatFileSize, formatDate } from "@/utils/format";
 import styles from "./server-backups.module.css";
 
 interface ServerBackupsProps {
@@ -224,22 +225,9 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     setOpenDropdowns(new Set());
   };
 
-  const formatBackupSize = (bytes: number | undefined | null) => {
-    if (!bytes || bytes === 0) return "0 B";
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${Math.round((bytes / Math.pow(1024, i)) * 100) / 100} ${sizes[i]}`;
-  };
-
-  const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return t("common.unknown");
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return t("common.unknown");
-      return date.toLocaleString();
-    } catch {
-      return t("common.unknown");
-    }
+  const formatBackupDate = (dateString: string | undefined | null) => {
+    const formatted = formatDate(dateString);
+    return formatted === "Unknown" ? t("common.unknown") : formatted;
   };
 
   const isAutomaticBackup = (backup: ServerBackup) => {
@@ -334,8 +322,8 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
                     )}
                   </div>
                   <div className={styles.backupDetails}>
-                    <span>{formatDate(backup.created_at)}</span>
-                    <span>{formatBackupSize(backup.size_bytes)}</span>
+                    <span>{formatBackupDate(backup.created_at)}</span>
+                    <span>{formatFileSize(backup.size_bytes)}</span>
                   </div>
                 </div>
                 <div className={styles.backupActions}>

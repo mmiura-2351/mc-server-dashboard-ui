@@ -142,6 +142,10 @@ describe("ServerBackups", () => {
     expect(screen.getByText("Auto Backup")).toBeInTheDocument();
     expect(screen.getByText("Auto")).toBeInTheDocument(); // automatic badge
     expect(screen.getAllByText("Actions")).toHaveLength(2); // action dropdown buttons for both backups
+
+    // Check that backup sizes are displayed correctly
+    expect(screen.getByText("1000 KB")).toBeInTheDocument(); // First backup: 1024000 bytes
+    expect(screen.getByText("1.95 MB")).toBeInTheDocument(); // Second backup: 2048000 bytes
   });
 
   it("handles backup creation", async () => {
@@ -351,5 +355,120 @@ describe("ServerBackups", () => {
         )
       ).toBeInTheDocument();
     });
+  });
+
+  it("displays 0 B for backups with zero or null size", async () => {
+    const backupsWithZeroSize = [
+      {
+        id: 1,
+        server_id: 1,
+        name: "Zero Size Backup",
+        description: "Backup with zero size",
+        size_bytes: 0,
+        created_at: "2024-01-01T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/zero-size.tar.gz",
+      },
+      {
+        id: 2,
+        server_id: 1,
+        name: "Null Size Backup",
+        description: "Backup with null size",
+        size_bytes: null as unknown as number,
+        created_at: "2024-01-02T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/null-size.tar.gz",
+      },
+    ];
+
+    vi.mocked(serverService.getServerBackups).mockResolvedValue(
+      ok(backupsWithZeroSize)
+    );
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Zero Size Backup")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Null Size Backup")).toBeInTheDocument();
+    expect(screen.getAllByText("0 B")).toHaveLength(2); // Both backups should show "0 B"
+  });
+
+  it("handles backend returning string size_bytes", async () => {
+    const backupsWithStringSize = [
+      {
+        id: 1,
+        server_id: 1,
+        name: "String Size Backup",
+        description: "Backup with string size",
+        size_bytes: "1024000", // Backend might return as string
+        created_at: "2024-01-01T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/string-size.tar.gz",
+      },
+    ];
+
+    vi.mocked(serverService.getServerBackups).mockResolvedValue(
+      ok(backupsWithStringSize)
+    );
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("String Size Backup")).toBeInTheDocument();
+    });
+
+    // Should still display formatted size even if backend returns string
+    expect(screen.getByText("1000 KB")).toBeInTheDocument();
+  });
+
+  it("handles edge cases for size_bytes values", async () => {
+    const backupsWithEdgeCases = [
+      {
+        id: 1,
+        server_id: 1,
+        name: "Empty String Backup",
+        description: "Backup with empty string size",
+        size_bytes: "",
+        created_at: "2024-01-01T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/empty-string.tar.gz",
+      },
+      {
+        id: 2,
+        server_id: 1,
+        name: "Invalid String Backup",
+        description: "Backup with invalid string size",
+        size_bytes: "invalid",
+        created_at: "2024-01-02T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/invalid-string.tar.gz",
+      },
+      {
+        id: 3,
+        server_id: 1,
+        name: "Undefined Backup",
+        description: "Backup with undefined size",
+        size_bytes: undefined as unknown as number,
+        created_at: "2024-01-03T00:00:00Z",
+        backup_type: "manual" as const,
+        file_path: "/backups/undefined.tar.gz",
+      },
+    ];
+
+    vi.mocked(serverService.getServerBackups).mockResolvedValue(
+      ok(backupsWithEdgeCases)
+    );
+
+    render(<ServerBackups serverId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Empty String Backup")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Invalid String Backup")).toBeInTheDocument();
+    expect(screen.getByText("Undefined Backup")).toBeInTheDocument();
+    expect(screen.getAllByText("0 B")).toHaveLength(3); // All should show "0 B"
   });
 });

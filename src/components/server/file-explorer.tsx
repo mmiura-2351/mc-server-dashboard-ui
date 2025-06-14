@@ -8,6 +8,7 @@ import {
   DEFAULT_UPLOAD_CONFIG,
 } from "@/utils/file-upload-security";
 import { InputSanitizer } from "@/utils/input-sanitizer";
+import { formatFileSize } from "@/utils/format";
 import styles from "./file-explorer.module.css";
 import JSZip from "jszip";
 
@@ -1032,19 +1033,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             return "📄";
         }
     }
-  };
-
-  const formatFileSize = (size: number) => {
-    const units = ["B", "KB", "MB", "GB"];
-    let unitIndex = 0;
-    let fileSize = size;
-
-    while (fileSize >= 1024 && unitIndex < units.length - 1) {
-      fileSize /= 1024;
-      unitIndex++;
-    }
-
-    return `${fileSize.toFixed(1)} ${units[unitIndex]}`;
   };
 
   const formatDate = (dateString: string) => {

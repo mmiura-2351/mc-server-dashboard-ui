@@ -144,21 +144,59 @@ export async function getServerTemplates(): Promise<
 export async function getServerBackups(
   serverId: number
 ): Promise<Result<ServerBackup[], AuthError>> {
-  const result = await fetchJson<{ backups: ServerBackup[] }>(
+  // Define the backend response structure
+  interface BackupAPIResponse {
+    id: number;
+    server_id: number;
+    name: string;
+    description?: string;
+    file_size: number; // Backend returns 'file_size'
+    created_at: string;
+    backup_type: "manual" | "scheduled" | "pre_update";
+    file_path: string;
+  }
+
+  const result = await fetchJson<{ backups: BackupAPIResponse[] }>(
     `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`
   );
   if (result.isErr()) {
     return err(result.error);
   }
-  // Return the backups array, handling the case where it might be undefined
-  return ok(result.value.backups || []);
+
+  // Transform backend response to match frontend expectations
+  const backups: ServerBackup[] = (result.value.backups || []).map(
+    (backup) => ({
+      id: backup.id,
+      server_id: backup.server_id,
+      name: backup.name,
+      description: backup.description,
+      size_bytes: backup.file_size, // Map file_size to size_bytes
+      created_at: backup.created_at,
+      backup_type: backup.backup_type,
+      file_path: backup.file_path,
+    })
+  );
+
+  return ok(backups);
 }
 
 export async function createBackup(
   serverId: number,
   name: string
 ): Promise<Result<ServerBackup, AuthError>> {
-  return fetchJson<ServerBackup>(
+  // Define the backend response structure
+  interface BackupAPIResponse {
+    id: number;
+    server_id: number;
+    name: string;
+    description?: string;
+    file_size: number; // Backend returns 'file_size'
+    created_at: string;
+    backup_type: "manual" | "scheduled" | "pre_update";
+    file_path: string;
+  }
+
+  const result = await fetchJson<BackupAPIResponse>(
     `${API_BASE_URL}/api/v1/backups/servers/${serverId}/backups`,
     {
       method: "POST",
@@ -169,6 +207,24 @@ export async function createBackup(
       }),
     }
   );
+
+  if (result.isErr()) {
+    return err(result.error);
+  }
+
+  // Transform backend response to match frontend expectations
+  const backup: ServerBackup = {
+    id: result.value.id,
+    server_id: result.value.server_id,
+    name: result.value.name,
+    description: result.value.description,
+    size_bytes: result.value.file_size, // Map file_size to size_bytes
+    created_at: result.value.created_at,
+    backup_type: result.value.backup_type,
+    file_path: result.value.file_path,
+  };
+
+  return ok(backup);
 }
 
 export async function restoreBackup(
