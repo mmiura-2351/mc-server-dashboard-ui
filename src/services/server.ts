@@ -173,18 +173,21 @@ export async function createBackup(
 }
 
 export async function restoreBackup(
-  backupId: string
+  backupId: number
 ): Promise<Result<void, AuthError>> {
   return fetchEmpty(
     `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`,
     {
       method: "POST",
+      body: JSON.stringify({
+        confirm: true,
+      }),
     }
   );
 }
 
 export async function deleteBackup(
-  backupId: string
+  backupId: number
 ): Promise<Result<void, AuthError>> {
   return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}`, {
     method: "DELETE",
@@ -198,7 +201,9 @@ export async function getBackupSettings(
     enabled: boolean | null;
     interval_hours: number | null;
     max_backups: number | null;
-  }>(`${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`);
+  }>(
+    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`
+  );
 
   if (result.isErr()) {
     return err(result.error);
@@ -215,20 +220,22 @@ export async function updateBackupSettings(
   serverId: number,
   settings: BackupSettings
 ): Promise<Result<void, AuthError>> {
-  const url = new URL(
-    `${API_BASE_URL}/api/v1/backups/scheduler/servers/${serverId}/schedule`
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        enabled: settings.enabled,
+        interval_hours: settings.interval,
+        max_backups: settings.maxBackups,
+        only_when_running: true, // Default value as expected by backend
+      }),
+    }
   );
-  url.searchParams.set("enabled", settings.enabled.toString());
-  url.searchParams.set("interval_hours", settings.interval.toString());
-  url.searchParams.set("max_backups", settings.maxBackups.toString());
-
-  return fetchEmpty(url.toString(), {
-    method: "PUT",
-  });
 }
 
 export async function downloadBackup(
-  backupId: string
+  backupId: number
 ): Promise<Result<Blob, AuthError>> {
   try {
     const token = await tokenManager.getValidAccessToken();
@@ -270,23 +277,20 @@ export async function downloadBackup(
 }
 
 export async function advancedRestoreBackup(
-  backupId: string,
-  options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
+  backupId: number,
+  _options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
 ): Promise<Result<void, AuthError>> {
-  const url = new URL(
-    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore-advanced`
+  // For now, just use the same basic restore endpoint
+  // Advanced options like preservePlayerData are not yet supported by backend
+  return fetchEmpty(
+    `${API_BASE_URL}/api/v1/backups/backups/${backupId}/restore`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        confirm: true,
+      }),
+    }
   );
-
-  if (options?.preservePlayerData) {
-    url.searchParams.set("preserve_player_data", "true");
-  }
-  if (options?.restoreSettings) {
-    url.searchParams.set("restore_settings", "true");
-  }
-
-  return fetchEmpty(url.toString(), {
-    method: "POST",
-  });
 }
 
 export async function getServerPlayers(

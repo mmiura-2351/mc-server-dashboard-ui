@@ -30,11 +30,11 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   const [newBackupName, setNewBackupName] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isEditingSettings, setIsEditingSettings] = useState(false);
-  const [downloadingBackups, setDownloadingBackups] = useState<Set<string>>(
+  const [downloadingBackups, setDownloadingBackups] = useState<Set<number>>(
     new Set()
   );
-  const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
-  const [restoringBackups, setRestoringBackups] = useState<Set<string>>(
+  const [openDropdowns, setOpenDropdowns] = useState<Set<number>>(new Set());
+  const [restoringBackups, setRestoringBackups] = useState<Set<number>>(
     new Set()
   );
 
@@ -126,7 +126,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     setIsCreatingBackup(false);
   };
 
-  const handleRestoreBackup = async (backupId: string, backupName: string) => {
+  const handleRestoreBackup = async (backupId: number, backupName: string) => {
     if (!confirm(t("backups.restoreConfirmation", { name: backupName }))) {
       return;
     }
@@ -154,7 +154,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
   };
 
   const handleAdvancedRestore = async (
-    backupId: string,
+    backupId: number,
     backupName: string,
     options?: { preservePlayerData?: boolean; restoreSettings?: boolean }
   ) => {
@@ -191,7 +191,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     }
   };
 
-  const handleDeleteBackup = async (backupId: string, backupName: string) => {
+  const handleDeleteBackup = async (backupId: number, backupName: string) => {
     if (!confirm(t("backups.deleteConfirmation", { name: backupName }))) {
       return;
     }
@@ -211,7 +211,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     }
   };
 
-  const handleDownloadBackup = async (backupId: string, backupName: string) => {
+  const handleDownloadBackup = async (backupId: number, backupName: string) => {
     setDownloadingBackups((prev) => new Set(prev).add(backupId));
     setError(null);
 
@@ -242,7 +242,7 @@ export function ServerBackups({ serverId }: ServerBackupsProps) {
     }
   };
 
-  const toggleDropdown = (backupId: string) => {
+  const toggleDropdown = (backupId: number) => {
     setOpenDropdowns((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(backupId)) {

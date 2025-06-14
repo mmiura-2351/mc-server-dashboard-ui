@@ -89,7 +89,7 @@ Object.defineProperty(window, "confirm", {
 describe("ServerBackups", () => {
   const mockBackups = [
     {
-      id: "backup-1",
+      id: 1,
       server_id: 1,
       name: "Test Backup",
       description: "Test backup description",
@@ -99,7 +99,7 @@ describe("ServerBackups", () => {
       file_path: "/backups/backup-1.tar.gz",
     },
     {
-      id: "backup-2",
+      id: 2,
       server_id: 1,
       name: "Auto Backup",
       description: "Scheduled backup",
@@ -126,7 +126,7 @@ describe("ServerBackups", () => {
     );
     vi.mocked(serverService.createBackup).mockResolvedValue(
       ok({
-        id: "new-backup",
+        id: 3,
         server_id: 1,
         name: "New Backup",
         description: "Newly created backup",
@@ -350,7 +350,7 @@ describe("ServerBackups", () => {
     );
 
     await waitFor(() => {
-      expect(serverService.restoreBackup).toHaveBeenCalledWith("backup-1");
+      expect(serverService.restoreBackup).toHaveBeenCalledWith(1);
     });
   });
 
@@ -401,7 +401,7 @@ describe("ServerBackups", () => {
     );
 
     await waitFor(() => {
-      expect(serverService.deleteBackup).toHaveBeenCalledWith("backup-1");
+      expect(serverService.deleteBackup).toHaveBeenCalledWith(1);
     });
   });
 

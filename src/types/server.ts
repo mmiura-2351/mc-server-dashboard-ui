@@ -91,7 +91,7 @@ export interface ServerTemplate {
 }
 
 export interface ServerBackup {
-  id: string;
+  id: number;
   server_id: number;
   name: string;
   description?: string;
