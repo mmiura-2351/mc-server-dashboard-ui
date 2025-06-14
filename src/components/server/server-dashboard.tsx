@@ -70,7 +70,7 @@ export function ServerDashboard() {
 
   const switchTab = (tab: "create" | "import") => {
     setModalTab(tab);
-    resetForms();
+    // Don't reset forms on tab switch to preserve user input
   };
 
   const loadData = useCallback(async () => {
@@ -370,13 +370,17 @@ export function ServerDashboard() {
             </div>
 
             {modalTab === "create" ? (
-              <form onSubmit={handleCreateServer} className={styles.form}>
+              <form
+                onSubmit={handleCreateServer}
+                className={styles.form}
+                key="create-form"
+              >
                 <div className={styles.field}>
-                  <label htmlFor="serverName">
+                  <label htmlFor="createServerName">
                     {t("servers.create.serverName")}
                   </label>
                   <input
-                    id="serverName"
+                    id="createServerName"
                     type="text"
                     value={createForm.name}
                     onChange={(e) =>
@@ -388,11 +392,11 @@ export function ServerDashboard() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverVersion">
+                  <label htmlFor="createServerVersion">
                     {t("servers.create.minecraftVersion")}
                   </label>
                   <select
-                    id="serverVersion"
+                    id="createServerVersion"
                     value={createForm.minecraft_version}
                     onChange={(e) =>
                       setCreateForm({
@@ -410,11 +414,11 @@ export function ServerDashboard() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverType">
+                  <label htmlFor="createServerType">
                     {t("servers.create.serverType")}
                   </label>
                   <select
-                    id="serverType"
+                    id="createServerType"
                     value={createForm.server_type}
                     onChange={(e) =>
                       setCreateForm({
@@ -430,11 +434,11 @@ export function ServerDashboard() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverMemory">
+                  <label htmlFor="createServerMemory">
                     {t("servers.create.memory")}
                   </label>
                   <select
-                    id="serverMemory"
+                    id="createServerMemory"
                     value={createForm.max_memory}
                     onChange={(e) =>
                       setCreateForm({
@@ -452,11 +456,11 @@ export function ServerDashboard() {
                 </div>
 
                 <div className={styles.field}>
-                  <label htmlFor="serverDescription">
+                  <label htmlFor="createServerDescription">
                     {t("servers.create.description")}
                   </label>
                   <textarea
-                    id="serverDescription"
+                    id="createServerDescription"
                     value={createForm.description}
                     onChange={(e) =>
                       setCreateForm({
@@ -489,7 +493,11 @@ export function ServerDashboard() {
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleImportServer} className={styles.form}>
+              <form
+                onSubmit={handleImportServer}
+                className={styles.form}
+                key="import-form"
+              >
                 <div className={styles.field}>
                   <label htmlFor="importFile">{t("servers.import.file")}</label>
                   <input
