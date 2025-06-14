@@ -1,15 +1,10 @@
 import { ok, err, type Result } from "neverthrow";
-import type {
-  AuthError,
-  RefreshTokenRequest,
-  RefreshTokenResponse,
-} from "@/types/auth";
+import type { AuthError } from "@/types/auth";
 import type { ApiRequestConfig } from "./api-types";
 import { ResponseHandlerManager } from "./response-handlers";
+import { tokenManager } from "@/utils/token-manager";
 
-// Global refresh token promise to prevent multiple simultaneous refresh attempts
-let refreshPromise: Promise<Result<RefreshTokenResponse, AuthError>> | null =
-  null;
+// Note: Token refresh is now handled by TokenManager to prevent race conditions
 
 interface ValidationError {
   loc: string[];
@@ -17,7 +12,7 @@ interface ValidationError {
   type: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// API_BASE_URL moved to token manager
 
 // Response handler manager instance
 const responseHandler = new ResponseHandlerManager();
@@ -138,48 +133,16 @@ async function handleSuccessResponse<T>(
   }
 }
 
-// Refresh token function (single attempt)
-async function refreshTokenSingle(
-  refreshData: RefreshTokenRequest
-): Promise<Result<RefreshTokenResponse, AuthError>> {
-  return fetchWithErrorHandlingInternal<RefreshTokenResponse>(
-    `${API_BASE_URL}/api/v1/auth/refresh`,
-    {
-      method: "POST",
-      body: JSON.stringify(refreshData),
-    }
-  );
-}
+// Token refresh is now handled by TokenManager
 
-// Refresh token with singleton pattern to prevent multiple simultaneous attempts
-async function refreshToken(
-  refreshTokenValue: string
-): Promise<Result<RefreshTokenResponse, AuthError>> {
-  // If there's already a refresh in progress, wait for it
-  if (refreshPromise) {
-    return refreshPromise;
-  }
-
-  // Start new refresh
-  refreshPromise = refreshTokenSingle({ refresh_token: refreshTokenValue });
-
-  // Wait for the result
-  const result = await refreshPromise;
-
-  // Clear the promise regardless of success/failure
-  refreshPromise = null;
-
-  return result;
-}
-
-// Enhanced fetch function with automatic token refresh
+// Enhanced fetch function with automatic token refresh via TokenManager
 export async function fetchWithErrorHandling<T>(
   url: string,
   config: ApiRequestConfig = {},
   skipAutoRefresh = false
 ): Promise<Result<T, AuthError>> {
-  // Add authorization header if token exists
-  const token = localStorage.getItem("access_token");
+  // Get valid token through TokenManager (handles refresh automatically)
+  const token = await tokenManager.getValidAccessToken();
   if (token) {
     if (config.headers instanceof Headers) {
       config.headers.set("Authorization", `Bearer ${token}`);
@@ -193,30 +156,21 @@ export async function fetchWithErrorHandling<T>(
   // Make the initial request
   const result = await fetchWithErrorHandlingInternal<T>(url, config);
 
-  // Handle 401 errors with automatic token refresh
+  // Handle 401 errors with TokenManager
   if (result.isErr() && result.error.status === 401 && !skipAutoRefresh) {
-    const refreshTokenValue = localStorage.getItem("refresh_token");
+    // Let TokenManager handle the error and potential logout
+    const handled = tokenManager.handleAPIError(
+      result.error.status || 0,
+      result.error.message
+    );
 
-    if (refreshTokenValue) {
-      const refreshResult = await refreshToken(refreshTokenValue);
-
-      if (refreshResult.isOk()) {
-        // Update stored tokens
-        const { access_token, refresh_token: newRefreshToken } =
-          refreshResult.value;
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("refresh_token", newRefreshToken);
-
-        // Dispatch custom event to notify other parts of the app about token refresh
-        window.dispatchEvent(
-          new CustomEvent("tokenRefresh", {
-            detail: { access_token, refresh_token: newRefreshToken },
-          })
-        );
-
+    if (handled) {
+      // Try to get a fresh token one more time
+      const freshToken = await tokenManager.getValidAccessToken();
+      if (freshToken) {
         // Retry the original request with new token
         const newHeaders = new Headers(config.headers as HeadersInit);
-        newHeaders.set("Authorization", `Bearer ${access_token}`);
+        newHeaders.set("Authorization", `Bearer ${freshToken}`);
 
         const newConfig: ApiRequestConfig = {
           ...config,
@@ -224,14 +178,6 @@ export async function fetchWithErrorHandling<T>(
         };
 
         return fetchWithErrorHandlingInternal<T>(url, newConfig);
-      } else {
-        // Refresh failed, clear tokens and notify app
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user_data");
-
-        // Dispatch logout event to notify AuthContext
-        window.dispatchEvent(new CustomEvent("authLogout"));
       }
     }
   }

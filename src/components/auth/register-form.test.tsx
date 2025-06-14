@@ -60,7 +60,11 @@ describe("RegisterForm", () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText("All fields are required")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Username is required and must contain only valid characters"
+        )
+      ).toBeInTheDocument();
     });
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -70,8 +74,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText("Username"), "testuser");
     await user.type(screen.getByLabelText("Email"), "test@example.com");
-    await user.type(screen.getByLabelText("Password"), "password123");
-    await user.type(screen.getByLabelText("Confirm Password"), "different");
+    await user.type(screen.getByLabelText("Password"), "StrongPass123!");
+    await user.type(screen.getByLabelText("Confirm Password"), "Different123!");
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     expect(screen.getByText("Passwords do not match")).toBeInTheDocument();
@@ -88,7 +92,7 @@ describe("RegisterForm", () => {
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     expect(
-      screen.getByText("Password must be at least 6 characters long")
+      screen.getByText("Password must be at least 8 characters long")
     ).toBeInTheDocument();
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -107,14 +111,17 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText("Username"), "testuser");
     await user.type(screen.getByLabelText("Email"), "test@example.com");
-    await user.type(screen.getByLabelText("Password"), "password123");
-    await user.type(screen.getByLabelText("Confirm Password"), "password123");
+    await user.type(screen.getByLabelText("Password"), "StrongPass123!");
+    await user.type(
+      screen.getByLabelText("Confirm Password"),
+      "StrongPass123!"
+    );
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     expect(mockRegister).toHaveBeenCalledWith({
       username: "testuser",
       email: "test@example.com",
-      password: "password123",
+      password: "StrongPass123!",
     });
   });
 
@@ -132,8 +139,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText("Username"), "admin");
     await user.type(screen.getByLabelText("Email"), "admin@example.com");
-    await user.type(screen.getByLabelText("Password"), "password123");
-    await user.type(screen.getByLabelText("Confirm Password"), "password123");
+    await user.type(screen.getByLabelText("Password"), "AdminPass123!");
+    await user.type(screen.getByLabelText("Confirm Password"), "AdminPass123!");
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     await waitFor(() => {
@@ -157,8 +164,8 @@ describe("RegisterForm", () => {
 
     await user.type(screen.getByLabelText("Username"), "testuser");
     await user.type(screen.getByLabelText("Email"), "test@example.com");
-    await user.type(screen.getByLabelText("Password"), "password123");
-    await user.type(screen.getByLabelText("Confirm Password"), "password123");
+    await user.type(screen.getByLabelText("Password"), "TestPass123!");
+    await user.type(screen.getByLabelText("Confirm Password"), "TestPass123!");
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     await waitFor(() => {
@@ -170,19 +177,24 @@ describe("RegisterForm", () => {
 
   test("shows error message when registration fails", async () => {
     mockRegister.mockResolvedValue(
-      err({ message: "Username already exists", status: 400 })
+      err({ message: "Username already exists", status: 409 })
     );
 
     render(<RegisterForm onSuccess={mockOnSuccess} />);
 
     await user.type(screen.getByLabelText("Username"), "existinguser");
     await user.type(screen.getByLabelText("Email"), "existing@example.com");
-    await user.type(screen.getByLabelText("Password"), "password123");
-    await user.type(screen.getByLabelText("Confirm Password"), "password123");
+    await user.type(screen.getByLabelText("Password"), "ExistingPass123!");
+    await user.type(
+      screen.getByLabelText("Confirm Password"),
+      "ExistingPass123!"
+    );
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Username already exists")).toBeInTheDocument();
+      expect(
+        screen.getByText("Username or email already exists")
+      ).toBeInTheDocument();
     });
     expect(mockOnSuccess).not.toHaveBeenCalled();
   });
@@ -206,8 +218,8 @@ describe("RegisterForm", () => {
 
     await user.type(usernameInput, "testuser");
     await user.type(emailInput, "test@example.com");
-    await user.type(passwordInput, "password123");
-    await user.type(confirmPasswordInput, "password123");
+    await user.type(passwordInput, "ClearForm123!");
+    await user.type(confirmPasswordInput, "ClearForm123!");
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     await waitFor(() => {

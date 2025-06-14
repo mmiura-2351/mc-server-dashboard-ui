@@ -35,12 +35,7 @@ export function ServerDashboard() {
     setIsLoading(true);
     setError(null);
 
-    // Debug authentication status (development only)
-    if (process.env.NODE_ENV === "development") {
-      const token = localStorage.getItem("access_token");
-      console.warn("[DEBUG] Loading servers - Token exists:", !!token);
-      console.warn("[DEBUG] User:", user);
-    }
+    // Removed debug logging for security
 
     try {
       const [serversResult, templatesResult] = await Promise.all([
@@ -67,7 +62,7 @@ export function ServerDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, logout]);
+  }, [logout]);
 
   useEffect(() => {
     loadData();
@@ -77,12 +72,7 @@ export function ServerDashboard() {
     e.preventDefault();
     setIsCreating(true);
 
-    // Debug authentication status before creating server (development only)
-    if (process.env.NODE_ENV === "development") {
-      const token = localStorage.getItem("access_token");
-      console.warn("[DEBUG] Creating server - Token exists:", !!token);
-      console.warn("[DEBUG] Form data:", createForm);
-    }
+    // Removed debug logging for security
 
     const result = await serverService.createServer(createForm);
     if (result.isOk()) {

@@ -7,6 +7,7 @@ import type {
   FileReadResponse,
 } from "@/types/files";
 import { fetchJson, fetchEmpty } from "@/services/api";
+import { tokenManager } from "@/utils/token-manager";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -309,6 +310,9 @@ export async function uploadFileWithProgress(
   file: File,
   onProgress?: (loaded: number, total: number) => void
 ): Promise<Result<void, FileError>> {
+  // Get token before creating Promise to handle async properly
+  const token = await tokenManager.getValidAccessToken();
+
   return new Promise((resolve) => {
     const formData = new FormData();
 
@@ -345,7 +349,7 @@ export async function uploadFileWithProgress(
       });
     }
 
-    xhr.onload = async () => {
+    xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(ok(undefined));
       } else {
@@ -381,7 +385,6 @@ export async function uploadFileWithProgress(
     );
 
     // Add authorization header after opening
-    const token = localStorage.getItem("access_token");
     if (token) {
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     }
@@ -505,7 +508,7 @@ export async function downloadFile(
   const encodedPath = encodeURIComponent(cleanPath);
 
   try {
-    const token = localStorage.getItem("access_token");
+    const token = await tokenManager.getValidAccessToken();
     const headers: HeadersInit = {};
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
