@@ -146,6 +146,18 @@ This is a Minecraft Server Management Dashboard frontend built with Next.js 15 (
 
 ## Development Commands
 
+### Initial Setup
+
+```bash
+# 1. Copy environment template
+cp .env.example .env.local
+
+# 2. Configure environment variables (optional - defaults work for development)
+# Edit .env.local if you need custom API URL or other settings
+```
+
+### Running the Application
+
 ```bash
 # IMPORTANT: Start backend API first!
 cd ../mc-server-dashboard-api
@@ -351,10 +363,27 @@ vi.mock("@/contexts/language", () => ({
 
 ## Environment Configuration
 
-Create `.env.local` with:
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+### Frontend Environment Setup
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Configure environment variables** (optional - defaults work for development):
+   ```bash
+   # .env.local
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   NEXT_PUBLIC_APP_NAME=MC Server Dashboard
+   NEXT_PUBLIC_DEFAULT_LANGUAGE=en
+   NODE_ENV=development
+   ```
+
+3. **Available Environment Variables:**
+   - `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8000)
+   - `NEXT_PUBLIC_APP_NAME`: Application name displayed in UI (default: MC Server Dashboard)
+   - `NEXT_PUBLIC_DEFAULT_LANGUAGE`: Default language (en/ja, default: en)
+   - `NODE_ENV`: Environment mode (development/production)
 
 ### Backend Environment
 The backend requires these environment variables in `../mc-server-dashboard-api/.env`:
