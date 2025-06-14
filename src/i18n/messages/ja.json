@@ -137,10 +137,12 @@
       "start": "サーバー開始",
       "stop": "サーバー停止",
       "restart": "サーバー再起動",
+      "export": "サーバーエクスポート",
       "delete": "サーバー削除",
       "starting": "開始中...",
       "stopping": "停止中...",
       "restarting": "再起動中...",
+      "exporting": "エクスポート中...",
       "deleting": "削除中..."
     },
     "fields": {
@@ -164,6 +166,17 @@
       "descriptionPlaceholder": "サーバーの説明を入力...",
       "creating": "作成中...",
       "createButton": "サーバー作成"
+    },
+    "import": {
+      "title": "サーバーインポート",
+      "description": "以前にエクスポートしたZIPファイルからサーバーをインポートします",
+      "file": "サーバーエクスポートファイル",
+      "fileHelp": "別のサーバーからエクスポートしたZIPファイルを選択",
+      "serverName": "サーバー名",
+      "serverNamePlaceholder": "インポートサーバー",
+      "descriptionPlaceholder": "インポートサーバーの説明を入力...",
+      "importing": "インポート中...",
+      "importButton": "サーバーインポート"
     },
     "settings": {
       "title": "サーバー設定",

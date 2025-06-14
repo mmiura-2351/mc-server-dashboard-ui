@@ -274,6 +274,15 @@
   background-color: #d97706;
 }
 
+.exportButton {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.exportButton:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
 .deleteButton {
   background-color: #dc2626;
   color: white;

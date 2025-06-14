@@ -192,6 +192,40 @@ export default function ServerDetailPage() {
     }
   };
 
+  const handleExportServer = async () => {
+    if (!server) return;
+
+    setIsActioning(true);
+    setError(null);
+
+    try {
+      const result = await serverService.exportServer(server.id);
+
+      if (result.isOk()) {
+        // Create download link
+        const blob = result.value;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${server.name}_export.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        if (result.error.status === 401) {
+          logout();
+          return;
+        }
+        setError(result.error.message);
+      }
+    } catch {
+      setError(t("errors.operationFailed", { action: "export" }));
+    } finally {
+      setIsActioning(false);
+    }
+  };
+
   const getStatusColor = (status: ServerStatus) => {
     switch (status) {
       case ServerStatus.RUNNING:
@@ -437,6 +471,15 @@ export default function ServerDetailPage() {
                       : t("servers.actions.restart")}
                   </button>
                 )}
+                <button
+                  onClick={handleExportServer}
+                  className={`${styles.actionButton} ${styles.exportButton}`}
+                  disabled={isActioning}
+                >
+                  {isActioning
+                    ? t("servers.actions.exporting")
+                    : t("servers.actions.export")}
+                </button>
                 <button
                   onClick={handleDeleteServer}
                   className={`${styles.actionButton} ${styles.deleteButton}`}

@@ -8,6 +8,7 @@ import type {
   MinecraftServer,
   ServerTemplate,
   CreateServerRequest,
+  ServerImportRequest,
 } from "@/types/server";
 import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
 import styles from "./server-dashboard.module.css";
@@ -20,7 +21,9 @@ export function ServerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalTab, setModalTab] = useState<"create" | "import">("create");
   const [isCreating, setIsCreating] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Create server form
   const [createForm, setCreateForm] = useState<CreateServerRequest>({
@@ -30,6 +33,15 @@ export function ServerDashboard() {
     max_memory: 2048,
     description: "",
   });
+
+  // Import server form
+  const [importForm, setImportForm] = useState<
+    Omit<ServerImportRequest, "file">
+  >({
+    name: "",
+    description: "",
+  });
+  const [importFile, setImportFile] = useState<File | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -120,6 +132,35 @@ export function ServerDashboard() {
       setError(result.error.message);
     }
     setIsCreating(false);
+  };
+
+  const handleImportServer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importFile) return;
+
+    setIsImporting(true);
+
+    const result = await serverService.importServer({
+      ...importForm,
+      file: importFile,
+    });
+
+    if (result.isOk()) {
+      setServers([...servers, result.value]);
+      setShowCreateModal(false);
+      setImportForm({
+        name: "",
+        description: "",
+      });
+      setImportFile(null);
+    } else {
+      if (result.error.status === 401) {
+        logout();
+        return;
+      }
+      setError(result.error.message);
+    }
+    setIsImporting(false);
   };
 
   const handleServerClick = (serverId: number) => {
@@ -263,12 +304,14 @@ export function ServerDashboard() {
         </>
       )}
 
-      {/* Create Server Modal */}
+      {/* Create/Import Server Modal */}
       {showCreateModal && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2>Create New Server</h2>
+              <h2>
+                {modalTab === "create" ? "Create New Server" : "Import Server"}
+              </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className={styles.closeButton}
@@ -277,114 +320,197 @@ export function ServerDashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateServer} className={styles.form}>
-              <div className={styles.field}>
-                <label htmlFor="serverName">Server Name</label>
-                <input
-                  id="serverName"
-                  type="text"
-                  value={createForm.name}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, name: e.target.value })
-                  }
-                  required
-                  placeholder="My Minecraft Server"
-                />
-              </div>
+            <div className={styles.modalTabs}>
+              <button
+                className={`${styles.modalTab} ${modalTab === "create" ? styles.activeModalTab : ""}`}
+                onClick={() => setModalTab("create")}
+              >
+                Create New
+              </button>
+              <button
+                className={`${styles.modalTab} ${modalTab === "import" ? styles.activeModalTab : ""}`}
+                onClick={() => setModalTab("import")}
+              >
+                Import from ZIP
+              </button>
+            </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverVersion">Minecraft Version</label>
-                <select
-                  id="serverVersion"
-                  value={createForm.minecraft_version}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      minecraft_version: e.target.value,
-                    })
-                  }
-                >
-                  {MINECRAFT_VERSIONS.map((version) => (
-                    <option key={version} value={version}>
-                      {version}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {modalTab === "create" ? (
+              <form onSubmit={handleCreateServer} className={styles.form}>
+                <div className={styles.field}>
+                  <label htmlFor="serverName">Server Name</label>
+                  <input
+                    id="serverName"
+                    type="text"
+                    value={createForm.name}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, name: e.target.value })
+                    }
+                    required
+                    placeholder="My Minecraft Server"
+                  />
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverType">Server Type</label>
-                <select
-                  id="serverType"
-                  value={createForm.server_type}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      server_type: e.target.value as ServerType,
-                    })
-                  }
-                >
-                  <option value={ServerType.VANILLA}>Vanilla</option>
-                  <option value={ServerType.PAPER}>Paper</option>
-                  <option value={ServerType.FORGE}>Forge</option>
-                </select>
-              </div>
+                <div className={styles.field}>
+                  <label htmlFor="serverVersion">Minecraft Version</label>
+                  <select
+                    id="serverVersion"
+                    value={createForm.minecraft_version}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        minecraft_version: e.target.value,
+                      })
+                    }
+                  >
+                    {MINECRAFT_VERSIONS.map((version) => (
+                      <option key={version} value={version}>
+                        {version}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverMemory">Memory (MB)</label>
-                <select
-                  id="serverMemory"
-                  value={createForm.max_memory}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      max_memory: parseInt(e.target.value),
-                    })
-                  }
-                >
-                  <option value={1024}>1GB (1024MB)</option>
-                  <option value={2048}>2GB (2048MB)</option>
-                  <option value={4096}>4GB (4096MB)</option>
-                  <option value={8192}>8GB (8192MB)</option>
-                  <option value={16384}>16GB (16384MB)</option>
-                </select>
-              </div>
+                <div className={styles.field}>
+                  <label htmlFor="serverType">Server Type</label>
+                  <select
+                    id="serverType"
+                    value={createForm.server_type}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        server_type: e.target.value as ServerType,
+                      })
+                    }
+                  >
+                    <option value={ServerType.VANILLA}>Vanilla</option>
+                    <option value={ServerType.PAPER}>Paper</option>
+                    <option value={ServerType.FORGE}>Forge</option>
+                  </select>
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverDescription">
-                  Description (Optional)
-                </label>
-                <textarea
-                  id="serverDescription"
-                  value={createForm.description || ""}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Describe your server..."
-                  rows={3}
-                />
-              </div>
+                <div className={styles.field}>
+                  <label htmlFor="serverMemory">Memory (MB)</label>
+                  <select
+                    id="serverMemory"
+                    value={createForm.max_memory}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        max_memory: parseInt(e.target.value),
+                      })
+                    }
+                  >
+                    <option value={1024}>1GB (1024MB)</option>
+                    <option value={2048}>2GB (2048MB)</option>
+                    <option value={4096}>4GB (4096MB)</option>
+                    <option value={8192}>8GB (8192MB)</option>
+                    <option value={16384}>16GB (16384MB)</option>
+                  </select>
+                </div>
 
-              <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className={styles.cancelButton}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className={styles.submitButton}
-                >
-                  {isCreating ? "Creating..." : "Create Server"}
-                </button>
-              </div>
-            </form>
+                <div className={styles.field}>
+                  <label htmlFor="serverDescription">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="serverDescription"
+                    value={createForm.description || ""}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder="Describe your server..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className={styles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCreating}
+                    className={styles.submitButton}
+                  >
+                    {isCreating ? "Creating..." : "Create Server"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleImportServer} className={styles.form}>
+                <div className={styles.field}>
+                  <label htmlFor="importFile">Server Export File</label>
+                  <input
+                    id="importFile"
+                    type="file"
+                    accept=".zip"
+                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                    required
+                    className={styles.fileInput}
+                  />
+                  <small className={styles.fieldHelp}>
+                    Select a ZIP file exported from another server
+                  </small>
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="importServerName">Server Name</label>
+                  <input
+                    id="importServerName"
+                    type="text"
+                    value={importForm.name}
+                    onChange={(e) =>
+                      setImportForm({ ...importForm, name: e.target.value })
+                    }
+                    required
+                    placeholder="Imported Server"
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="importServerDescription">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="importServerDescription"
+                    value={importForm.description || ""}
+                    onChange={(e) =>
+                      setImportForm({
+                        ...importForm,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder="Describe your imported server..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className={styles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isImporting || !importFile}
+                    className={styles.submitButton}
+                  >
+                    {isImporting ? "Importing..." : "Import Server"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
