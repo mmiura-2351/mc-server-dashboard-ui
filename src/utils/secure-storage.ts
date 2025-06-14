@@ -8,7 +8,7 @@ export class SecureStorage {
    */
   static getItem(key: string): string | null {
     try {
-      if (typeof window === 'undefined') return null;
+      if (typeof window === "undefined") return null;
       return localStorage.getItem(key);
     } catch (error) {
       console.error(`Failed to get item from localStorage: ${key}`, error);
@@ -21,7 +21,7 @@ export class SecureStorage {
    */
   static setItem(key: string, value: string): boolean {
     try {
-      if (typeof window === 'undefined') return false;
+      if (typeof window === "undefined") return false;
       localStorage.setItem(key, value);
       return true;
     } catch (error) {
@@ -35,7 +35,7 @@ export class SecureStorage {
    */
   static removeItem(key: string): boolean {
     try {
-      if (typeof window === 'undefined') return false;
+      if (typeof window === "undefined") return false;
       localStorage.removeItem(key);
       return true;
     } catch (error) {
@@ -49,11 +49,11 @@ export class SecureStorage {
    */
   static clear(): boolean {
     try {
-      if (typeof window === 'undefined') return false;
+      if (typeof window === "undefined") return false;
       localStorage.clear();
       return true;
     } catch (error) {
-      console.error('Failed to clear localStorage', error);
+      console.error("Failed to clear localStorage", error);
       return false;
     }
   }
@@ -61,20 +61,23 @@ export class SecureStorage {
   /**
    * Get and parse JSON from localStorage with validation
    */
-  static getJSON<T>(key: string, validator?: (value: unknown) => value is T): T | null {
+  static getJSON<T>(
+    key: string,
+    validator?: (value: unknown) => value is T
+  ): T | null {
     try {
       const item = this.getItem(key);
       if (!item) return null;
-      
+
       const parsed = JSON.parse(item);
-      
+
       // If validator provided, use it to validate the parsed data
       if (validator && !validator(parsed)) {
         console.warn(`Invalid data format for key: ${key}`);
         this.removeItem(key); // Remove invalid data
         return null;
       }
-      
+
       return parsed as T;
     } catch (error) {
       console.error(`Failed to parse JSON from localStorage: ${key}`, error);
@@ -101,10 +104,10 @@ export class SecureStorage {
    */
   static isAvailable(): boolean {
     try {
-      if (typeof window === 'undefined') return false;
-      
-      const testKey = '__test_localStorage__';
-      localStorage.setItem(testKey, 'test');
+      if (typeof window === "undefined") return false;
+
+      const testKey = "__test_localStorage__";
+      localStorage.setItem(testKey, "test");
       localStorage.removeItem(testKey);
       return true;
     } catch {
@@ -117,7 +120,7 @@ export class SecureStorage {
    */
   static getMultiple(keys: string[]): Record<string, string | null> {
     const result: Record<string, string | null> = {};
-    keys.forEach(key => {
+    keys.forEach((key) => {
       result[key] = this.getItem(key);
     });
     return result;
@@ -128,7 +131,7 @@ export class SecureStorage {
    */
   static removeMultiple(keys: string[]): boolean {
     let success = true;
-    keys.forEach(key => {
+    keys.forEach((key) => {
       if (!this.removeItem(key)) {
         success = false;
       }
@@ -141,36 +144,44 @@ export class SecureStorage {
  * Type validators for common data types
  */
 export const validators = {
-  user: (value: unknown): value is { id: number; username: string; email: string; role: string; is_approved: boolean } => {
-    if (typeof value !== 'object' || value === null) return false;
-    
+  user: (
+    value: unknown
+  ): value is {
+    id: number;
+    username: string;
+    email: string;
+    role: string;
+    is_approved: boolean;
+  } => {
+    if (typeof value !== "object" || value === null) return false;
+
     const obj = value as Record<string, unknown>;
     return (
-      'id' in obj &&
-      'username' in obj &&
-      'email' in obj &&
-      'role' in obj &&
-      'is_approved' in obj &&
-      typeof obj.id === 'number' &&
-      typeof obj.username === 'string' &&
-      typeof obj.email === 'string' &&
-      typeof obj.role === 'string' &&
-      typeof obj.is_approved === 'boolean'
+      "id" in obj &&
+      "username" in obj &&
+      "email" in obj &&
+      "role" in obj &&
+      "is_approved" in obj &&
+      typeof obj.id === "number" &&
+      typeof obj.username === "string" &&
+      typeof obj.email === "string" &&
+      typeof obj.role === "string" &&
+      typeof obj.is_approved === "boolean"
     );
   },
-  
+
   token: (value: unknown): value is string => {
-    return typeof value === 'string' && value.length > 0;
-  }
+    return typeof value === "string" && value.length > 0;
+  },
 };
 
 /**
  * Specific methods for auth-related storage
  */
 export class AuthStorage {
-  private static readonly ACCESS_TOKEN_KEY = 'access_token';
-  private static readonly REFRESH_TOKEN_KEY = 'refresh_token';
-  private static readonly USER_DATA_KEY = 'user_data';
+  private static readonly ACCESS_TOKEN_KEY = "access_token";
+  private static readonly REFRESH_TOKEN_KEY = "refresh_token";
+  private static readonly USER_DATA_KEY = "user_data";
 
   static getAccessToken(): string | null {
     const token = SecureStorage.getItem(this.ACCESS_TOKEN_KEY);
@@ -179,7 +190,7 @@ export class AuthStorage {
 
   static setAccessToken(token: string): boolean {
     if (!validators.token(token)) {
-      console.error('Invalid access token format');
+      console.error("Invalid access token format");
       return false;
     }
     return SecureStorage.setItem(this.ACCESS_TOKEN_KEY, token);
@@ -192,7 +203,7 @@ export class AuthStorage {
 
   static setRefreshToken(token: string): boolean {
     if (!validators.token(token)) {
-      console.error('Invalid refresh token format');
+      console.error("Invalid refresh token format");
       return false;
     }
     return SecureStorage.setItem(this.REFRESH_TOKEN_KEY, token);
@@ -204,7 +215,7 @@ export class AuthStorage {
 
   static setUserData(user: unknown): boolean {
     if (!validators.user(user)) {
-      console.error('Invalid user data format');
+      console.error("Invalid user data format");
       return false;
     }
     return SecureStorage.setJSON(this.USER_DATA_KEY, user);
@@ -214,14 +225,17 @@ export class AuthStorage {
     return SecureStorage.removeMultiple([
       this.ACCESS_TOKEN_KEY,
       this.REFRESH_TOKEN_KEY,
-      this.USER_DATA_KEY
+      this.USER_DATA_KEY,
     ]);
   }
 
-  static getAuthTokens(): { accessToken: string | null; refreshToken: string | null } {
+  static getAuthTokens(): {
+    accessToken: string | null;
+    refreshToken: string | null;
+  } {
     return {
       accessToken: this.getAccessToken(),
-      refreshToken: this.getRefreshToken()
+      refreshToken: this.getRefreshToken(),
     };
   }
 

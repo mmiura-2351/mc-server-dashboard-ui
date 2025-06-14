@@ -60,7 +60,11 @@ describe("RegisterForm", () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText("Username is required and must contain only valid characters")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Username is required and must contain only valid characters"
+        )
+      ).toBeInTheDocument();
     });
     expect(mockRegister).not.toHaveBeenCalled();
   });
@@ -108,7 +112,10 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText("Username"), "testuser");
     await user.type(screen.getByLabelText("Email"), "test@example.com");
     await user.type(screen.getByLabelText("Password"), "StrongPass123!");
-    await user.type(screen.getByLabelText("Confirm Password"), "StrongPass123!");
+    await user.type(
+      screen.getByLabelText("Confirm Password"),
+      "StrongPass123!"
+    );
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     expect(mockRegister).toHaveBeenCalledWith({
@@ -178,11 +185,16 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText("Username"), "existinguser");
     await user.type(screen.getByLabelText("Email"), "existing@example.com");
     await user.type(screen.getByLabelText("Password"), "ExistingPass123!");
-    await user.type(screen.getByLabelText("Confirm Password"), "ExistingPass123!");
+    await user.type(
+      screen.getByLabelText("Confirm Password"),
+      "ExistingPass123!"
+    );
     await user.click(screen.getByRole("button", { name: "Register" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Username or email already exists")).toBeInTheDocument();
+      expect(
+        screen.getByText("Username or email already exists")
+      ).toBeInTheDocument();
     });
     expect(mockOnSuccess).not.toHaveBeenCalled();
   });

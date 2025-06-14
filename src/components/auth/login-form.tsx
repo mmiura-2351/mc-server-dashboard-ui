@@ -25,7 +25,9 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     setError("");
 
     // Sanitize inputs
-    const sanitizedUsername = InputSanitizer.sanitizeUsername(formData.username);
+    const sanitizedUsername = InputSanitizer.sanitizeUsername(
+      formData.username
+    );
     const sanitizedPassword = formData.password.trim();
 
     // Enhanced validation
@@ -80,7 +82,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Apply basic sanitization on input
     let sanitizedValue = value;
     if (name === "username") {
@@ -95,7 +97,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       ...prev,
       [name]: sanitizedValue,
     }));
-    
+
     // Clear error when user starts typing
     if (error) {
       setError("");

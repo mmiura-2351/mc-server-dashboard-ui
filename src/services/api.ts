@@ -1,7 +1,5 @@
 import { ok, err, type Result } from "neverthrow";
-import type {
-  AuthError,
-} from "@/types/auth";
+import type { AuthError } from "@/types/auth";
 import type { ApiRequestConfig } from "./api-types";
 import { ResponseHandlerManager } from "./response-handlers";
 import { tokenManager } from "@/utils/token-manager";
@@ -161,8 +159,11 @@ export async function fetchWithErrorHandling<T>(
   // Handle 401 errors with TokenManager
   if (result.isErr() && result.error.status === 401 && !skipAutoRefresh) {
     // Let TokenManager handle the error and potential logout
-    const handled = tokenManager.handleAPIError(result.error.status || 0, result.error.message);
-    
+    const handled = tokenManager.handleAPIError(
+      result.error.status || 0,
+      result.error.message
+    );
+
     if (handled) {
       // Try to get a fresh token one more time
       const freshToken = await tokenManager.getValidAccessToken();

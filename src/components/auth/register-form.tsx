@@ -31,7 +31,9 @@ export function RegisterForm({
     setSuccess("");
 
     // Sanitize inputs
-    const sanitizedUsername = InputSanitizer.sanitizeUsername(formData.username);
+    const sanitizedUsername = InputSanitizer.sanitizeUsername(
+      formData.username
+    );
     const sanitizedEmail = InputSanitizer.sanitizeEmail(formData.email);
     const sanitizedPassword = formData.password.trim();
     const sanitizedConfirmPassword = confirmPassword.trim();
@@ -76,7 +78,8 @@ export function RegisterForm({
     }
 
     // Password validation using secure validator
-    const passwordValidation = InputSanitizer.validatePassword(sanitizedPassword);
+    const passwordValidation =
+      InputSanitizer.validatePassword(sanitizedPassword);
     if (!passwordValidation.isValid) {
       setError(passwordValidation.errors[0] || "Password validation failed"); // Show first error
       return;
@@ -92,7 +95,7 @@ export function RegisterForm({
       email: sanitizedEmail,
       password: sanitizedPassword,
     });
-    
+
     if (result.isErr()) {
       // Handle specific error cases
       if (result.error.status === 409) {
@@ -122,7 +125,7 @@ export function RegisterForm({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     // Apply basic sanitization on input
     let sanitizedValue = value;
     if (name === "username") {
@@ -144,7 +147,7 @@ export function RegisterForm({
         [name]: sanitizedValue,
       }));
     }
-    
+
     // Clear errors when user starts typing
     if (error) {
       setError("");

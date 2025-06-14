@@ -149,7 +149,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     setIsLoading(true);
     const { access_token, refresh_token } = loginResult.value;
-    
+
     // Use secure storage for token storage
     const tokenStored = AuthStorage.setAuthTokens(access_token, refresh_token);
     if (!tokenStored) {
@@ -204,8 +204,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Sanitize user data
     const sanitizedUserData = {
       ...userData,
-      username: userData.username ? InputSanitizer.sanitizeUsername(userData.username) : undefined,
-      email: userData.email ? InputSanitizer.sanitizeEmail(userData.email) : undefined,
+      username: userData.username
+        ? InputSanitizer.sanitizeUsername(userData.username)
+        : undefined,
+      email: userData.email
+        ? InputSanitizer.sanitizeEmail(userData.email)
+        : undefined,
     };
 
     const result = await authService.updateUserInfo(token, sanitizedUserData);
@@ -236,7 +240,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     // Validate password strength
-    const passwordValidation = InputSanitizer.validatePassword(passwordData.new_password);
+    const passwordValidation = InputSanitizer.validatePassword(
+      passwordData.new_password
+    );
     if (!passwordValidation.isValid) {
       return err({ message: passwordValidation.errors.join(", ") });
     }

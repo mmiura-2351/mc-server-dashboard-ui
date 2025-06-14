@@ -312,7 +312,7 @@ export async function uploadFileWithProgress(
 ): Promise<Result<void, FileError>> {
   // Get token before creating Promise to handle async properly
   const token = await tokenManager.getValidAccessToken();
-  
+
   return new Promise((resolve) => {
     const formData = new FormData();
 

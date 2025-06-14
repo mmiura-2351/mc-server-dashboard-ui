@@ -62,7 +62,9 @@ describe("LoginForm", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Username is required and must contain only valid characters")
+        screen.getByText(
+          "Username is required and must contain only valid characters"
+        )
       ).toBeInTheDocument();
     });
     expect(mockLogin).not.toHaveBeenCalled();
@@ -109,7 +111,9 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Login" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Invalid username or password")).toBeInTheDocument();
+      expect(
+        screen.getByText("Invalid username or password")
+      ).toBeInTheDocument();
     });
     expect(mockOnSuccess).not.toHaveBeenCalled();
   });

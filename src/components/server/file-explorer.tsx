@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
-import { FileUploadSecurity, DEFAULT_UPLOAD_CONFIG } from "@/utils/file-upload-security";
+import {
+  FileUploadSecurity,
+  DEFAULT_UPLOAD_CONFIG,
+} from "@/utils/file-upload-security";
 import { InputSanitizer } from "@/utils/input-sanitizer";
 import styles from "./file-explorer.module.css";
 import JSZip from "jszip";
@@ -704,21 +707,21 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     // Show warnings if any
     if (securityResult.warnings.length > 0) {
-      console.warn('File upload warnings:', securityResult.warnings);
+      console.warn("File upload warnings:", securityResult.warnings);
     }
 
     // Show blocked files
     if (securityResult.blocked.length > 0) {
       const blockedMessage = securityResult.blocked
-        .map(b => `${b.file.name}: ${b.reason}`)
-        .join('\n');
+        .map((b) => `${b.file.name}: ${b.reason}`)
+        .join("\n");
       alert(`Some files were blocked for security reasons:\n${blockedMessage}`);
     }
 
     // Use only allowed files
     const allowedFiles = securityResult.allowed;
     if (allowedFiles.length === 0) {
-      alert('No files could be uploaded due to security restrictions.');
+      alert("No files could be uploaded due to security restrictions.");
       return;
     }
 
@@ -1532,7 +1535,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   type="text"
                   value={newName}
                   onChange={(e) => {
-                    const sanitized = InputSanitizer.sanitizeFilePath(e.target.value);
+                    const sanitized = InputSanitizer.sanitizeFilePath(
+                      e.target.value
+                    );
                     setNewName(sanitized);
                   }}
                   onKeyDown={(e) => {

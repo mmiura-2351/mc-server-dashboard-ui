@@ -1,9 +1,9 @@
 /**
  * Token manager to handle race conditions and secure token operations
  */
-import { ok, err, type Result } from 'neverthrow';
-import { AuthStorage } from './secure-storage';
-import type { AuthError, RefreshTokenResponse } from '@/types/auth';
+import { ok, err, type Result } from "neverthrow";
+import { AuthStorage } from "./secure-storage";
+import type { AuthError, RefreshTokenResponse } from "@/types/auth";
 
 interface TokenRefreshRequest {
   refreshToken: string;
@@ -14,7 +14,9 @@ interface TokenRefreshRequest {
  */
 class TokenManager {
   private static instance: TokenManager | null = null;
-  private refreshPromise: Promise<Result<RefreshTokenResponse, AuthError>> | null = null;
+  private refreshPromise: Promise<
+    Result<RefreshTokenResponse, AuthError>
+  > | null = null;
   private refreshInProgress = false;
   private lastRefreshTime = 0;
   private readonly MIN_REFRESH_INTERVAL = 5000; // 5 seconds minimum between refreshes
@@ -33,7 +35,7 @@ class TokenManager {
    */
   async getValidAccessToken(): Promise<string | null> {
     const accessToken = AuthStorage.getAccessToken();
-    
+
     if (!accessToken) {
       return null;
     }
@@ -62,12 +64,12 @@ class TokenManager {
     // Check minimum refresh interval to prevent spam
     const now = Date.now();
     if (now - this.lastRefreshTime < this.MIN_REFRESH_INTERVAL) {
-      return err({ message: 'Refresh rate limited', status: 429 });
+      return err({ message: "Refresh rate limited", status: 429 });
     }
 
     const refreshToken = AuthStorage.getRefreshToken();
     if (!refreshToken) {
-      return err({ message: 'No refresh token available', status: 401 });
+      return err({ message: "No refresh token available", status: 401 });
     }
 
     // Set refresh in progress
@@ -79,12 +81,12 @@ class TokenManager {
 
     try {
       const result = await this.refreshPromise;
-      
+
       if (result.isOk()) {
         // Update stored tokens
         const { access_token, refresh_token } = result.value;
         AuthStorage.setAuthTokens(access_token, refresh_token);
-        
+
         // Dispatch custom event for UI updates
         this.dispatchTokenRefreshEvent(result.value);
       } else {
@@ -108,18 +110,21 @@ class TokenManager {
     request: TokenRefreshRequest
   ): Promise<Result<RefreshTokenResponse, AuthError>> {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token: request.refreshToken }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ refresh_token: request.refreshToken }),
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
         return err({
-          message: errorText || 'Token refresh failed',
+          message: errorText || "Token refresh failed",
           status: response.status,
         });
       }
@@ -128,7 +133,10 @@ class TokenManager {
       return ok(data);
     } catch (error) {
       return err({
-        message: error instanceof Error ? error.message : 'Network error during token refresh',
+        message:
+          error instanceof Error
+            ? error.message
+            : "Network error during token refresh",
         status: 0,
       });
     }
@@ -142,7 +150,7 @@ class TokenManager {
       // For JWT tokens, we could decode and check exp claim
       // For now, we'll rely on the backend 401 response
       // This is a placeholder for more sophisticated token validation
-      
+
       // Basic check: if token is very short or obviously invalid
       if (!token || token.length < 10) {
         return true;
@@ -151,7 +159,7 @@ class TokenManager {
       // Could add JWT parsing here:
       // const payload = JSON.parse(atob(token.split('.')[1]));
       // return Date.now() >= payload.exp * 1000;
-      
+
       return false;
     } catch {
       return true;
@@ -196,8 +204,8 @@ class TokenManager {
    * Dispatch token refresh event for UI updates
    */
   private dispatchTokenRefreshEvent(tokens: RefreshTokenResponse): void {
-    if (typeof window !== 'undefined') {
-      const event = new CustomEvent('tokenRefresh', {
+    if (typeof window !== "undefined") {
+      const event = new CustomEvent("tokenRefresh", {
         detail: tokens,
       });
       window.dispatchEvent(event);
@@ -208,8 +216,8 @@ class TokenManager {
    * Dispatch auth logout event for UI updates
    */
   private dispatchAuthLogoutEvent(): void {
-    if (typeof window !== 'undefined') {
-      const event = new CustomEvent('authLogout');
+    if (typeof window !== "undefined") {
+      const event = new CustomEvent("authLogout");
       window.dispatchEvent(event);
     }
   }
