@@ -34,8 +34,11 @@ describe('TokenManager', () => {
     vi.useFakeTimers();
     
     // Reset the singleton instance to ensure clean state
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (tokenManager as any).refreshPromise = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (tokenManager as any).refreshInProgress = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (tokenManager as any).lastRefreshTime = 0;
     
     // Advance time to reset rate limiting
