@@ -9,7 +9,6 @@ import type {
   ServerCommandRequest,
   ServerTemplate,
   ServerBackup,
-  BackupSettings,
   ServerPlayer,
   ServerProperties,
 } from "@/types/server";
@@ -192,46 +191,6 @@ export async function deleteBackup(
   return fetchEmpty(`${API_BASE_URL}/api/v1/backups/backups/${backupId}`, {
     method: "DELETE",
   });
-}
-
-export async function getBackupSettings(
-  serverId: number
-): Promise<Result<BackupSettings, AuthError>> {
-  const result = await fetchJson<{
-    enabled: boolean | null;
-    interval_hours: number | null;
-    max_backups: number | null;
-  }>(
-    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`
-  );
-
-  if (result.isErr()) {
-    return err(result.error);
-  }
-
-  return ok({
-    enabled: result.value.enabled ?? false,
-    interval: result.value.interval_hours ?? 24,
-    maxBackups: result.value.max_backups ?? 7,
-  });
-}
-
-export async function updateBackupSettings(
-  serverId: number,
-  settings: BackupSettings
-): Promise<Result<void, AuthError>> {
-  return fetchEmpty(
-    `${API_BASE_URL}/api/v1/backup-scheduler/scheduler/servers/${serverId}/schedule`,
-    {
-      method: "PUT",
-      body: JSON.stringify({
-        enabled: settings.enabled,
-        interval_hours: settings.interval,
-        max_backups: settings.maxBackups,
-        only_when_running: true, // Default value as expected by backend
-      }),
-    }
-  );
 }
 
 export async function downloadBackup(

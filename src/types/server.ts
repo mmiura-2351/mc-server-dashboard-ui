@@ -101,12 +101,6 @@ export interface ServerBackup {
   file_path: string;
 }
 
-export interface BackupSettings {
-  enabled: boolean;
-  interval: number; // hours
-  maxBackups: number;
-}
-
 export interface ServerPlayer {
   name: string;
   uuid: string;
