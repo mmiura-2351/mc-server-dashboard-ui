@@ -8,6 +8,7 @@ import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
 import { ServerBackups } from "@/components/server/server-backups";
+import { BackupScheduleManager } from "@/components/server/backup-schedule-manager";
 import * as serverService from "@/services/server";
 import type { MinecraftServer } from "@/types/server";
 import { ServerStatus } from "@/types/server";
@@ -31,12 +32,13 @@ export default function ServerDetailPage() {
     | "settings"
     | "files"
     | "backups"
+    | "schedule"
     | null;
   const [activeTab, setActiveTab] = useState<
-    "info" | "properties" | "settings" | "files" | "backups"
+    "info" | "properties" | "settings" | "files" | "backups" | "schedule"
   >(
     tabFromUrl &&
-      ["info", "properties", "settings", "files", "backups"].includes(
+      ["info", "properties", "settings", "files", "backups", "schedule"].includes(
         tabFromUrl
       )
       ? tabFromUrl
@@ -68,7 +70,7 @@ export default function ServerDetailPage() {
 
   // Function to update tab and URL
   const handleTabChange = (
-    tab: "info" | "properties" | "settings" | "files" | "backups"
+    tab: "info" | "properties" | "settings" | "files" | "backups" | "schedule"
   ) => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
@@ -276,25 +278,31 @@ export default function ServerDetailPage() {
           className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("settings")}
         >
-          Settings
+          {t("servers.settings.title")}
         </button>
         <button
           className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("properties")}
         >
-          Properties
+          {t("servers.properties.title")}
         </button>
         <button
           className={`${styles.tab} ${activeTab === "files" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("files")}
         >
-          Files
+          {t("servers.files")}
         </button>
         <button
           className={`${styles.tab} ${activeTab === "backups" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("backups")}
         >
           {t("servers.backups")}
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === "schedule" ? styles.activeTab : ""}`}
+          onClick={() => handleTabChange("schedule")}
+        >
+          {t("servers.backupSchedule")}
         </button>
       </div>
 
@@ -420,9 +428,13 @@ export default function ServerDetailPage() {
           <div className={styles.fullWidthTabContent}>
             <FileExplorer serverId={server.id} />
           </div>
-        ) : (
+        ) : activeTab === "backups" ? (
           <div className={styles.fullWidthTabContent}>
             <ServerBackups serverId={server.id} />
+          </div>
+        ) : (
+          <div className={styles.fullWidthTabContent}>
+            <BackupScheduleManager serverId={server.id} userRole={user.role} />
           </div>
         )}
       </div>

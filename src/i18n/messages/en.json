@@ -201,7 +201,9 @@
       "createFile": "Create Properties File",
       "saving": "Saving..."
     },
-    "backups": "Backups"
+    "backups": "Backups",
+    "backupSchedule": "Backup Schedule",
+    "files": "Files"
   },
   "backups": {
     "description": "Manage your server backups. Create manual backups or set up automatic scheduled backups to protect your world data.",
