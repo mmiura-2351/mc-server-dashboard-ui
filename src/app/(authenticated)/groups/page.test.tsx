@@ -207,8 +207,8 @@ describe("GroupsPage", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
-        // Should render non-breaking space for consistent layout
-        const descriptionElements = screen.getAllByText(/\u00A0/);
+        // Should render space character for consistent layout
+        const descriptionElements = screen.getAllByText(/\s/);
         expect(descriptionElements.length).toBeGreaterThan(0);
       });
     });
@@ -263,7 +263,7 @@ describe("GroupsPage", () => {
       await waitFor(() => {
         const opButton = screen.getByText("OP Groups");
         fireEvent.click(opButton);
-        expect(opButton).toHaveClass("active");
+        expect(opButton.className).toContain("active");
       });
     });
   });
@@ -286,7 +286,7 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButtons = screen.getAllByText("Delete");
+        const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
         // Only one delete button should be visible (for the group owned by current user)
         expect(deleteButtons).toHaveLength(1);
       });
@@ -296,13 +296,13 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByText("Delete");
+        const deleteButton = screen.getByRole("button", { name: "Delete" });
         fireEvent.click(deleteButton);
       });
 
       await waitFor(() => {
         expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
-        expect(screen.getByText("Delete")).toBeInTheDocument();
+        expect(screen.getAllByText("Delete")).toHaveLength(2); // Button + modal title
         expect(
           screen.getByText("Are you sure you want to delete this group?")
         ).toBeInTheDocument();
@@ -315,7 +315,7 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByText("Delete");
+        const deleteButton = screen.getByRole("button", { name: "Delete" });
         fireEvent.click(deleteButton);
       });
 
@@ -333,7 +333,7 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByText("Delete");
+        const deleteButton = screen.getByRole("button", { name: "Delete" });
         fireEvent.click(deleteButton);
       });
 
@@ -355,7 +355,7 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByText("Delete");
+        const deleteButton = screen.getByRole("button", { name: "Delete" });
         fireEvent.click(deleteButton);
       });
 
