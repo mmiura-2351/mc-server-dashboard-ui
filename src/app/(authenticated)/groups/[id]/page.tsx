@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useTranslation, useLanguage } from "@/contexts/language";
+import { useTranslation } from "@/contexts/language";
 import { useAuth } from "@/contexts/auth";
 import {
   getGroup,
@@ -14,12 +14,11 @@ import {
   type UpdateGroupRequest,
   type AddPlayerRequest,
 } from "@/services/groups";
-import { formatDate } from "@/utils/date-format";
+import { formatDateSimple } from "@/utils/date-format";
 import styles from "./group-detail.module.css";
 
 export default function GroupDetailPage() {
   const { t } = useTranslation();
-  const { locale } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -195,7 +194,7 @@ export default function GroupDetailPage() {
                       {player.added_at && (
                         <div className={styles.playerDate}>
                           {t("groups.players.addedAt", {
-                            date: formatDate(player.added_at, locale),
+                            date: formatDateSimple(player.added_at),
                           })}
                         </div>
                       )}

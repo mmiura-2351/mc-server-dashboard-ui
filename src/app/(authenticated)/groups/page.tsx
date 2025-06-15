@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslation, useLanguage } from "@/contexts/language";
+import { useTranslation } from "@/contexts/language";
 import { useAuth } from "@/contexts/auth";
 import {
   getGroups,
@@ -11,12 +11,11 @@ import {
   type Group,
   type CreateGroupRequest,
 } from "@/services/groups";
-import { formatDate } from "@/utils/date-format";
+import { formatDateSimple } from "@/utils/date-format";
 import styles from "./groups.module.css";
 
 export default function GroupsPage() {
   const { t } = useTranslation();
-  const { locale } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
   const [groups, setGroups] = useState<Group[]>([]);
@@ -141,9 +140,9 @@ export default function GroupsPage() {
                   </span>
                 </div>
 
-                {group.description && (
-                  <p className={styles.groupDescription}>{group.description}</p>
-                )}
+                <p className={styles.groupDescription}>
+                  {group.description || "\u00A0"}
+                </p>
 
                 <div className={styles.groupStats}>
                   <span className={styles.playerCount}>
@@ -153,7 +152,7 @@ export default function GroupsPage() {
                   </span>
                   <span className={styles.createdAt}>
                     {t("groups.createdAt", {
-                      date: formatDate(group.created_at, locale),
+                      date: formatDateSimple(group.created_at),
                     })}
                   </span>
                 </div>
