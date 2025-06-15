@@ -6,6 +6,7 @@ import { useTranslation, useLanguage } from "@/contexts/language";
 import { formatDate } from "@/utils/date-format";
 import * as serverService from "@/services/server";
 import * as groupService from "@/services/groups";
+import { ConfirmationModal } from "@/components/modal";
 import type { MinecraftServer, ServerUpdateRequest } from "@/types/server";
 import type { Group, AttachedGroup } from "@/services/groups";
 import styles from "./server-settings.module.css";
@@ -35,6 +36,19 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   const [showAttachModal, setShowAttachModal] = useState(false);
   const [groupsLoading, setGroupsLoading] = useState(true);
   const [groupsError, setGroupsError] = useState<string | null>(null);
+
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   // Update form data when server prop changes
   useEffect(() => {
@@ -151,19 +165,35 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   };
 
   const handleDetachGroup = async (groupId: number, groupName: string) => {
-    if (!confirm(t("groups.servers.confirmDetach", { server: groupName }))) {
-      return;
-    }
+    const confirmDetach = async () => {
+      const result = await groupService.detachGroupFromServer(
+        groupId,
+        server.id
+      );
 
-    const result = await groupService.detachGroupFromServer(groupId, server.id);
+      if (result.isErr()) {
+        setGroupsError(result.error.message);
+        return;
+      }
 
-    if (result.isErr()) {
-      setGroupsError(result.error.message);
-      return;
-    }
+      // Reload groups data after successful detachment
+      await loadGroupsData();
 
-    // Reload groups data after successful detachment
-    await loadGroupsData();
+      // Close modal
+      setConfirmModal({
+        isOpen: false,
+        title: "",
+        message: "",
+        onConfirm: () => {},
+      });
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title: t("groups.servers.detachServer"),
+      message: t("groups.servers.confirmDetach", { server: groupName }),
+      onConfirm: confirmDetach,
+    });
   };
 
   const handleAttachGroup = async (groupId: number, priority: number = 0) => {
@@ -448,6 +478,22 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
           )}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant="danger"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: "",
+            message: "",
+            onConfirm: () => {},
+          })
+        }
+      />
     </div>
   );
 }
