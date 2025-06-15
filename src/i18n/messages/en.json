@@ -137,10 +137,12 @@
       "start": "Start Server",
       "stop": "Stop Server",
       "restart": "Restart Server",
+      "export": "Export Server",
       "delete": "Delete Server",
       "starting": "Starting...",
       "stopping": "Stopping...",
       "restarting": "Restarting...",
+      "exporting": "Exporting...",
       "deleting": "Deleting..."
     },
     "fields": {
@@ -164,6 +166,17 @@
       "descriptionPlaceholder": "Describe your server...",
       "creating": "Creating...",
       "createButton": "Create Server"
+    },
+    "import": {
+      "title": "Import Server",
+      "description": "Import a server from a previously exported ZIP file",
+      "file": "Server Export File",
+      "fileHelp": "Select a ZIP file exported from another server",
+      "serverName": "Server Name",
+      "serverNamePlaceholder": "Imported Server",
+      "descriptionPlaceholder": "Describe your imported server...",
+      "importing": "Importing...",
+      "importButton": "Import Server"
     },
     "settings": {
       "title": "Server Settings",

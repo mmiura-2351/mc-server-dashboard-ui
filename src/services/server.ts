@@ -11,6 +11,7 @@ import type {
   ServerBackup,
   ServerPlayer,
   ServerProperties,
+  ServerImportRequest,
 } from "@/types/server";
 import type { AuthError } from "@/types/auth";
 import { fetchEmpty, fetchJson } from "@/services/api";
@@ -487,6 +488,100 @@ export async function updateServerProperties(
   } catch {
     return err({
       message: "Failed to parse server.properties file",
+    });
+  }
+}
+
+// Export server as a ZIP file
+export async function exportServer(
+  serverId: number
+): Promise<Result<Blob, AuthError>> {
+  try {
+    const token = await tokenManager.getValidAccessToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/servers/${serverId}/export`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let message = "Export failed";
+      try {
+        const errorData = JSON.parse(errorText);
+        message = errorData.message || errorData.detail || message;
+      } catch {
+        // If not JSON, use the text as error message
+        message = errorText || message;
+      }
+
+      return err({
+        message,
+        status: response.status,
+      });
+    }
+
+    const blob = await response.blob();
+    return ok(blob);
+  } catch (error) {
+    return err({
+      message: error instanceof Error ? error.message : "Network error",
+      status: 0,
+    });
+  }
+}
+
+// Import server from ZIP file
+export async function importServer(
+  data: ServerImportRequest
+): Promise<Result<MinecraftServer, AuthError>> {
+  try {
+    const token = await tokenManager.getValidAccessToken();
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const formData = new FormData();
+    formData.append("name", data.name);
+    if (data.description) {
+      formData.append("description", data.description);
+    }
+    formData.append("file", data.file);
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/servers/import`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let message = "Import failed";
+      try {
+        const errorData = JSON.parse(errorText);
+        message = errorData.message || errorData.detail || message;
+      } catch {
+        // If not JSON, use the text as error message
+        message = errorText || message;
+      }
+
+      return err({
+        message,
+        status: response.status,
+      });
+    }
+
+    const server = await response.json();
+    return ok(server);
+  } catch (error) {
+    return err({
+      message: error instanceof Error ? error.message : "Network error",
+      status: 0,
     });
   }
 }

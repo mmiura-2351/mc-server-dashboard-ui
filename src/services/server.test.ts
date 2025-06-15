@@ -9,9 +9,8 @@ import type {
   ServerLogsResponse,
   ServerCommandRequest,
   ServerProperties,
-  ServerType,
-  ServerStatus,
 } from "@/types/server";
+import { ServerType, ServerStatus } from "@/types/server";
 import type { AuthError } from "@/types/auth";
 import {
   getServers,
@@ -45,6 +44,8 @@ import {
   getServerProperties,
   writeServerPropertiesFile,
   updateServerProperties,
+  exportServer,
+  importServer,
 } from "./server";
 
 // Mock the API functions
@@ -1446,6 +1447,172 @@ max-players=20`;
       expect(fetchJson).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/servers"
       );
+    });
+  });
+
+  describe("Export/Import functionality", () => {
+    describe("exportServer", () => {
+      test("should export server successfully", async () => {
+        const mockBlob = new Blob(["test"], { type: "application/zip" });
+        const mockResponse = {
+          ok: true,
+          blob: () => Promise.resolve(mockBlob),
+        };
+        global.fetch = vi.fn().mockResolvedValueOnce(mockResponse);
+
+        const result = await exportServer(1);
+
+        expect(result.isOk()).toBe(true);
+        if (result.isOk()) {
+          expect(result.value).toBe(mockBlob);
+        }
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/v1/servers/1/export",
+          { headers: {} }
+        );
+      });
+
+      test("should handle export error", async () => {
+        const mockResponse = {
+          ok: false,
+          status: 404,
+          text: () => Promise.resolve('{"detail": "Server not found"}'),
+        };
+        global.fetch = vi.fn().mockResolvedValueOnce(mockResponse);
+
+        const result = await exportServer(1);
+
+        expect(result.isErr()).toBe(true);
+        if (result.isErr()) {
+          expect(result.error.message).toBe("Server not found");
+          expect(result.error.status).toBe(404);
+        }
+      });
+
+      test("should handle network error", async () => {
+        global.fetch = vi
+          .fn()
+          .mockRejectedValueOnce(new Error("Network error"));
+
+        const result = await exportServer(1);
+
+        expect(result.isErr()).toBe(true);
+        if (result.isErr()) {
+          expect(result.error.message).toBe("Network error");
+          expect(result.error.status).toBe(0);
+        }
+      });
+    });
+
+    describe("importServer", () => {
+      test("should import server successfully", async () => {
+        const mockFile = new File(["test"], "server.zip", {
+          type: "application/zip",
+        });
+        const mockServer: MinecraftServer = {
+          id: 1,
+          name: "Imported Server",
+          description: "Test imported server",
+          minecraft_version: "1.21.5",
+          server_type: ServerType.VANILLA,
+          status: ServerStatus.STOPPED,
+          directory_path: "/servers/imported",
+          port: 25565,
+          max_memory: 2048,
+          max_players: 20,
+          owner_id: 1,
+          template_id: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+        };
+
+        const mockResponse = {
+          ok: true,
+          json: () => Promise.resolve(mockServer),
+        };
+        global.fetch = vi.fn().mockResolvedValueOnce(mockResponse);
+
+        const result = await importServer({
+          name: "Imported Server",
+          description: "Test imported server",
+          file: mockFile,
+        });
+
+        expect(result.isOk()).toBe(true);
+        if (result.isOk()) {
+          expect(result.value).toEqual(mockServer);
+        }
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/v1/servers/import",
+          {
+            method: "POST",
+            headers: {},
+            body: expect.any(FormData),
+          }
+        );
+      });
+
+      test("should handle import error", async () => {
+        const mockFile = new File(["test"], "server.zip", {
+          type: "application/zip",
+        });
+        const mockResponse = {
+          ok: false,
+          status: 400,
+          text: () => Promise.resolve('{"detail": "Invalid ZIP file"}'),
+        };
+        global.fetch = vi.fn().mockResolvedValueOnce(mockResponse);
+
+        const result = await importServer({
+          name: "Test Server",
+          file: mockFile,
+        });
+
+        expect(result.isErr()).toBe(true);
+        if (result.isErr()) {
+          expect(result.error.message).toBe("Invalid ZIP file");
+          expect(result.error.status).toBe(400);
+        }
+      });
+
+      test("should handle import without description", async () => {
+        const mockFile = new File(["test"], "server.zip", {
+          type: "application/zip",
+        });
+        const mockServer: MinecraftServer = {
+          id: 1,
+          name: "Test Server",
+          description: null,
+          minecraft_version: "1.21.5",
+          server_type: ServerType.VANILLA,
+          status: ServerStatus.STOPPED,
+          directory_path: "/servers/test",
+          port: 25566,
+          max_memory: 2048,
+          max_players: 20,
+          owner_id: 1,
+          template_id: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+        };
+
+        const mockResponse = {
+          ok: true,
+          json: () => Promise.resolve(mockServer),
+        };
+        global.fetch = vi.fn().mockResolvedValueOnce(mockResponse);
+
+        const result = await importServer({
+          name: "Test Server",
+          file: mockFile,
+        });
+
+        expect(result.isOk()).toBe(true);
+        if (result.isOk()) {
+          expect(result.value).toEqual(mockServer);
+        }
+      });
     });
   });
 });

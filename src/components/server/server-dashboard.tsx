@@ -3,33 +3,75 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
-import type {
-  MinecraftServer,
-  ServerTemplate,
-  CreateServerRequest,
-} from "@/types/server";
+import type { MinecraftServer, ServerTemplate } from "@/types/server";
 import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
 import styles from "./server-dashboard.module.css";
 
 export function ServerDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
   const [servers, setServers] = useState<MinecraftServer[]>([]);
   const [, setTemplates] = useState<ServerTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalTab, setModalTab] = useState<"create" | "import">("create");
   const [isCreating, setIsCreating] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Create server form
-  const [createForm, setCreateForm] = useState<CreateServerRequest>({
+  const [createForm, setCreateForm] = useState<{
+    name: string;
+    minecraft_version: string;
+    server_type: ServerType;
+    max_memory: number;
+    description: string;
+  }>({
     name: "",
     minecraft_version: "1.21.5",
     server_type: ServerType.VANILLA,
     max_memory: 2048,
     description: "",
   });
+
+  // Import server form
+  const [importForm, setImportForm] = useState<{
+    name: string;
+    description: string;
+  }>({
+    name: "",
+    description: "",
+  });
+  const [importFile, setImportFile] = useState<File | null>(null);
+
+  const resetForms = () => {
+    setCreateForm({
+      name: "",
+      minecraft_version: "1.21.5",
+      server_type: ServerType.VANILLA,
+      max_memory: 2048,
+      description: "",
+    });
+    setImportForm({
+      name: "",
+      description: "",
+    });
+    setImportFile(null);
+  };
+
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setModalTab("create");
+    resetForms();
+  };
+
+  const switchTab = (tab: "create" | "import") => {
+    setModalTab(tab);
+    // Don't reset forms on tab switch to preserve user input
+  };
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -100,17 +142,16 @@ export function ServerDashboard() {
 
     // Removed debug logging for security
 
-    const result = await serverService.createServer(createForm);
+    const result = await serverService.createServer({
+      name: createForm.name,
+      minecraft_version: createForm.minecraft_version,
+      server_type: createForm.server_type,
+      max_memory: createForm.max_memory,
+      description: createForm.description || undefined,
+    });
     if (result.isOk()) {
       setServers([...servers, result.value]);
-      setShowCreateModal(false);
-      setCreateForm({
-        name: "",
-        minecraft_version: "1.21.5",
-        server_type: ServerType.VANILLA,
-        max_memory: 2048,
-        description: "",
-      });
+      closeModal();
     } else {
       // Handle authentication errors
       if (result.error.status === 401) {
@@ -120,6 +161,31 @@ export function ServerDashboard() {
       setError(result.error.message);
     }
     setIsCreating(false);
+  };
+
+  const handleImportServer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importFile) return;
+
+    setIsImporting(true);
+
+    const result = await serverService.importServer({
+      name: importForm.name,
+      description: importForm.description || undefined,
+      file: importFile,
+    });
+
+    if (result.isOk()) {
+      setServers([...servers, result.value]);
+      closeModal();
+    } else {
+      if (result.error.status === 401) {
+        logout();
+        return;
+      }
+      setError(result.error.message);
+    }
+    setIsImporting(false);
   };
 
   const handleServerClick = (serverId: number) => {
@@ -146,17 +212,17 @@ export function ServerDashboard() {
   const getStatusText = (status: ServerStatus) => {
     switch (status) {
       case ServerStatus.RUNNING:
-        return "Running";
+        return t("servers.status.running");
       case ServerStatus.STOPPED:
-        return "Stopped";
+        return t("servers.status.stopped");
       case ServerStatus.STARTING:
-        return "Starting...";
+        return t("servers.status.starting");
       case ServerStatus.STOPPING:
-        return "Stopping...";
+        return t("servers.status.stopping");
       case ServerStatus.ERROR:
-        return "Error";
+        return t("servers.status.error");
       default:
-        return "Unknown";
+        return t("servers.status.unknown");
     }
   };
 
@@ -165,13 +231,13 @@ export function ServerDashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.containerHeader}>
-        <h1 className={styles.title}>Minecraft Servers</h1>
+        <h1 className={styles.title}>{t("servers.title")}</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className={styles.createButton}
           disabled={isCreating}
         >
-          Create Server
+          {t("servers.createServer")}
         </button>
       </div>
 
@@ -188,18 +254,18 @@ export function ServerDashboard() {
       )}
 
       {isLoading && servers.length === 0 ? (
-        <div className={styles.loading}>Loading servers...</div>
+        <div className={styles.loading}>{t("servers.loadingServers")}</div>
       ) : (
         <>
           {servers.length === 0 ? (
             <div className={styles.emptyState}>
-              <h3>No servers found</h3>
-              <p>Create your first Minecraft server to get started!</p>
+              <h3>{t("servers.noServersFound")}</h3>
+              <p>{t("servers.createFirstServer")}</p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className={styles.createButton}
               >
-                Create Server
+                {t("servers.createServer")}
               </button>
             </div>
           ) : (
@@ -221,25 +287,35 @@ export function ServerDashboard() {
 
                   <div className={styles.serverInfo}>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Version:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.version")}:
+                      </span>
                       <span>{server.minecraft_version}</span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Type:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.type")}:
+                      </span>
                       <span className={styles.serverType}>
                         {server.server_type}
                       </span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Players:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.players")}:
+                      </span>
                       <span>0/{server.max_players}</span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Memory:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.memory")}:
+                      </span>
                       <span>{server.max_memory}MB</span>
                     </div>
                     <div className={styles.infoRow}>
-                      <span className={styles.label}>Port:</span>
+                      <span className={styles.label}>
+                        {t("servers.fields.port")}:
+                      </span>
                       <span>{server.port}</span>
                     </div>
                   </div>
@@ -252,7 +328,7 @@ export function ServerDashboard() {
 
                   <div className={styles.serverCardFooter}>
                     <span className={styles.clickHint}>
-                      Click to manage server
+                      {t("servers.clickToManage")}
                     </span>
                     <span className={styles.arrow}>→</span>
                   </div>
@@ -263,128 +339,234 @@ export function ServerDashboard() {
         </>
       )}
 
-      {/* Create Server Modal */}
+      {/* Create/Import Server Modal */}
       {showCreateModal && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2>Create New Server</h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className={styles.closeButton}
-              >
+              <h2>
+                {modalTab === "create"
+                  ? t("servers.create.title")
+                  : t("servers.import.title")}
+              </h2>
+              <button onClick={closeModal} className={styles.closeButton}>
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleCreateServer} className={styles.form}>
-              <div className={styles.field}>
-                <label htmlFor="serverName">Server Name</label>
-                <input
-                  id="serverName"
-                  type="text"
-                  value={createForm.name}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, name: e.target.value })
-                  }
-                  required
-                  placeholder="My Minecraft Server"
-                />
-              </div>
+            <div className={styles.modalTabs}>
+              <button
+                className={`${styles.modalTab} ${modalTab === "create" ? styles.activeModalTab : ""}`}
+                onClick={() => switchTab("create")}
+              >
+                {t("servers.create.title")}
+              </button>
+              <button
+                className={`${styles.modalTab} ${modalTab === "import" ? styles.activeModalTab : ""}`}
+                onClick={() => switchTab("import")}
+              >
+                {t("servers.import.title")}
+              </button>
+            </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverVersion">Minecraft Version</label>
-                <select
-                  id="serverVersion"
-                  value={createForm.minecraft_version}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      minecraft_version: e.target.value,
-                    })
-                  }
-                >
-                  {MINECRAFT_VERSIONS.map((version) => (
-                    <option key={version} value={version}>
-                      {version}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {modalTab === "create" ? (
+              <form
+                onSubmit={handleCreateServer}
+                className={styles.form}
+                key="create-form"
+              >
+                <div className={styles.field}>
+                  <label htmlFor="createServerName">
+                    {t("servers.create.serverName")}
+                  </label>
+                  <input
+                    id="createServerName"
+                    type="text"
+                    value={createForm.name}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, name: e.target.value })
+                    }
+                    required
+                    placeholder={t("servers.create.defaultName")}
+                  />
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverType">Server Type</label>
-                <select
-                  id="serverType"
-                  value={createForm.server_type}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      server_type: e.target.value as ServerType,
-                    })
-                  }
-                >
-                  <option value={ServerType.VANILLA}>Vanilla</option>
-                  <option value={ServerType.PAPER}>Paper</option>
-                  <option value={ServerType.FORGE}>Forge</option>
-                </select>
-              </div>
+                <div className={styles.field}>
+                  <label htmlFor="createServerVersion">
+                    {t("servers.create.minecraftVersion")}
+                  </label>
+                  <select
+                    id="createServerVersion"
+                    value={createForm.minecraft_version}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        minecraft_version: e.target.value,
+                      })
+                    }
+                  >
+                    {MINECRAFT_VERSIONS.map((version) => (
+                      <option key={version} value={version}>
+                        {version}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverMemory">Memory (MB)</label>
-                <select
-                  id="serverMemory"
-                  value={createForm.max_memory}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      max_memory: parseInt(e.target.value),
-                    })
-                  }
-                >
-                  <option value={1024}>1GB (1024MB)</option>
-                  <option value={2048}>2GB (2048MB)</option>
-                  <option value={4096}>4GB (4096MB)</option>
-                  <option value={8192}>8GB (8192MB)</option>
-                  <option value={16384}>16GB (16384MB)</option>
-                </select>
-              </div>
+                <div className={styles.field}>
+                  <label htmlFor="createServerType">
+                    {t("servers.create.serverType")}
+                  </label>
+                  <select
+                    id="createServerType"
+                    value={createForm.server_type}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        server_type: e.target.value as ServerType,
+                      })
+                    }
+                  >
+                    <option value={ServerType.VANILLA}>Vanilla</option>
+                    <option value={ServerType.PAPER}>Paper</option>
+                    <option value={ServerType.FORGE}>Forge</option>
+                  </select>
+                </div>
 
-              <div className={styles.field}>
-                <label htmlFor="serverDescription">
-                  Description (Optional)
-                </label>
-                <textarea
-                  id="serverDescription"
-                  value={createForm.description || ""}
-                  onChange={(e) =>
-                    setCreateForm({
-                      ...createForm,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Describe your server..."
-                  rows={3}
-                />
-              </div>
+                <div className={styles.field}>
+                  <label htmlFor="createServerMemory">
+                    {t("servers.create.memory")}
+                  </label>
+                  <select
+                    id="createServerMemory"
+                    value={createForm.max_memory}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        max_memory: parseInt(e.target.value),
+                      })
+                    }
+                  >
+                    <option value={1024}>1GB (1024MB)</option>
+                    <option value={2048}>2GB (2048MB)</option>
+                    <option value={4096}>4GB (4096MB)</option>
+                    <option value={8192}>8GB (8192MB)</option>
+                    <option value={16384}>16GB (16384MB)</option>
+                  </select>
+                </div>
 
-              <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className={styles.cancelButton}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className={styles.submitButton}
-                >
-                  {isCreating ? "Creating..." : "Create Server"}
-                </button>
-              </div>
-            </form>
+                <div className={styles.field}>
+                  <label htmlFor="createServerDescription">
+                    {t("servers.create.description")}
+                  </label>
+                  <textarea
+                    id="createServerDescription"
+                    value={createForm.description}
+                    onChange={(e) =>
+                      setCreateForm({
+                        ...createForm,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder={t("servers.create.descriptionPlaceholder")}
+                    rows={3}
+                  />
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className={styles.cancelButton}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCreating}
+                    className={styles.submitButton}
+                  >
+                    {isCreating
+                      ? t("servers.create.creating")
+                      : t("servers.create.createButton")}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form
+                onSubmit={handleImportServer}
+                className={styles.form}
+                key="import-form"
+              >
+                <div className={styles.field}>
+                  <label htmlFor="importFile">{t("servers.import.file")}</label>
+                  <input
+                    id="importFile"
+                    type="file"
+                    accept=".zip"
+                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                    required
+                    className={styles.fileInput}
+                  />
+                  <small className={styles.fieldHelp}>
+                    {t("servers.import.fileHelp")}
+                  </small>
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="importServerName">
+                    {t("servers.import.serverName")}
+                  </label>
+                  <input
+                    id="importServerName"
+                    type="text"
+                    value={importForm.name}
+                    onChange={(e) =>
+                      setImportForm({ ...importForm, name: e.target.value })
+                    }
+                    required
+                    placeholder={t("servers.import.serverNamePlaceholder")}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label htmlFor="importServerDescription">
+                    {t("servers.create.description")}
+                  </label>
+                  <textarea
+                    id="importServerDescription"
+                    value={importForm.description}
+                    onChange={(e) =>
+                      setImportForm({
+                        ...importForm,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder={t("servers.import.descriptionPlaceholder")}
+                    rows={3}
+                  />
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className={styles.cancelButton}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isImporting || !importFile}
+                    className={styles.submitButton}
+                  >
+                    {isImporting
+                      ? t("servers.import.importing")
+                      : t("servers.import.importButton")}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

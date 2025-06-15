@@ -113,6 +113,12 @@ export interface ServerProperties {
   [key: string]: string | number | boolean;
 }
 
+export interface ServerImportRequest {
+  name: string;
+  description?: string;
+  file: File;
+}
+
 export const MINECRAFT_VERSIONS = [
   "1.21.5",
   "1.21.4",
