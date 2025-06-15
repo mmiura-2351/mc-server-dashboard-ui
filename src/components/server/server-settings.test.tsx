@@ -39,7 +39,11 @@ const mockT = vi.fn((key: string) => translations[key] || key);
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({
     t: mockT,
+  }),
+  useLanguage: () => ({
     locale: "en",
+    setLocale: vi.fn(),
+    messages: {},
   }),
 }));
 
