@@ -220,7 +220,17 @@
       "resetChanges": "変更をリセット",
       "saveProperties": "プロパティを保存",
       "createFile": "プロパティファイルを作成",
-      "saving": "保存中..."
+      "saving": "保存中...",
+      "playerGroups": "プレイヤーグループ",
+      "attachedGroups": "{count}個のグループが関連付けられています",
+      "noAvailableGroups": "関連付け可能なグループがありません。まずグループを作成してください。",
+      "selectGroup": "グループを選択",
+      "chooseGroup": "グループを選択してください...",
+      "players": "プレイヤー",
+      "priorityHint": "優先度の高いグループから先に処理されます（0-100）",
+      "attachedAt": "{date}に関連付け",
+      "attaching": "関連付け中...",
+      "attachGroup": "グループを関連付け"
     },
     "backups": "バックアップ"
   },

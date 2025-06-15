@@ -220,7 +220,17 @@
       "resetChanges": "Reset Changes",
       "saveProperties": "Save Properties",
       "createFile": "Create Properties File",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "playerGroups": "Player Groups",
+      "attachedGroups": "{count} attached groups",
+      "noAvailableGroups": "No groups available to attach. Create some groups first.",
+      "selectGroup": "Select Group",
+      "chooseGroup": "Choose a group...",
+      "players": "players",
+      "priorityHint": "Higher priority groups are processed first (0-100)",
+      "attachedAt": "Attached {date}",
+      "attaching": "Attaching...",
+      "attachGroup": "Attach Group"
     },
     "backups": "Backups"
   },

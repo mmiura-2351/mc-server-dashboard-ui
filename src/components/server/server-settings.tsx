@@ -5,7 +5,9 @@ import { useAuth } from "@/contexts/auth";
 import { useTranslation, useLanguage } from "@/contexts/language";
 import { formatDate } from "@/utils/date-format";
 import * as serverService from "@/services/server";
+import * as groupService from "@/services/groups";
 import type { MinecraftServer, ServerUpdateRequest } from "@/types/server";
+import type { Group, AttachedGroup } from "@/services/groups";
 import styles from "./server-settings.module.css";
 
 interface ServerSettingsProps {
@@ -27,6 +29,13 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Group management state
+  const [attachedGroups, setAttachedGroups] = useState<AttachedGroup[]>([]);
+  const [availableGroups, setAvailableGroups] = useState<Group[]>([]);
+  const [showAttachModal, setShowAttachModal] = useState(false);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+  const [groupsError, setGroupsError] = useState<string | null>(null);
+
   // Update form data when server prop changes
   useEffect(() => {
     setFormData({
@@ -36,6 +45,41 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
       max_players: server.max_players,
     });
   }, [server]);
+
+  // Load groups data
+  useEffect(() => {
+    loadGroupsData();
+  }, [server.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadGroupsData = async () => {
+    setGroupsLoading(true);
+    setGroupsError(null);
+
+    try {
+      // Load attached groups and available groups in parallel
+      const [attachedResult, availableResult] = await Promise.all([
+        groupService.getServerGroups(server.id),
+        groupService.getGroups(),
+      ]);
+
+      if (attachedResult.isErr()) {
+        setGroupsError(attachedResult.error.message);
+        return;
+      }
+
+      if (availableResult.isErr()) {
+        setGroupsError(availableResult.error.message);
+        return;
+      }
+
+      setAttachedGroups(attachedResult.value);
+      setAvailableGroups(availableResult.value);
+    } catch {
+      setGroupsError("Failed to load groups data");
+    } finally {
+      setGroupsLoading(false);
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -104,6 +148,39 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
     });
     setError(null);
     setSuccessMessage(null);
+  };
+
+  const handleDetachGroup = async (groupId: number, groupName: string) => {
+    if (!confirm(t("groups.servers.confirmDetach", { server: groupName }))) {
+      return;
+    }
+
+    const result = await groupService.detachGroupFromServer(groupId, server.id);
+
+    if (result.isErr()) {
+      setGroupsError(result.error.message);
+      return;
+    }
+
+    // Reload groups data after successful detachment
+    await loadGroupsData();
+  };
+
+  const handleAttachGroup = async (groupId: number, priority: number = 0) => {
+    const result = await groupService.attachGroupToServer(groupId, {
+      server_id: server.id,
+      priority: priority,
+    });
+
+    if (result.isErr()) {
+      setGroupsError(result.error.message);
+      return false;
+    }
+
+    // Reload groups data after successful attachment
+    await loadGroupsData();
+    setShowAttachModal(false);
+    return true;
   };
 
   const hasChanges =
@@ -260,6 +337,86 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
           </div>
         </div>
 
+        {/* Player Groups Section */}
+        <div className={styles.section}>
+          <h3>{t("servers.settings.playerGroups")}</h3>
+
+          {groupsLoading ? (
+            <div className={styles.loading}>{t("common.loading")}</div>
+          ) : groupsError ? (
+            <div className={styles.errorBanner}>{groupsError}</div>
+          ) : (
+            <>
+              <div className={styles.groupsHeader}>
+                <span className={styles.groupsCount}>
+                  {t("servers.settings.attachedGroups", {
+                    count: attachedGroups.length.toString(),
+                  })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAttachModal(true)}
+                  className={styles.attachButton}
+                  disabled={isSaving}
+                >
+                  {t("groups.servers.attachServer")}
+                </button>
+              </div>
+
+              {attachedGroups.length === 0 ? (
+                <div className={styles.emptyGroups}>
+                  <p>{t("groups.servers.noServers")}</p>
+                </div>
+              ) : (
+                <div className={styles.groupsList}>
+                  {attachedGroups.map((group) => (
+                    <div key={group.id} className={styles.groupItem}>
+                      <div className={styles.groupInfo}>
+                        <div className={styles.groupHeader}>
+                          <span className={styles.groupName}>{group.name}</span>
+                          <span
+                            className={`${styles.groupType} ${styles[group.type]}`}
+                          >
+                            {t(`groups.${group.type}`)}
+                          </span>
+                        </div>
+                        {group.description && (
+                          <div className={styles.groupDescription}>
+                            {group.description}
+                          </div>
+                        )}
+                        <div className={styles.groupMeta}>
+                          <span className={styles.groupPlayers}>
+                            {t("groups.playerCount", {
+                              count: group.player_count.toString(),
+                            })}
+                          </span>
+                          <span className={styles.groupPriority}>
+                            {t("groups.servers.priority")}: {group.priority}
+                          </span>
+                          <span className={styles.groupAttachedAt}>
+                            {t("servers.settings.attachedAt", {
+                              date: formatDate(group.attached_at, locale),
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDetachGroup(group.id, group.name)}
+                        className={styles.detachButton}
+                        disabled={isSaving}
+                      >
+                        {t("groups.servers.detachServer")}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div className={styles.actions}>
           <button
             type="button"
@@ -280,6 +437,130 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
           </button>
         </div>
       </form>
+
+      {showAttachModal && (
+        <AttachGroupModal
+          onClose={() => setShowAttachModal(false)}
+          onAttach={handleAttachGroup}
+          availableGroups={availableGroups.filter(
+            (group) =>
+              !attachedGroups.some((attached) => attached.id === group.id)
+          )}
+        />
+      )}
+    </div>
+  );
+}
+
+interface AttachGroupModalProps {
+  onClose: () => void;
+  onAttach: (groupId: number, priority: number) => Promise<boolean>;
+  availableGroups: Group[];
+}
+
+function AttachGroupModal({
+  onClose,
+  onAttach,
+  availableGroups,
+}: AttachGroupModalProps) {
+  const { t } = useTranslation();
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [priority, setPriority] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedGroupId === null) return;
+
+    setLoading(true);
+    const success = await onAttach(selectedGroupId, priority);
+    setLoading(false);
+
+    if (success) {
+      onClose();
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2>{t("groups.servers.attachServer")}</h2>
+          <button className={styles.closeButton} onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        {availableGroups.length === 0 ? (
+          <div className={styles.modalContent}>
+            <p>{t("servers.settings.noAvailableGroups")}</p>
+            <div className={styles.modalActions}>
+              <button onClick={onClose} className={styles.cancelButton}>
+                {t("common.cancel")}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className={styles.modalContent}>
+            <div className={styles.field}>
+              <label htmlFor="groupSelect">
+                {t("servers.settings.selectGroup")}
+              </label>
+              <select
+                id="groupSelect"
+                value={selectedGroupId || ""}
+                onChange={(e) => setSelectedGroupId(Number(e.target.value))}
+                required
+                className={styles.select}
+              >
+                <option value="">{t("servers.settings.chooseGroup")}</option>
+                {availableGroups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name} ({t(`groups.${group.type}`)}) -{" "}
+                    {group.players.length} {t("servers.settings.players")}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="priority">{t("groups.servers.priority")}</label>
+              <input
+                id="priority"
+                type="number"
+                min="0"
+                max="100"
+                value={priority}
+                onChange={(e) => setPriority(Number(e.target.value))}
+                className={styles.input}
+              />
+              <span className={styles.fieldHint}>
+                {t("servers.settings.priorityHint")}
+              </span>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                onClick={onClose}
+                className={styles.cancelButton}
+                disabled={loading}
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                type="submit"
+                className={styles.attachButton}
+                disabled={loading || selectedGroupId === null}
+              >
+                {loading
+                  ? t("servers.settings.attaching")
+                  : t("servers.settings.attachGroup")}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
