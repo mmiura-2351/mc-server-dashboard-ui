@@ -16,11 +16,17 @@
     "pending": "Pending",
     "approve": "Approve",
     "logout": "Logout",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "back": "Back",
+    "edit": "Edit",
+    "create": "Create",
+    "creating": "Creating...",
+    "add": "Add",
+    "adding": "Adding..."
   },
   "navigation": {
     "servers": "Servers",
-    "templates": "Templates",
+    "groups": "Groups",
     "backups": "Backups",
     "files": "Files",
     "account": "Account",
@@ -302,5 +308,46 @@
     "blockedFilesMessage": "Some files were blocked for security reasons:",
     "uploadError": "Upload Error",
     "noFilesAllowed": "No files could be uploaded due to security restrictions."
+  },
+  "groups": {
+    "title": "Group Management",
+    "createGroup": "Create Group",
+    "editGroup": "Edit Group",
+    "createFirstGroup": "Create Your First Group",
+    "allGroups": "All Groups",
+    "opGroups": "OP Groups",
+    "whitelistGroups": "Whitelist Groups",
+    "noGroups": "No groups found. Create your first group to get started!",
+    "notFound": "Group not found.",
+    "name": "Group Name",
+    "description": "Description",
+    "type": "Group Type",
+    "op": "OP",
+    "whitelist": "Whitelist",
+    "playerCount": "{count} players",
+    "createdAt": "Created {date}",
+    "viewDetails": "View Details",
+    "confirmDelete": "Are you sure you want to delete this group? This action cannot be undone.",
+    "players": {
+      "title": "Players",
+      "addPlayer": "Add Player",
+      "removePlayer": "Remove Player",
+      "playerName": "Player Name/UUID",
+      "playerNamePlaceholder": "Enter player name or UUID...",
+      "playerNameHint": "Enter a Minecraft player name (e.g., 'Steve') or UUID (e.g., '550e8400-e29b-41d4-a716-446655440000')",
+      "uuid": "UUID",
+      "username": "Username",
+      "addedAt": "Added {date}",
+      "noPlayers": "No players in this group yet.",
+      "confirmRemove": "Are you sure you want to remove {player} from this group?"
+    },
+    "servers": {
+      "title": "Attached Servers",
+      "attachServer": "Attach to Server",
+      "detachServer": "Detach Server",
+      "priority": "Priority",
+      "noServers": "This group is not attached to any servers.",
+      "confirmDetach": "Are you sure you want to detach this group from {server}?"
+    }
   }
 }

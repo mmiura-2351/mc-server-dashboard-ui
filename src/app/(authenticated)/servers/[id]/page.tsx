@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
-import { useTranslation } from "@/contexts/language";
+import { useTranslation, useLanguage } from "@/contexts/language";
+import { formatDate } from "@/utils/date-format";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
@@ -20,6 +21,7 @@ export default function ServerDetailPage() {
   const searchParams = useSearchParams();
   const { user, logout, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
+  const { locale } = useLanguage();
   const [server, setServer] = useState<MinecraftServer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -425,9 +427,7 @@ export default function ServerDetailPage() {
                   <span className={styles.label}>
                     {t("servers.fields.created")}:
                   </span>
-                  <span>
-                    {new Date(server.created_at).toLocaleDateString()}
-                  </span>
+                  <span>{formatDate(server.created_at, locale)}</span>
                 </div>
               </div>
               {server.description && (

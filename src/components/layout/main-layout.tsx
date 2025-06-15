@@ -33,10 +33,10 @@ export function MainLayout({ children }: MainLayoutProps) {
       active: pathname === "/" || pathname === "/dashboard",
     },
     {
-      label: t("navigation.templates"),
-      path: "/templates",
-      icon: "📋",
-      active: pathname === "/templates",
+      label: t("navigation.groups"),
+      path: "/groups",
+      icon: "👥",
+      active: pathname === "/groups",
     },
   ];
 

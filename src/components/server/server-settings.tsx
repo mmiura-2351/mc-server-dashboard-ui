@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
-import { useTranslation } from "@/contexts/language";
+import { useTranslation, useLanguage } from "@/contexts/language";
+import { formatDate } from "@/utils/date-format";
 import * as serverService from "@/services/server";
 import type { MinecraftServer, ServerUpdateRequest } from "@/types/server";
 import styles from "./server-settings.module.css";
@@ -15,6 +16,7 @@ interface ServerSettingsProps {
 export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   const { logout } = useAuth();
   const { t } = useTranslation();
+  const { locale } = useLanguage();
   const [formData, setFormData] = useState({
     name: server.name,
     description: server.description || "",
@@ -253,7 +255,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
               <span className={styles.label}>
                 {t("servers.fields.created")}:
               </span>
-              <span>{new Date(server.created_at).toLocaleDateString()}</span>
+              <span>{formatDate(server.created_at, locale)}</span>
             </div>
           </div>
         </div>

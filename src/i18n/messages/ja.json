@@ -16,11 +16,17 @@
     "pending": "承認待ち",
     "approve": "承認",
     "logout": "ログアウト",
-    "unknown": "不明"
+    "unknown": "不明",
+    "back": "戻る",
+    "edit": "編集",
+    "create": "作成",
+    "creating": "作成中...",
+    "add": "追加",
+    "adding": "追加中..."
   },
   "navigation": {
     "servers": "サーバー",
-    "templates": "テンプレート",
+    "groups": "グループ",
     "backups": "バックアップ",
     "files": "ファイル",
     "account": "アカウント",
@@ -302,5 +308,46 @@
     "blockedFilesMessage": "セキュリティ上の理由により、一部のファイルがブロックされました：",
     "uploadError": "アップロードエラー",
     "noFilesAllowed": "セキュリティ制限により、ファイルをアップロードできませんでした。"
+  },
+  "groups": {
+    "title": "グループ管理",
+    "createGroup": "グループを作成",
+    "editGroup": "グループを編集",
+    "createFirstGroup": "最初のグループを作成",
+    "allGroups": "すべてのグループ",
+    "opGroups": "OPグループ",
+    "whitelistGroups": "ホワイトリストグループ",
+    "noGroups": "グループが見つかりません。最初のグループを作成してください。",
+    "notFound": "グループが見つかりません。",
+    "name": "グループ名",
+    "description": "説明",
+    "type": "グループタイプ",
+    "op": "OP",
+    "whitelist": "ホワイトリスト",
+    "playerCount": "{count}人のプレイヤー",
+    "createdAt": "{date}に作成",
+    "viewDetails": "詳細を表示",
+    "confirmDelete": "このグループを削除してもよろしいですか？この操作は元に戻すことができません。",
+    "players": {
+      "title": "プレイヤー",
+      "addPlayer": "プレイヤーを追加",
+      "removePlayer": "プレイヤーを削除",
+      "playerName": "プレイヤー名/UUID",
+      "playerNamePlaceholder": "プレイヤー名またはUUIDを入力...",
+      "playerNameHint": "Minecraftのプレイヤー名（例：'Steve'）またはUUID（例：'550e8400-e29b-41d4-a716-446655440000'）を入力してください",
+      "uuid": "UUID",
+      "username": "ユーザー名",
+      "addedAt": "{date}に追加",
+      "noPlayers": "このグループにはまだプレイヤーがいません。",
+      "confirmRemove": "{player}をこのグループから削除してもよろしいですか？"
+    },
+    "servers": {
+      "title": "関連付けられたサーバー",
+      "attachServer": "サーバーに関連付け",
+      "detachServer": "サーバーとの関連付けを解除",
+      "priority": "優先度",
+      "noServers": "このグループはどのサーバーにも関連付けられていません。",
+      "confirmDetach": "このグループを{server}から切り離してもよろしいですか？"
+    }
   }
 }
