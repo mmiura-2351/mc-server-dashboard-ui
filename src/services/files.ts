@@ -334,8 +334,18 @@ export async function uploadFileWithProgress(
         lastModified: file.lastModified,
       });
       formData.append("file", fileWithPath);
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `Debug: Uploading folder file: ${fileWebkitPath} (${file.size} bytes)`
+        );
+      }
     } else {
       formData.append("file", file);
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `Debug: Uploading single file: ${file.name} (${file.size} bytes)`
+        );
+      }
     }
 
     // Add destination_path parameter if not root
@@ -344,6 +354,13 @@ export async function uploadFileWithProgress(
         ? targetPath.slice(1)
         : targetPath;
       formData.append("destination_path", cleanPath);
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`Debug: Upload destination: ${cleanPath}`);
+      }
+    } else {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Debug: Upload destination: root directory");
+      }
     }
 
     const xhr = new XMLHttpRequest();
@@ -373,10 +390,18 @@ export async function uploadFileWithProgress(
             xhr.responseText || `HTTP ${xhr.status}: ${xhr.statusText}`;
         }
 
-        // Handle authentication errors
+        // Handle specific error types
         if (xhr.status === 401) {
           tokenManager.clearTokens();
           errorMessage = "Authentication expired. Please log in again.";
+        } else if (xhr.status === 500) {
+          errorMessage =
+            "Server error during upload. Please check that the Minecraft server directory is accessible and has write permissions.";
+        } else if (xhr.status === 413) {
+          errorMessage = "File too large. Please try uploading a smaller file.";
+        } else if (xhr.status === 404) {
+          errorMessage =
+            "Upload endpoint not found. Please check the backend API is running.";
         }
 
         resolve(
@@ -406,11 +431,16 @@ export async function uploadFileWithProgress(
       );
     };
 
+    const uploadUrl = `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`;
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`Debug: Upload URL: ${uploadUrl}`);
+      console.warn(
+        `Debug: Server ID: ${serverId}, File: ${file.name}, Target: ${targetPath}`
+      );
+    }
+
     // Open the request first
-    xhr.open(
-      "POST",
-      `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`
-    );
+    xhr.open("POST", uploadUrl);
 
     // Set authorization header (token is guaranteed to exist at this point)
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);

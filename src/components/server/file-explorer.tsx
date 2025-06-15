@@ -879,10 +879,16 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           failed: [{ file: "Upload process", error: result.error.message }],
         }));
 
-        // Handle authentication errors specially
+        // Handle different error types with specific messages
         if (result.error.status === 401) {
           showToast("Authentication expired. Please log in again.", "error");
           // Optionally redirect to login or refresh the page
+        } else if (result.error.status === 500) {
+          showToast(
+            "Server error during upload. The backend service may have an issue with file processing or server permissions.",
+            "error"
+          );
+          console.error("Server 500 error details:", result.error);
         } else {
           showToast(`Upload failed: ${result.error.message}`, "error");
         }
@@ -1253,14 +1259,16 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         type="file"
         style={{ display: "none" }}
         onChange={handleFolderInputChange}
+        multiple
         {
-          // Browser compatibility: Only set webkitdirectory if supported
+          // Set webkitdirectory attribute correctly for folder uploads
           ...(typeof window !== "undefined" &&
           "webkitdirectory" in document.createElement("input")
             ? ({
-                webkitdirectory: true,
+                webkitdirectory: "",
+                directory: "",
               } as React.InputHTMLAttributes<HTMLInputElement>)
-            : { multiple: true })
+            : {})
         }
       />
 

@@ -345,7 +345,9 @@ describe("File service", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toBe("Upload failed");
+        expect(result.error.message).toBe(
+          "Server error during upload. Please check that the Minecraft server directory is accessible and has write permissions."
+        );
       }
     });
 
@@ -444,7 +446,9 @@ describe("File service", () => {
       if (result.isOk()) {
         expect(result.value.successful).toHaveLength(0);
         expect(result.value.failed).toHaveLength(1);
-        expect(result.value.failed[0]!.error).toBe("Permission denied");
+        expect(result.value.failed[0]!.error).toBe(
+          "Server error during upload. Please check that the Minecraft server directory is accessible and has write permissions."
+        );
       }
     });
   });
