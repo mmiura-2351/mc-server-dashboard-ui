@@ -15,6 +15,7 @@ import {
   type AddPlayerRequest,
 } from "@/services/groups";
 import { formatDateSimple } from "@/utils/date-format";
+import { ConfirmationModal } from "@/components/modal";
 import styles from "./group-detail.module.css";
 
 export default function GroupDetailPage() {
@@ -29,6 +30,17 @@ export default function GroupDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     loadGroup();
@@ -63,18 +75,21 @@ export default function GroupDetailPage() {
   };
 
   const handleDeleteGroup = async () => {
-    if (!confirm(t("groups.confirmDelete"))) {
-      return;
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: t("common.delete"),
+      message: t("groups.confirmDelete"),
+      onConfirm: async () => {
+        const result = await deleteGroup(groupId);
 
-    const result = await deleteGroup(groupId);
+        if (result.isErr()) {
+          setError(result.error.message);
+          return;
+        }
 
-    if (result.isErr()) {
-      setError(result.error.message);
-      return;
-    }
-
-    router.push("/groups");
+        router.push("/groups");
+      },
+    });
   };
 
   const handleAddPlayer = async (request: AddPlayerRequest) => {
@@ -91,18 +106,27 @@ export default function GroupDetailPage() {
   };
 
   const handleRemovePlayer = async (playerUuid: string, playerName: string) => {
-    if (!confirm(t("groups.players.confirmRemove", { player: playerName }))) {
-      return;
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: t("groups.players.removePlayer"),
+      message: t("groups.players.confirmRemove", { player: playerName }),
+      onConfirm: async () => {
+        const result = await removePlayerFromGroup(groupId, playerUuid);
 
-    const result = await removePlayerFromGroup(groupId, playerUuid);
+        if (result.isErr()) {
+          setError(result.error.message);
+          return;
+        }
 
-    if (result.isErr()) {
-      setError(result.error.message);
-      return;
-    }
-
-    await loadGroup();
+        await loadGroup();
+        setConfirmModal({
+          isOpen: false,
+          title: "",
+          message: "",
+          onConfirm: () => {},
+        });
+      },
+    });
   };
 
   if (loading) {
@@ -231,6 +255,22 @@ export default function GroupDetailPage() {
           onAdd={handleAddPlayer}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant="danger"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: "",
+            message: "",
+            onConfirm: () => {},
+          })
+        }
+      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   type CreateGroupRequest,
 } from "@/services/groups";
 import { formatDateSimple } from "@/utils/date-format";
+import { ConfirmationModal } from "@/components/modal";
 import styles from "./groups.module.css";
 
 export default function GroupsPage() {
@@ -25,6 +26,17 @@ export default function GroupsPage() {
   const [filterType, setFilterType] = useState<"all" | "op" | "whitelist">(
     "all"
   );
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const loadGroups = useCallback(async () => {
     setLoading(true);
@@ -60,19 +72,28 @@ export default function GroupsPage() {
     return true;
   };
 
-  const handleDeleteGroup = async (groupId: number) => {
-    if (!confirm(t("groups.confirmDelete"))) {
-      return;
-    }
+  const handleDeleteGroup = async (groupId: number, _groupName: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: t("common.delete"),
+      message: t("groups.confirmDelete"),
+      onConfirm: async () => {
+        const result = await deleteGroup(groupId);
 
-    const result = await deleteGroup(groupId);
+        if (result.isErr()) {
+          setError(result.error.message);
+          return;
+        }
 
-    if (result.isErr()) {
-      setError(result.error.message);
-      return;
-    }
-
-    await loadGroups();
+        await loadGroups();
+        setConfirmModal({
+          isOpen: false,
+          title: "",
+          message: "",
+          onConfirm: () => {},
+        });
+      },
+    });
   };
 
   const canCreateGroups = user?.role === "admin" || user?.role === "operator";
@@ -167,7 +188,7 @@ export default function GroupsPage() {
                   {group.owner_id === user?.id && (
                     <button
                       className={styles.deleteButton}
-                      onClick={() => handleDeleteGroup(group.id)}
+                      onClick={() => handleDeleteGroup(group.id, group.name)}
                     >
                       {t("common.delete")}
                     </button>
@@ -185,6 +206,22 @@ export default function GroupsPage() {
           onCreate={handleCreateGroup}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant="danger"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: "",
+            message: "",
+            onConfirm: () => {},
+          })
+        }
+      />
     </div>
   );
 }
