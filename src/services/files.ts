@@ -7,7 +7,6 @@ import type {
   FileReadResponse,
 } from "@/types/files";
 import { fetchJson, fetchEmpty } from "@/services/api";
-import { tokenManager } from "@/utils/token-manager";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -310,15 +309,17 @@ export async function uploadFileWithProgress(
   file: File,
   onProgress?: (loaded: number, total: number) => void
 ): Promise<Result<void, FileError>> {
-  // Get token before creating Promise to handle async properly
-  const token = await tokenManager.getValidAccessToken();
+  // Get token from localStorage directly (synchronous)
+  const token = localStorage.getItem("access_token");
 
   // Check if token is available
   if (!token) {
-    return err({
-      message: "Authentication required. Please log in again.",
-      status: 401,
-    });
+    return Promise.resolve(
+      err({
+        message: "Authentication required. Please log in again.",
+        status: 401,
+      })
+    );
   }
 
   return new Promise((resolve) => {
@@ -392,7 +393,8 @@ export async function uploadFileWithProgress(
 
         // Handle specific error types
         if (xhr.status === 401) {
-          tokenManager.clearTokens();
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
           errorMessage = "Authentication expired. Please log in again.";
         } else if (xhr.status === 500) {
           errorMessage =
@@ -565,7 +567,7 @@ export async function downloadFile(
   const encodedPath = encodeURIComponent(cleanPath);
 
   try {
-    const token = await tokenManager.getValidAccessToken();
+    const token = localStorage.getItem("access_token");
     const headers: HeadersInit = {};
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
