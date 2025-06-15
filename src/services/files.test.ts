@@ -365,7 +365,9 @@ describe("File service", () => {
 
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
-        expect(result.error.message).toBe("Network error during upload");
+        expect(result.error.message).toBe(
+          "Network error during upload. Please check your connection and try again."
+        );
       }
     });
   });

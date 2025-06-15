@@ -1305,16 +1305,21 @@ describe("FileExplorer", () => {
         configurable: false,
       });
 
-      const folderInput = document.querySelector(
-        'input[type="file"]:not([multiple])'
-      ) as HTMLInputElement;
+      // Find all file inputs and get the second one (folder input)
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      const folderInput = fileInputs[1] as HTMLInputElement;
 
-      Object.defineProperty(folderInput, "files", {
-        value: [file1, file2],
-        writable: false,
-      });
+      // Check if folderInput exists before defining property
+      if (folderInput) {
+        Object.defineProperty(folderInput, "files", {
+          value: [file1, file2],
+          writable: false,
+        });
 
-      fireEvent.change(folderInput);
+        fireEvent.change(folderInput);
+      } else {
+        throw new Error("Folder input not found in test");
+      }
 
       // Wait for the upload to be initiated
       await waitFor(() => {

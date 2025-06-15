@@ -878,7 +878,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           isUploading: false,
           failed: [{ file: "Upload process", error: result.error.message }],
         }));
-        showToast(`Upload failed: ${result.error.message}`, "error");
+
+        // Handle authentication errors specially
+        if (result.error.status === 401) {
+          showToast("Authentication expired. Please log in again.", "error");
+          // Optionally redirect to login or refresh the page
+        } else {
+          showToast(`Upload failed: ${result.error.message}`, "error");
+        }
       }
     } catch (error) {
       setUploadState((prev) => ({
@@ -955,11 +962,17 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     const items = Array.from(e.dataTransfer.items);
     let isFolder = false;
 
-    // Check if any items are directories
+    // Check if any items are directories (with browser compatibility check)
     for (const item of items) {
-      if (item.webkitGetAsEntry?.()?.isDirectory) {
-        isFolder = true;
-        break;
+      if (
+        item.webkitGetAsEntry &&
+        typeof item.webkitGetAsEntry === "function"
+      ) {
+        const entry = item.webkitGetAsEntry();
+        if (entry?.isDirectory) {
+          isFolder = true;
+          break;
+        }
       }
     }
 
@@ -1031,15 +1044,29 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       Promise.all(
         items.map((item) => {
-          const entry = item.webkitGetAsEntry();
-          return entry ? processEntry(entry) : [];
+          if (
+            item.webkitGetAsEntry &&
+            typeof item.webkitGetAsEntry === "function"
+          ) {
+            const entry = item.webkitGetAsEntry();
+            return entry ? processEntry(entry) : [];
+          }
+          return [];
         })
-      ).then((fileArrays) => {
-        const allFiles = fileArrays.flat();
-        if (allFiles.length > 0) {
-          handleFileUpload(allFiles, true);
-        }
-      });
+      )
+        .then((fileArrays) => {
+          const allFiles = fileArrays.flat();
+          if (allFiles.length > 0) {
+            handleFileUpload(allFiles, true);
+          }
+        })
+        .catch((error) => {
+          console.error("Error processing dropped folders:", error);
+          showToast(
+            "Failed to process dropped folders. Please try uploading individual files.",
+            "error"
+          );
+        });
     } else {
       // Handle file drop
       const droppedFiles = Array.from(e.dataTransfer.files);
@@ -1224,12 +1251,17 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       <input
         ref={folderInputRef}
         type="file"
-        {...({
-          webkitdirectory: "",
-          directory: "",
-        } as React.InputHTMLAttributes<HTMLInputElement>)}
         style={{ display: "none" }}
         onChange={handleFolderInputChange}
+        {
+          // Browser compatibility: Only set webkitdirectory if supported
+          ...(typeof window !== "undefined" &&
+          "webkitdirectory" in document.createElement("input")
+            ? ({
+                webkitdirectory: true,
+              } as React.InputHTMLAttributes<HTMLInputElement>)
+            : { multiple: true })
+        }
       />
 
       <div className={styles.toolbar}>
@@ -1253,7 +1285,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             📁 Upload Files
           </button>
           <button
-            onClick={() => folderInputRef.current?.click()}
+            onClick={() => {
+              // Check browser support for directory upload
+              if (
+                typeof window !== "undefined" &&
+                !("webkitdirectory" in document.createElement("input"))
+              ) {
+                showToast(
+                  "Folder upload is not supported in this browser. Please use a modern browser like Chrome, Edge, or Firefox.",
+                  "error"
+                );
+                return;
+              }
+              folderInputRef.current?.click();
+            }}
             className={styles.actionButton}
             disabled={uploadState.isUploading}
           >

@@ -313,6 +313,14 @@ export async function uploadFileWithProgress(
   // Get token before creating Promise to handle async properly
   const token = await tokenManager.getValidAccessToken();
 
+  // Check if token is available
+  if (!token) {
+    return err({
+      message: "Authentication required. Please log in again.",
+      status: 401,
+    });
+  }
+
   return new Promise((resolve) => {
     const formData = new FormData();
 
@@ -340,6 +348,9 @@ export async function uploadFileWithProgress(
 
     const xhr = new XMLHttpRequest();
 
+    // Set timeout for long uploads (10 minutes)
+    xhr.timeout = 600000;
+
     // Track upload progress
     if (onProgress) {
       xhr.upload.addEventListener("progress", (e) => {
@@ -356,9 +367,16 @@ export async function uploadFileWithProgress(
         let errorMessage = "Upload failed";
         try {
           const errorData = JSON.parse(xhr.responseText);
-          errorMessage = errorData.detail || errorMessage;
+          errorMessage = errorData.detail || errorData.message || errorMessage;
         } catch {
-          errorMessage = xhr.responseText || `HTTP ${xhr.status}`;
+          errorMessage =
+            xhr.responseText || `HTTP ${xhr.status}: ${xhr.statusText}`;
+        }
+
+        // Handle authentication errors
+        if (xhr.status === 401) {
+          tokenManager.clearTokens();
+          errorMessage = "Authentication expired. Please log in again.";
         }
 
         resolve(
@@ -373,7 +391,17 @@ export async function uploadFileWithProgress(
     xhr.onerror = () => {
       resolve(
         err({
-          message: "Network error during upload",
+          message:
+            "Network error during upload. Please check your connection and try again.",
+        })
+      );
+    };
+
+    xhr.ontimeout = () => {
+      resolve(
+        err({
+          message:
+            "Upload timed out. The file may be too large or the connection is slow.",
         })
       );
     };
@@ -384,11 +412,10 @@ export async function uploadFileWithProgress(
       `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/upload`
     );
 
-    // Add authorization header after opening
-    if (token) {
-      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-    }
+    // Set authorization header (token is guaranteed to exist at this point)
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
+    // Send the form data
     xhr.send(formData);
   });
 }
