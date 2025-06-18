@@ -94,7 +94,7 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "common.cancel": "Cancel",
     "common.confirm": "Confirm",
     "common.ok": "OK",
-    "common.delete": "Delete",
+    "common.delete": "🗑️ Delete",
   };
 
   let translation = translations[key] || key;
@@ -2287,7 +2287,7 @@ describe("FileExplorer", () => {
         expect(screen.getByText("✏️ Rename File")).toBeInTheDocument();
         expect(screen.getByDisplayValue("old-name.txt")).toBeInTheDocument();
         expect(screen.getByText("✏️ Rename")).toBeInTheDocument();
-        expect(screen.getByText("Cancel")).toBeInTheDocument();
+        expect(screen.getByText("❌ Cancel")).toBeInTheDocument();
       });
     });
 
@@ -2343,7 +2343,7 @@ describe("FileExplorer", () => {
       await waitFor(() => {
         expect(
           screen.getByText(
-            /Successfully renamed "old-name.txt" to "new-name.txt"/
+            /Successfully renamed old-name.txt to new-name.txt/
           )
         ).toBeInTheDocument();
       });

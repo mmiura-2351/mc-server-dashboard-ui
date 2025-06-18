@@ -59,7 +59,7 @@ const translations: Record<string, string> = {
   "servers.properties.descriptions.motd":
     "Message of the day shown in server list",
   "servers.fileNotFoundMessage":
-    "Server properties file not found. Default values will be used.",
+    "Server properties file not found. This is normal for new servers that haven't been started yet.",
   "common.true": "True",
   "common.false": "False",
   "servers.enterPlaceholder": "Enter {label}",
