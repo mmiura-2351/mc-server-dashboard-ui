@@ -1104,7 +1104,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return `${year}/${month}/${day}`;
+    } catch {
+      return "Invalid Date";
+    }
   };
 
   // Helper function to render breadcrumb with truncation for long paths

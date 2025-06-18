@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation, useLanguage } from "@/contexts/language";
-import { formatDate } from "@/utils/date-format";
+import { formatDateSimple } from "@/utils/date-format";
 import * as serverService from "@/services/server";
 import * as groupService from "@/services/groups";
 import { ConfirmationModal } from "@/components/modal";
@@ -19,7 +19,7 @@ interface ServerSettingsProps {
 export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
   const { logout } = useAuth();
   const { t } = useTranslation();
-  const { locale } = useLanguage();
+  const { locale: _locale } = useLanguage();
   const [formData, setFormData] = useState({
     name: server.name,
     description: server.description || "",
@@ -362,7 +362,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
               <span className={styles.label}>
                 {t("servers.fields.created")}:
               </span>
-              <span>{formatDate(server.created_at, locale)}</span>
+              <span>{formatDateSimple(server.created_at)}</span>
             </div>
           </div>
         </div>
@@ -426,7 +426,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
                           </span>
                           <span className={styles.groupAttachedAt}>
                             {t("servers.settings.attachedAt", {
-                              date: formatDate(group.attached_at, locale),
+                              date: formatDateSimple(group.attached_at),
                             })}
                           </span>
                         </div>
