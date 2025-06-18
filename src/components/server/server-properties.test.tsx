@@ -58,9 +58,22 @@ const translations: Record<string, string> = {
     "Default game mode: survival, creative, adventure, spectator",
   "servers.properties.descriptions.motd":
     "Message of the day shown in server list",
+  "servers.fileNotFoundMessage":
+    "Server properties file not found. Default values will be used.",
+  "common.true": "True",
+  "common.false": "False",
+  "servers.enterPlaceholder": "Enter {label}",
 };
 
-const mockT = vi.fn((key: string) => translations[key] || key);
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
 
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({ t: mockT }),
