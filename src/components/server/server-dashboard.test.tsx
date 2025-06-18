@@ -66,6 +66,22 @@ const mockTranslations: Record<string, string> = {
   "servers.create.errors.failedToLoadVersions":
     "Failed to load versions, using fallback list",
   "servers.import.title": "Import Server",
+  "servers.filters.title": "Filters",
+  "servers.filters.type.label": "Server Type",
+  "servers.filters.type.all": "All",
+  "servers.filters.type.vanilla": "Vanilla",
+  "servers.filters.type.paper": "Paper",
+  "servers.filters.type.forge": "Forge",
+  "servers.filters.status.label": "Server Status",
+  "servers.filters.status.all": "All",
+  "servers.filters.status.running": "Running",
+  "servers.filters.status.stopped": "Stopped",
+  "servers.filters.status.starting": "Starting",
+  "servers.filters.status.stopping": "Stopping",
+  "servers.filters.status.error": "Error",
+  "servers.filters.search.label": "Search Servers",
+  "servers.filters.search.placeholder": "Search by server name...",
+  "servers.filters.resultsCount": "Showing {count} of {total} servers",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
 };
@@ -280,8 +296,8 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      // Check server 1 details
-      expect(screen.getByText("Running")).toBeInTheDocument();
+      // Check server 1 details - use getAllByText since "Running" appears in filter too
+      expect(screen.getAllByText("Running")).toHaveLength(2); // One in filter, one in server status
       expect(screen.getByText("1.21.5")).toBeInTheDocument();
       expect(screen.getByText("vanilla")).toBeInTheDocument();
       expect(screen.getByText("0/20")).toBeInTheDocument();
@@ -291,7 +307,7 @@ describe("ServerDashboard", () => {
 
       // Check server 2 details
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
-      expect(screen.getByText("Stopped")).toBeInTheDocument();
+      expect(screen.getAllByText("Stopped")).toHaveLength(2); // One in filter, one in server status
       expect(screen.getByText("1.20.6")).toBeInTheDocument();
       expect(screen.getByText("paper")).toBeInTheDocument();
       expect(screen.getByText("0/50")).toBeInTheDocument();
@@ -309,12 +325,20 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      const runningStatus = screen.getByText("Running");
-      const stoppedStatus = screen.getByText("Stopped");
+      // Find status elements by their parent server cards
+      const server1Card = screen
+        .getByText("Test Server 1")
+        .closest('[class*="serverCard"]');
+      const server2Card = screen
+        .getByText("Test Server 2")
+        .closest('[class*="serverCard"]');
+
+      const runningStatus = server1Card?.querySelector('[class*="status"]');
+      const stoppedStatus = server2Card?.querySelector('[class*="status"]');
 
       // CSS modules create hashed class names, so we need to check partial class names
-      expect(runningStatus.className).toContain("statusRunning");
-      expect(stoppedStatus.className).toContain("statusStopped");
+      expect(runningStatus?.className).toContain("statusRunning");
+      expect(stoppedStatus?.className).toContain("statusStopped");
     });
 
     test("handles different server statuses", async () => {
@@ -337,11 +361,11 @@ describe("ServerDashboard", () => {
       render(<ServerDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText("Starting...")).toBeInTheDocument();
+        expect(screen.getByText("Starting...")).toBeInTheDocument(); // Server status
       });
 
-      expect(screen.getByText("Stopping...")).toBeInTheDocument();
-      expect(screen.getByText("Error")).toBeInTheDocument();
+      expect(screen.getByText("Stopping...")).toBeInTheDocument(); // Server status
+      expect(screen.getAllByText("Error")).toHaveLength(2); // Filter and server status (same text)
     });
   });
 
@@ -400,7 +424,7 @@ describe("ServerDashboard", () => {
       expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
       expect(screen.getByLabelText("Server Name")).toBeInTheDocument();
       expect(screen.getByLabelText("Minecraft Version")).toBeInTheDocument();
-      expect(screen.getByLabelText("Server Type")).toBeInTheDocument();
+      expect(document.getElementById("createServerType")).toBeInTheDocument(); // Server type select in modal
       expect(screen.getByLabelText("Memory (MB)")).toBeInTheDocument();
       expect(
         screen.getByLabelText("Description (Optional)")
@@ -473,8 +497,10 @@ describe("ServerDashboard", () => {
       const versionSelect = screen.getByLabelText("Minecraft Version");
       expect((versionSelect as HTMLSelectElement).value).toBe("1.21.5");
 
-      const typeSelect = screen.getByLabelText("Server Type");
-      expect((typeSelect as HTMLSelectElement).value).toBe("vanilla");
+      const typeSelect = document.getElementById(
+        "createServerType"
+      ) as HTMLSelectElement;
+      expect(typeSelect.value).toBe("vanilla");
 
       const memorySelect = screen.getByLabelText("Memory (MB)");
       expect((memorySelect as HTMLSelectElement).value).toBe("2048");
@@ -503,11 +529,19 @@ describe("ServerDashboard", () => {
     });
 
     test("renders all server types in select", () => {
-      expect(
-        screen.getByRole("option", { name: "Vanilla" })
-      ).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "Paper" })).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "Forge" })).toBeInTheDocument();
+      // Check options within the create form specifically
+      const createServerTypeSelect =
+        document.getElementById("createServerType");
+      expect(createServerTypeSelect).toBeInTheDocument();
+
+      const options = Array.from(
+        createServerTypeSelect!.querySelectorAll("option")
+      );
+      const optionTexts = options.map((option) => option.textContent);
+
+      expect(optionTexts).toContain("Vanilla");
+      expect(optionTexts).toContain("Paper");
+      expect(optionTexts).toContain("Forge");
     });
 
     test("renders all memory options in select", () => {
@@ -531,7 +565,9 @@ describe("ServerDashboard", () => {
     test("updates form values when inputs change", async () => {
       const serverNameInput = screen.getByLabelText("Server Name");
       const versionSelect = screen.getByLabelText("Minecraft Version");
-      const typeSelect = screen.getByLabelText("Server Type");
+      const typeSelect = document.getElementById(
+        "createServerType"
+      ) as HTMLSelectElement;
       const memorySelect = screen.getByLabelText("Memory (MB)");
       const descriptionInput = screen.getByLabelText("Description (Optional)");
 
@@ -601,7 +637,9 @@ describe("ServerDashboard", () => {
     test("creates server with custom settings", async () => {
       const serverNameInput = screen.getByLabelText("Server Name");
       const versionSelect = screen.getByLabelText("Minecraft Version");
-      const typeSelect = screen.getByLabelText("Server Type");
+      const typeSelect = document.getElementById(
+        "createServerType"
+      ) as HTMLSelectElement;
       const memorySelect = screen.getByLabelText("Memory (MB)");
 
       await user.type(serverNameInput, "Custom Server");
@@ -697,8 +735,10 @@ describe("ServerDashboard", () => {
       const versionSelect = screen.getByLabelText("Minecraft Version");
       expect((versionSelect as HTMLSelectElement).value).toBe("1.21.5");
 
-      const typeSelect = screen.getByLabelText("Server Type");
-      expect((typeSelect as HTMLSelectElement).value).toBe("vanilla");
+      const typeSelect = document.getElementById(
+        "createServerType"
+      ) as HTMLSelectElement;
+      expect(typeSelect.value).toBe("vanilla");
 
       const memorySelect = screen.getByLabelText("Memory (MB)");
       expect((memorySelect as HTMLSelectElement).value).toBe("2048");
@@ -945,14 +985,30 @@ describe("ServerDashboard", () => {
   describe("Status Display", () => {
     test("displays correct text for all server statuses", async () => {
       const statusTests = [
-        { status: ServerStatus.RUNNING, text: "Running" },
-        { status: ServerStatus.STOPPED, text: "Stopped" },
-        { status: ServerStatus.STARTING, text: "Starting..." },
-        { status: ServerStatus.STOPPING, text: "Stopping..." },
-        { status: ServerStatus.ERROR, text: "Error" },
+        {
+          status: ServerStatus.RUNNING,
+          text: "Running",
+          filterText: "Running",
+        },
+        {
+          status: ServerStatus.STOPPED,
+          text: "Stopped",
+          filterText: "Stopped",
+        },
+        {
+          status: ServerStatus.STARTING,
+          text: "Starting...",
+          filterText: "Starting",
+        },
+        {
+          status: ServerStatus.STOPPING,
+          text: "Stopping...",
+          filterText: "Stopping",
+        },
+        { status: ServerStatus.ERROR, text: "Error", filterText: "Error" },
       ];
 
-      for (const { status, text } of statusTests) {
+      for (const { status, text, filterText } of statusTests) {
         const serverWithStatus = {
           ...mockServers[0],
           status,
@@ -965,7 +1021,13 @@ describe("ServerDashboard", () => {
         const { unmount } = render(<ServerDashboard />);
 
         await waitFor(() => {
-          expect(screen.getByText(text)).toBeInTheDocument();
+          // For status text that is the same in both filter and server status
+          if (text === filterText) {
+            expect(screen.getAllByText(text)).toHaveLength(2); // One in filter, one in server status
+          } else {
+            expect(screen.getByText(text)).toBeInTheDocument(); // Server status text
+            expect(screen.getByText(filterText)).toBeInTheDocument(); // Filter option text
+          }
         });
 
         unmount();
@@ -1127,6 +1189,463 @@ describe("ServerDashboard", () => {
 
       const versionSelect = screen.getByLabelText("Minecraft Version");
       expect(versionSelect).toBeDisabled();
+    });
+  });
+
+  describe("Server Type Filtering", () => {
+    test("displays filters section when servers are present", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      expect(screen.getByText("Filters")).toBeInTheDocument();
+      expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("does not display filters section when no servers", async () => {
+      vi.mocked(serverService.getServers).mockResolvedValue(ok([]));
+
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("No servers found")).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText("Filters")).not.toBeInTheDocument();
+    });
+
+    test("filters servers by vanilla type", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Both servers should be visible initially
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+
+      // Filter by vanilla
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "vanilla");
+
+      // Only vanilla server should be visible
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument(); // vanilla server
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument(); // paper server
+
+      // Results count should update
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("filters servers by paper type", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      });
+
+      // Filter by paper
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "paper");
+
+      // Only paper server should be visible
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument(); // vanilla server
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument(); // paper server
+
+      // Results count should update
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("shows all servers when 'All' filter is selected", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Filter by paper first
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "paper");
+
+      // Only paper server should be visible
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+
+      // Reset to show all
+      await user.selectOptions(typeFilter, "all");
+
+      // Both servers should be visible again
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("shows empty state when no servers match filter", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Filter by forge (no servers have this type)
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "forge");
+
+      // Should show no servers found message
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("No servers found")).toBeInTheDocument();
+      expect(
+        screen.getByText("No servers match the current filters.")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Showing 0 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("filter select has correct options", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      const options = Array.from(typeFilter.querySelectorAll("option")).map(
+        (option) => ({ value: option.value, text: option.textContent })
+      );
+
+      expect(options).toEqual([
+        { value: "all", text: "All" },
+        { value: "vanilla", text: "Vanilla" },
+        { value: "paper", text: "Paper" },
+        { value: "forge", text: "Forge" },
+      ]);
+    });
+  });
+
+  describe("Server Status Filtering", () => {
+    test("displays status filter alongside type filter", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      expect(document.getElementById("serverStatusFilter")).toBeInTheDocument();
+      expect(screen.getByText("Server Status")).toBeInTheDocument();
+    });
+
+    test("filters servers by running status", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Both servers should be visible initially
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument(); // running
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument(); // stopped
+
+      // Filter by running status
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(statusFilter, "running");
+
+      // Only running server should be visible
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument(); // running server
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument(); // stopped server
+
+      // Results count should update
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("filters servers by stopped status", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      });
+
+      // Filter by stopped status
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(statusFilter, "stopped");
+
+      // Only stopped server should be visible
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument(); // running server
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument(); // stopped server
+
+      // Results count should update
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("combines type and status filters", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Filter by vanilla type first
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "vanilla");
+
+      // Should show only Test Server 1 (vanilla)
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+
+      // Now also filter by running status
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(statusFilter, "running");
+
+      // Should still show Test Server 1 (vanilla + running)
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+
+      // Change status filter to stopped
+      await user.selectOptions(statusFilter, "stopped");
+
+      // Should show no servers (vanilla + stopped doesn't match any server)
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("No servers found")).toBeInTheDocument();
+      expect(screen.getByText("Showing 0 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("status filter select has correct options", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+      const options = Array.from(statusFilter.querySelectorAll("option")).map(
+        (option) => ({ value: option.value, text: option.textContent })
+      );
+
+      expect(options).toEqual([
+        { value: "all", text: "All" },
+        { value: "running", text: "Running" },
+        { value: "stopped", text: "Stopped" },
+        { value: "starting", text: "Starting" },
+        { value: "stopping", text: "Stopping" },
+        { value: "error", text: "Error" },
+      ]);
+    });
+
+    test("resets to show all servers when both filters set to 'All'", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Apply both filters
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+
+      await user.selectOptions(typeFilter, "paper");
+      await user.selectOptions(statusFilter, "running");
+
+      // Should show no servers (paper + running doesn't match any)
+      expect(screen.getByText("Showing 0 of 2 servers")).toBeInTheDocument();
+
+      // Reset both filters to "All"
+      await user.selectOptions(typeFilter, "all");
+      await user.selectOptions(statusFilter, "all");
+
+      // Should show all servers again
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+  });
+
+  describe("Server Search Functionality", () => {
+    test("displays search input field", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
+      expect(screen.getByText("Search Servers")).toBeInTheDocument();
+    });
+
+    test("filters servers by search query (case-insensitive)", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Both servers should be visible initially
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+
+      // Search for "server 1"
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      await user.type(searchInput, "server 1");
+
+      // Only Test Server 1 should be visible
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("search is case-insensitive", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Search with uppercase
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      await user.type(searchInput, "TEST SERVER");
+
+      // Both servers should be visible (both contain "Test Server")
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("shows no results when search query matches no servers", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Search for something that doesn't exist
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      await user.type(searchInput, "nonexistent");
+
+      // No servers should be visible
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("No servers found")).toBeInTheDocument();
+      expect(screen.getByText("Showing 0 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("combines search with other filters", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // First apply type filter for vanilla
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "vanilla");
+
+      // Should show only Test Server 1 (vanilla)
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+
+      // Now search for "2"
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      await user.type(searchInput, "2");
+
+      // Should show no servers (vanilla filter + search for "2" matches nothing)
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("No servers found")).toBeInTheDocument();
+      expect(screen.getByText("Showing 0 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("clearing search query shows all servers again", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+
+      // Search for "1"
+      await user.type(searchInput, "1");
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+
+      // Clear the search
+      await user.clear(searchInput);
+
+      // All servers should be visible again
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("search input has correct placeholder", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      expect(searchInput.placeholder).toBe("Search by server name...");
+    });
+
+    test("whitespace-only search is ignored", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+
+      // Search with only whitespace
+      await user.type(searchInput, "   ");
+
+      // All servers should still be visible (whitespace is trimmed)
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
     });
   });
 });

@@ -77,6 +77,41 @@ export function ServerDashboard() {
   });
   const [importFile, setImportFile] = useState<File | null>(null);
 
+  // Filter state
+  const [selectedServerType, setSelectedServerType] = useState<
+    ServerType | "all"
+  >("all");
+  const [selectedServerStatus, setSelectedServerStatus] = useState<
+    ServerStatus | "all"
+  >("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Filter servers based on selected type, status, and search query
+  const filteredServers = servers.filter((server) => {
+    // Check server type filter
+    if (
+      selectedServerType !== "all" &&
+      server.server_type !== selectedServerType
+    ) {
+      return false;
+    }
+    // Check server status filter
+    if (
+      selectedServerStatus !== "all" &&
+      server.status !== selectedServerStatus
+    ) {
+      return false;
+    }
+    // Check search query filter (case-insensitive)
+    if (
+      searchQuery.trim() !== "" &&
+      !server.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
+
   const resetForms = () => {
     setCreateForm({
       name: "",
@@ -356,6 +391,103 @@ export function ServerDashboard() {
         <div className={styles.loading}>{t("servers.loadingServers")}</div>
       ) : (
         <>
+          {servers.length > 0 && (
+            <div className={styles.filtersSection}>
+              <h3 className={styles.filtersTitle}>
+                {t("servers.filters.title")}
+              </h3>
+              <div className={styles.filtersContainer}>
+                <div className={styles.filterGroup}>
+                  <label
+                    htmlFor="serverTypeFilter"
+                    className={styles.filterLabel}
+                  >
+                    {t("servers.filters.type.label")}
+                  </label>
+                  <select
+                    id="serverTypeFilter"
+                    value={selectedServerType}
+                    onChange={(e) =>
+                      setSelectedServerType(
+                        e.target.value as ServerType | "all"
+                      )
+                    }
+                    className={styles.filterSelect}
+                  >
+                    <option value="all">{t("servers.filters.type.all")}</option>
+                    <option value={ServerType.VANILLA}>
+                      {t("servers.filters.type.vanilla")}
+                    </option>
+                    <option value={ServerType.PAPER}>
+                      {t("servers.filters.type.paper")}
+                    </option>
+                    <option value={ServerType.FORGE}>
+                      {t("servers.filters.type.forge")}
+                    </option>
+                  </select>
+                </div>
+                <div className={styles.filterGroup}>
+                  <label
+                    htmlFor="serverStatusFilter"
+                    className={styles.filterLabel}
+                  >
+                    {t("servers.filters.status.label")}
+                  </label>
+                  <select
+                    id="serverStatusFilter"
+                    value={selectedServerStatus}
+                    onChange={(e) =>
+                      setSelectedServerStatus(
+                        e.target.value as ServerStatus | "all"
+                      )
+                    }
+                    className={styles.filterSelect}
+                  >
+                    <option value="all">
+                      {t("servers.filters.status.all")}
+                    </option>
+                    <option value={ServerStatus.RUNNING}>
+                      {t("servers.filters.status.running")}
+                    </option>
+                    <option value={ServerStatus.STOPPED}>
+                      {t("servers.filters.status.stopped")}
+                    </option>
+                    <option value={ServerStatus.STARTING}>
+                      {t("servers.filters.status.starting")}
+                    </option>
+                    <option value={ServerStatus.STOPPING}>
+                      {t("servers.filters.status.stopping")}
+                    </option>
+                    <option value={ServerStatus.ERROR}>
+                      {t("servers.filters.status.error")}
+                    </option>
+                  </select>
+                </div>
+                <div className={styles.filterGroup}>
+                  <label
+                    htmlFor="serverSearchInput"
+                    className={styles.filterLabel}
+                  >
+                    {t("servers.filters.search.label")}
+                  </label>
+                  <input
+                    id="serverSearchInput"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t("servers.filters.search.placeholder")}
+                    className={styles.filterInput}
+                  />
+                </div>
+                <div className={styles.resultsCount}>
+                  {t("servers.filters.resultsCount", {
+                    count: filteredServers.length.toString(),
+                    total: servers.length.toString(),
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
           {servers.length === 0 ? (
             <div className={styles.emptyState}>
               <h3>{t("servers.noServersFound")}</h3>
@@ -367,9 +499,14 @@ export function ServerDashboard() {
                 {t("servers.createServer")}
               </button>
             </div>
+          ) : filteredServers.length === 0 ? (
+            <div className={styles.emptyState}>
+              <h3>{t("servers.noServersFound")}</h3>
+              <p>No servers match the current filters.</p>
+            </div>
           ) : (
             <div className={styles.serverGrid}>
-              {servers.map((server) => (
+              {filteredServers.map((server) => (
                 <div
                   key={server.id}
                   className={styles.serverCard}
