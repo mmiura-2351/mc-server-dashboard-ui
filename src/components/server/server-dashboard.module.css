@@ -70,6 +70,33 @@
   color: #9ca3af;
 }
 
+.compactSortButton {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #1f2937;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compactSortButton:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.compactSortButton:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
 .createButton {
   padding: 0.75rem 1.5rem;
   background-color: #10b981;

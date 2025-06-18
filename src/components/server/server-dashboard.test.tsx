@@ -81,6 +81,12 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.search.placeholder": "Search by server name...",
   "servers.filters.version.label": "Minecraft Version",
   "servers.filters.version.all": "All (Versions)",
+  "servers.filters.sort.label": "Sort By",
+  "servers.filters.sort.name": "Name",
+  "servers.filters.sort.status": "Status",
+  "servers.filters.sort.created": "Created Date",
+  "servers.filters.sort.ascending": "A-Z",
+  "servers.filters.sort.descending": "Z-A",
   "servers.filters.resultsCount": "Showing {count} of {total} servers",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
@@ -1200,6 +1206,8 @@ describe("ServerDashboard", () => {
         document.getElementById("serverVersionFilter")
       ).toBeInTheDocument();
       expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
+      expect(document.getElementById("serverSortBy")).toBeInTheDocument();
+      expect(screen.getByTitle("Sort By")).toBeInTheDocument();
       expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
     });
 
@@ -1225,6 +1233,7 @@ describe("ServerDashboard", () => {
       expect(
         document.getElementById("serverSearchInput")
       ).not.toBeInTheDocument();
+      expect(document.getElementById("serverSortBy")).not.toBeInTheDocument();
     });
 
     test("filters servers by vanilla type", async () => {
@@ -1761,6 +1770,112 @@ describe("ServerDashboard", () => {
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
       expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
       expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+  });
+
+  describe("Server Sorting", () => {
+    test("defaults to status sorting", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+      expect(sortSelect.value).toBe("status");
+    });
+
+    test("sorts servers by name", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+      await user.selectOptions(sortSelect, "name");
+
+      // Get all server cards and check their order (default is desc, so Z-A)
+      const serverCards = screen.getAllByText(/Test Server \d/);
+      expect(serverCards[0]?.textContent).toBe("Test Server 2");
+      expect(serverCards[1]?.textContent).toBe("Test Server 1");
+    });
+
+    test("sorts servers by status with correct priority", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Status sort should show running servers first (Test Server 1 = running, Test Server 2 = stopped)
+      const serverCards = screen.getAllByText(/Test Server \d/);
+      expect(serverCards[0]?.textContent).toBe("Test Server 1"); // Running server first
+      expect(serverCards[1]?.textContent).toBe("Test Server 2"); // Stopped server second
+    });
+
+    test("toggles sort order with sort button", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+
+      // Switch to name sorting first
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+      await user.selectOptions(sortSelect, "name");
+
+      // Initially descending (Z-A) - Test Server 2, Test Server 1
+      let serverCards = screen.getAllByText(/Test Server \d/);
+      expect(serverCards[0]?.textContent).toBe("Test Server 2");
+      expect(serverCards[1]?.textContent).toBe("Test Server 1");
+
+      // Click sort order button to change to ascending (A-Z) - starts as descending by default
+      const sortButton = screen.getByTitle("Z-A");
+      await user.click(sortButton);
+
+      // Now should be ascending - Test Server 1, Test Server 2
+      serverCards = screen.getAllByText(/Test Server \d/);
+      expect(serverCards[0]?.textContent).toBe("Test Server 1");
+      expect(serverCards[1]?.textContent).toBe("Test Server 2");
+
+      // Button title should change
+      expect(screen.getByTitle("A-Z")).toBeInTheDocument();
+    });
+
+    test("sorting works with filters", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+
+      // Filter by vanilla type (only Test Server 1)
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "vanilla");
+
+      // Should show only Test Server 1
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+
+      // Sorting should still work with filtered results
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+      expect(sortSelect.value).toBe("status"); // Default sort
     });
   });
 });

@@ -191,9 +191,8 @@
         "name": "Name",
         "status": "Status",
         "created": "Created Date",
-        "memory": "Memory Usage",
-        "ascending": "Ascending",
-        "descending": "Descending"
+        "ascending": "A-Z",
+        "descending": "Z-A"
       },
       "reset": "Reset Filters",
       "resultsCount": "Showing {count} of {total} servers"

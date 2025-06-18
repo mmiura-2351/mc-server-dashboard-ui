@@ -87,6 +87,8 @@ export function ServerDashboard() {
   const [selectedMinecraftVersion, setSelectedMinecraftVersion] =
     useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"name" | "status" | "created">("status");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Get unique minecraft versions from existing servers
   const availableVersions = Array.from(
@@ -101,37 +103,66 @@ export function ServerDashboard() {
   });
 
   // Filter servers based on selected type, status, version, and search query
-  const filteredServers = servers.filter((server) => {
-    // Check server type filter
-    if (
-      selectedServerType !== "all" &&
-      server.server_type !== selectedServerType
-    ) {
-      return false;
-    }
-    // Check server status filter
-    if (
-      selectedServerStatus !== "all" &&
-      server.status !== selectedServerStatus
-    ) {
-      return false;
-    }
-    // Check minecraft version filter
-    if (
-      selectedMinecraftVersion !== "all" &&
-      server.minecraft_version !== selectedMinecraftVersion
-    ) {
-      return false;
-    }
-    // Check search query filter (case-insensitive)
-    if (
-      searchQuery.trim() !== "" &&
-      !server.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false;
-    }
-    return true;
-  });
+  const filteredServers = servers
+    .filter((server) => {
+      // Check server type filter
+      if (
+        selectedServerType !== "all" &&
+        server.server_type !== selectedServerType
+      ) {
+        return false;
+      }
+      // Check server status filter
+      if (
+        selectedServerStatus !== "all" &&
+        server.status !== selectedServerStatus
+      ) {
+        return false;
+      }
+      // Check minecraft version filter
+      if (
+        selectedMinecraftVersion !== "all" &&
+        server.minecraft_version !== selectedMinecraftVersion
+      ) {
+        return false;
+      }
+      // Check search query filter (case-insensitive)
+      if (
+        searchQuery.trim() !== "" &&
+        !server.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "status":
+          // Sort by status priority: running > stopped > error
+          const statusPriority: Record<ServerStatus, number> = {
+            [ServerStatus.RUNNING]: 3,
+            [ServerStatus.STARTING]: 2,
+            [ServerStatus.STOPPING]: 1,
+            [ServerStatus.STOPPED]: 0,
+            [ServerStatus.ERROR]: -1,
+          };
+          comparison = statusPriority[a.status] - statusPriority[b.status];
+          break;
+        case "created":
+          comparison =
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
 
   const resetForms = () => {
     setCreateForm({
@@ -455,6 +486,36 @@ export function ServerDashboard() {
                 className={styles.compactFilterInput}
                 title={t("servers.filters.search.label")}
               />
+              <select
+                id="serverSortBy"
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(e.target.value as "name" | "status" | "created")
+                }
+                className={styles.compactFilterSelect}
+                title={t("servers.filters.sort.label")}
+              >
+                <option value="status">
+                  {t("servers.filters.sort.status")}
+                </option>
+                <option value="name">{t("servers.filters.sort.name")}</option>
+                <option value="created">
+                  {t("servers.filters.sort.created")}
+                </option>
+              </select>
+              <button
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className={styles.compactSortButton}
+                title={
+                  sortOrder === "asc"
+                    ? t("servers.filters.sort.ascending")
+                    : t("servers.filters.sort.descending")
+                }
+              >
+                {sortOrder === "asc" ? "↑" : "↓"}
+              </button>
             </div>
           )}
           <button

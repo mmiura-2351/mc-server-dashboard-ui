@@ -191,7 +191,6 @@
         "name": "名前",
         "status": "ステータス",
         "created": "作成日",
-        "memory": "メモリ使用量",
         "ascending": "昇順",
         "descending": "降順"
       },
