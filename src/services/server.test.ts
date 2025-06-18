@@ -520,7 +520,35 @@ describe("server service", () => {
   describe("getSupportedVersions", () => {
     test("should return supported versions on success", async () => {
       const mockVersionsResponse = {
-        versions: ["1.21.5", "1.21.4", "1.21.3"],
+        versions: [
+          {
+            version: "1.21.5",
+            server_type: "vanilla",
+            download_url: "https://example.com/1.21.5.jar",
+            is_supported: true,
+            release_date: "2024-03-25T12:14:58Z",
+            is_stable: true,
+            build_number: null,
+          },
+          {
+            version: "1.21.4",
+            server_type: "vanilla",
+            download_url: "https://example.com/1.21.4.jar",
+            is_supported: true,
+            release_date: "2024-12-03T10:12:57Z",
+            is_stable: true,
+            build_number: null,
+          },
+          {
+            version: "1.21.3",
+            server_type: "vanilla",
+            download_url: "https://example.com/1.21.3.jar",
+            is_supported: true,
+            release_date: "2024-10-23T12:28:15Z",
+            is_stable: true,
+            build_number: null,
+          },
+        ],
       };
 
       (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
@@ -534,6 +562,61 @@ describe("server service", () => {
       );
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
+        expect(result.value).toEqual(["1.21.5", "1.21.4", "1.21.3"]);
+      }
+    });
+
+    test("should deduplicate and sort versions correctly", async () => {
+      const mockVersionsResponse = {
+        versions: [
+          {
+            version: "1.21.3",
+            server_type: "vanilla",
+            download_url: "https://example.com/vanilla-1.21.3.jar",
+            is_supported: true,
+            release_date: "2024-10-23T12:28:15Z",
+            is_stable: true,
+            build_number: null,
+          },
+          {
+            version: "1.21.4",
+            server_type: "vanilla",
+            download_url: "https://example.com/vanilla-1.21.4.jar",
+            is_supported: true,
+            release_date: "2024-12-03T10:12:57Z",
+            is_stable: true,
+            build_number: null,
+          },
+          {
+            version: "1.21.3", // Duplicate version for different server type
+            server_type: "paper",
+            download_url: "https://example.com/paper-1.21.3.jar",
+            is_supported: true,
+            release_date: "2024-10-23T12:28:15Z",
+            is_stable: true,
+            build_number: 100,
+          },
+          {
+            version: "1.21.5",
+            server_type: "vanilla",
+            download_url: "https://example.com/vanilla-1.21.5.jar",
+            is_supported: true,
+            release_date: "2024-03-25T12:14:58Z",
+            is_stable: true,
+            build_number: null,
+          },
+        ],
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockVersionsResponse)
+      );
+
+      const result = await getSupportedVersions();
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        // Should be sorted in descending order and deduplicated
         expect(result.value).toEqual(["1.21.5", "1.21.4", "1.21.3"]);
       }
     });

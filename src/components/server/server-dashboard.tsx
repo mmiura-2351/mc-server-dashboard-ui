@@ -1,22 +1,52 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type { MinecraftServer, ServerTemplate } from "@/types/server";
-import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
+import { ServerType, ServerStatus } from "@/types/server";
 import styles from "./server-dashboard.module.css";
+
+// Fallback versions if API call fails
+const FALLBACK_VERSIONS = [
+  "1.21.5",
+  "1.21.4",
+  "1.21.3",
+  "1.21.2",
+  "1.21.1",
+  "1.21",
+  "1.20.6",
+  "1.20.5",
+  "1.20.4",
+  "1.20.3",
+  "1.20.2",
+  "1.20.1",
+  "1.20",
+];
 
 export function ServerDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
+
+  // Helper function to get a safe minecraft version
+  const getDefaultMinecraftVersion = (): string => {
+    if (supportedVersions.length > 0) {
+      const firstVersion = supportedVersions[0];
+      if (firstVersion) return firstVersion;
+    }
+    return FALLBACK_VERSIONS[0] as string;
+  };
   const [servers, setServers] = useState<MinecraftServer[]>([]);
   const [, setTemplates] = useState<ServerTemplate[]>([]);
+  const [supportedVersions, setSupportedVersions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [versionError, setVersionError] = useState<string | null>(null);
+  const [hasInitializedVersion, setHasInitializedVersion] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [modalTab, setModalTab] = useState<"create" | "import">("create");
   const [isCreating, setIsCreating] = useState(false);
@@ -31,7 +61,7 @@ export function ServerDashboard() {
     description: string;
   }>({
     name: "",
-    minecraft_version: "1.21.5",
+    minecraft_version: "",
     server_type: ServerType.VANILLA,
     max_memory: 2048,
     description: "",
@@ -50,7 +80,7 @@ export function ServerDashboard() {
   const resetForms = () => {
     setCreateForm({
       name: "",
-      minecraft_version: "1.21.5",
+      minecraft_version: getDefaultMinecraftVersion(),
       server_type: ServerType.VANILLA,
       max_memory: 2048,
       description: "",
@@ -60,6 +90,7 @@ export function ServerDashboard() {
       description: "",
     });
     setImportFile(null);
+    setHasInitializedVersion(false); // Reset flag to allow re-initialization
   };
 
   const closeModal = () => {
@@ -73,42 +104,110 @@ export function ServerDashboard() {
     // Don't reset forms on tab switch to preserve user input
   };
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  // Load data only once on mount
+  useEffect(() => {
+    let isMounted = true;
 
-    // Removed debug logging for security
+    const loadData = async () => {
+      if (!isMounted) return;
 
-    try {
-      const [serversResult, templatesResult] = await Promise.all([
-        serverService.getServers(),
-        serverService.getServerTemplates(),
-      ]);
+      setIsLoading(true);
+      setError(null);
 
-      if (serversResult.isOk()) {
-        setServers(serversResult.value);
-      } else {
-        // Handle authentication errors
-        if (serversResult.error.status === 401) {
-          logout();
-          return;
+      try {
+        const [serversResult, templatesResult] = await Promise.all([
+          serverService.getServers(),
+          serverService.getServerTemplates(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (serversResult.isOk()) {
+          setServers(serversResult.value);
+        } else {
+          if (serversResult.error.status === 401) {
+            logout();
+            return;
+          }
+          setError(serversResult.error.message);
         }
-        setError(serversResult.error.message);
-      }
 
-      if (templatesResult.isOk()) {
-        setTemplates(templatesResult.value);
+        if (templatesResult.isOk()) {
+          setTemplates(templatesResult.value);
+        }
+      } catch {
+        if (isMounted) {
+          setError("Failed to load data");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    } catch {
-      setError("Failed to load data");
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [logout]);
 
+  // Load supported versions only once on mount
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let isMounted = true;
+
+    const loadSupportedVersions = async () => {
+      if (!isMounted) return;
+
+      setIsLoadingVersions(true);
+      setVersionError(null);
+
+      const result = await serverService.getSupportedVersions();
+
+      if (!isMounted) return;
+
+      if (result.isOk()) {
+        setSupportedVersions(result.value);
+      } else {
+        setSupportedVersions(FALLBACK_VERSIONS);
+        // Set a flag for error message translation later
+        setVersionError("TRANSLATION_NEEDED");
+      }
+      setIsLoadingVersions(false);
+    };
+
+    loadSupportedVersions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only run on mount
+
+  // Translate error message when needed
+  useEffect(() => {
+    if (versionError === "TRANSLATION_NEEDED") {
+      setVersionError(t("servers.create.errors.failedToLoadVersions"));
+    }
+  }, [versionError, t]);
+
+  // Initialize form with first available version when versions are loaded
+  useEffect(() => {
+    if (supportedVersions.length > 0 && !hasInitializedVersion) {
+      setCreateForm((prev) => {
+        // Only update if no version is currently set
+        if (!prev.minecraft_version) {
+          return {
+            ...prev,
+            minecraft_version:
+              supportedVersions[0] || (FALLBACK_VERSIONS[0] as string),
+          };
+        }
+        return prev;
+      });
+      setHasInitializedVersion(true);
+    }
+  }, [supportedVersions, hasInitializedVersion]);
 
   // Status polling effect for servers in transitional states
   useEffect(() => {
@@ -404,13 +503,27 @@ export function ServerDashboard() {
                         minecraft_version: e.target.value,
                       })
                     }
+                    disabled={isLoadingVersions}
                   >
-                    {MINECRAFT_VERSIONS.map((version) => (
-                      <option key={version} value={version}>
-                        {version}
+                    {isLoadingVersions ? (
+                      <option value="">
+                        {t("servers.create.loadingVersions")}
                       </option>
-                    ))}
+                    ) : supportedVersions.length > 0 ? (
+                      supportedVersions.map((version) => (
+                        <option key={version} value={version}>
+                          {version}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">
+                        {t("servers.create.noVersionsAvailable")}
+                      </option>
+                    )}
                   </select>
+                  {versionError && (
+                    <div className={styles.errorText}>{versionError}</div>
+                  )}
                 </div>
 
                 <div className={styles.field}>

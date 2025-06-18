@@ -225,8 +225,11 @@
         "8192": "8 GB",
         "16384": "16 GB"
       },
+      "loadingVersions": "Loading versions...",
+      "noVersionsAvailable": "No versions available",
       "errors": {
-        "failedToLoadData": "Failed to load data"
+        "failedToLoadData": "Failed to load data",
+        "failedToLoadVersions": "Failed to load versions, using fallback list"
       }
     },
     "import": {

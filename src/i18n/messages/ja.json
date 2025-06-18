@@ -212,7 +212,13 @@
       "description": "説明（任意）",
       "descriptionPlaceholder": "サーバーの説明を入力...",
       "creating": "作成中...",
-      "createButton": "サーバー作成"
+      "createButton": "サーバー作成",
+      "loadingVersions": "バージョン読み込み中...",
+      "noVersionsAvailable": "利用可能なバージョンがありません",
+      "errors": {
+        "failedToLoadData": "データの読み込みに失敗しました",
+        "failedToLoadVersions": "バージョンの読み込みに失敗しました。フォールバックリストを使用します"
+      }
     },
     "import": {
       "title": "サーバーインポート",

@@ -116,16 +116,45 @@ export async function sendServerCommand(
   });
 }
 
+interface VersionObject {
+  version: string;
+  server_type: string;
+  download_url: string;
+  is_supported: boolean;
+  release_date: string | null;
+  is_stable: boolean;
+  build_number: number | null;
+}
+
 export async function getSupportedVersions(): Promise<
   Result<string[], AuthError>
 > {
-  const result = await fetchJson<{ versions: string[] }>(
+  const result = await fetchJson<{ versions: VersionObject[] }>(
     `${API_BASE_URL}/api/v1/servers/versions/supported`
   );
   if (result.isErr()) {
     return err(result.error);
   }
-  return ok(result.value.versions);
+
+  // Extract unique version strings and sort them
+  const uniqueVersions = Array.from(
+    new Set(result.value.versions.map((v) => v.version))
+  ).sort((a, b) => {
+    // Sort versions in descending order (newer first)
+    const parseVersion = (v: string) =>
+      v.split(".").map((n) => parseInt(n, 10));
+    const aV = parseVersion(a);
+    const bV = parseVersion(b);
+
+    for (let i = 0; i < Math.max(aV.length, bV.length); i++) {
+      const aN = aV[i] || 0;
+      const bN = bV[i] || 0;
+      if (aN !== bN) return bN - aN;
+    }
+    return 0;
+  });
+
+  return ok(uniqueVersions);
 }
 
 export async function syncServerStates(): Promise<Result<void, AuthError>> {

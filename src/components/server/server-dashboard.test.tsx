@@ -61,6 +61,10 @@ const mockTranslations: Record<string, string> = {
   "servers.create.descriptionPlaceholder": "Describe your server...",
   "servers.create.creating": "Creating...",
   "servers.create.createButton": "Create Server",
+  "servers.create.loadingVersions": "Loading versions...",
+  "servers.create.noVersionsAvailable": "No versions available",
+  "servers.create.errors.failedToLoadVersions":
+    "Failed to load versions, using fallback list",
   "servers.import.title": "Import Server",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
@@ -102,6 +106,7 @@ vi.mock("@/services/server", () => ({
   getServers: vi.fn(),
   getServerTemplates: vi.fn(),
   createServer: vi.fn(),
+  getSupportedVersions: vi.fn(),
 }));
 
 describe("ServerDashboard", () => {
@@ -187,6 +192,9 @@ describe("ServerDashboard", () => {
     vi.mocked(serverService.getServers).mockResolvedValue(ok(mockServers));
     vi.mocked(serverService.getServerTemplates).mockResolvedValue(ok([]));
     vi.mocked(serverService.createServer).mockResolvedValue(ok(mockNewServer));
+    vi.mocked(serverService.getSupportedVersions).mockResolvedValue(
+      ok(["1.21.5", "1.21.4", "1.21.3", "1.21.2", "1.21.1", "1.21", "1.20.6"])
+    );
   });
 
   describe("Component Rendering", () => {
@@ -476,16 +484,21 @@ describe("ServerDashboard", () => {
       ); // Empty description
     });
 
-    test("renders all Minecraft versions in select", () => {
-      // Test a few key versions rather than all to avoid test complexity
+    test("renders all Minecraft versions in select", async () => {
+      // Wait for versions to load
+      await waitFor(() => {
+        expect(serverService.getSupportedVersions).toHaveBeenCalled();
+      });
+
+      // Test a few key versions from our mock
       expect(
         screen.getByRole("option", { name: "1.21.5" })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("option", { name: "1.20.6" })
+        screen.getByRole("option", { name: "1.21.4" })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("option", { name: "1.19.4" })
+        screen.getByRole("option", { name: "1.20.6" })
       ).toBeInTheDocument();
     });
 
@@ -1040,6 +1053,80 @@ describe("ServerDashboard", () => {
       // HTML5 validation should prevent submission - we can't easily test this in JSDOM
       // but we can verify the required attribute is present
       expect(nameInput.hasAttribute("required")).toBe(true);
+    });
+  });
+
+  describe("Version Loading", () => {
+    test("loads supported versions from API", async () => {
+      render(<ServerDashboard />);
+
+      // Wait for versions to load
+      await waitFor(() => {
+        expect(serverService.getSupportedVersions).toHaveBeenCalled();
+      });
+
+      // Open create modal
+      const createButton = screen.getByRole("button", {
+        name: "Create Server",
+      });
+      await user.click(createButton);
+
+      // Check that versions are available in the select
+      const versionSelect = screen.getByLabelText("Minecraft Version");
+      expect(versionSelect).toBeInTheDocument();
+
+      // Should contain the mocked versions
+      expect(screen.getByDisplayValue("1.21.5")).toBeInTheDocument();
+    });
+
+    test("shows fallback versions when API fails", async () => {
+      // Mock API failure
+      vi.mocked(serverService.getSupportedVersions).mockResolvedValue(
+        err({ message: "Failed to load versions", status: 500 })
+      );
+
+      render(<ServerDashboard />);
+
+      // Wait for API call to complete
+      await waitFor(() => {
+        expect(serverService.getSupportedVersions).toHaveBeenCalled();
+      });
+
+      // Open create modal
+      const createButton = screen.getByRole("button", {
+        name: "Create Server",
+      });
+      await user.click(createButton);
+
+      // Check that fallback versions are available
+      const versionSelect = screen.getByLabelText("Minecraft Version");
+      expect(versionSelect).toBeInTheDocument();
+
+      // Should show error message
+      expect(
+        screen.getByText("Failed to load versions, using fallback list")
+      ).toBeInTheDocument();
+    });
+
+    test("shows loading state while fetching versions", async () => {
+      // Make the API call hang to test loading state
+      vi.mocked(serverService.getSupportedVersions).mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      );
+
+      render(<ServerDashboard />);
+
+      // Open create modal immediately
+      const createButton = screen.getByRole("button", {
+        name: "Create Server",
+      });
+      await user.click(createButton);
+
+      // Should show loading state
+      expect(screen.getByText("Loading versions...")).toBeInTheDocument();
+
+      const versionSelect = screen.getByLabelText("Minecraft Version");
+      expect(versionSelect).toBeDisabled();
     });
   });
 });
