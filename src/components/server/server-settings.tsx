@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation, useLanguage } from "@/contexts/language";
-import { formatDateSimple } from "@/utils/date-format";
+import { formatDate } from "@/utils/format";
 import * as serverService from "@/services/server";
 import * as groupService from "@/services/groups";
 import { ConfirmationModal } from "@/components/modal";
@@ -362,7 +362,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
               <span className={styles.label}>
                 {t("servers.fields.created")}:
               </span>
-              <span>{formatDateSimple(server.created_at)}</span>
+              <span>{formatDate(server.created_at)}</span>
             </div>
           </div>
         </div>
@@ -426,7 +426,7 @@ export function ServerSettings({ server, onUpdate }: ServerSettingsProps) {
                           </span>
                           <span className={styles.groupAttachedAt}>
                             {t("servers.settings.attachedAt", {
-                              date: formatDateSimple(group.attached_at),
+                              date: formatDate(group.attached_at),
                             })}
                           </span>
                         </div>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation, useLanguage } from "@/contexts/language";
-import { formatDateSimple } from "@/utils/date-format";
+import { formatDate } from "@/utils/format";
 import { ServerPropertiesEditor } from "@/components/server/server-properties";
 import { ServerSettings } from "@/components/server/server-settings";
 import { FileExplorer } from "@/components/server/file-explorer";
@@ -427,7 +427,7 @@ export default function ServerDetailPage() {
                   <span className={styles.label}>
                     {t("servers.fields.created")}:
                   </span>
-                  <span>{formatDateSimple(server.created_at)}</span>
+                  <span>{formatDate(server.created_at)}</span>
                 </div>
               </div>
               {server.description && (

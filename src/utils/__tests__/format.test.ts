@@ -1,4 +1,4 @@
-import { formatFileSize, formatDate } from "../format";
+import { formatFileSize, formatDate, formatDateTime } from "../format";
 
 describe("formatFileSize", () => {
   it("formats bytes correctly", () => {
@@ -38,10 +38,9 @@ describe("formatDate", () => {
   // Mock a specific date for consistent testing
   const testDate = "2024-01-01T12:30:45Z";
 
-  it("formats valid date strings", () => {
+  it("formats valid date strings in yyyy/mm/dd format", () => {
     const result = formatDate(testDate);
-    expect(result).not.toBe("Unknown");
-    expect(result).toContain("2024");
+    expect(result).toBe("2024/01/01");
   });
 
   it("handles null and undefined", () => {
@@ -55,9 +54,50 @@ describe("formatDate", () => {
     expect(formatDate("2024-13-45")).toBe("Unknown");
   });
 
-  it("uses provided locale", () => {
+  it("ignores locale parameter (for backwards compatibility)", () => {
     const result = formatDate(testDate, "en-US");
-    expect(result).not.toBe("Unknown");
-    expect(result).toContain("2024");
+    expect(result).toBe("2024/01/01");
+  });
+});
+
+describe("formatDateTime", () => {
+  // Mock a specific date for consistent testing
+  const testDate = "2024-01-01T12:30:45Z";
+
+  it("formats valid date strings in yyyy/mm/dd HH:MM format", () => {
+    const result = formatDateTime(testDate);
+    expect(result).toMatch(/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}$/);
+    expect(result).toContain("2024/01/01");
+  });
+
+  it("handles null and undefined", () => {
+    expect(formatDateTime(null)).toBe("Unknown");
+    expect(formatDateTime(undefined)).toBe("Unknown");
+  });
+
+  it("handles invalid date strings", () => {
+    expect(formatDateTime("")).toBe("Unknown");
+    expect(formatDateTime("invalid")).toBe("Unknown");
+    expect(formatDateTime("2024-13-45")).toBe("Unknown");
+  });
+
+  it("formats different times correctly", () => {
+    const result1 = formatDateTime("2024-12-25T09:05:30Z");
+    const result2 = formatDateTime("2024-12-25T15:30:00Z");
+
+    expect(result1).toMatch(/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}$/);
+    expect(result2).toMatch(/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}$/);
+
+    // Check that both results are valid formatted strings
+    expect(result1.split(" ")).toHaveLength(2);
+    expect(result2.split(" ")).toHaveLength(2);
+
+    // Check that the date parts are formatted correctly
+    expect(result1.split(" ")[0]).toMatch(/^\d{4}\/\d{2}\/\d{2}$/);
+    expect(result2.split(" ")[0]).toMatch(/^\d{4}\/\d{2}\/\d{2}$/);
+
+    // Check that the time parts are formatted correctly
+    expect(result1.split(" ")[1]).toMatch(/^\d{2}:\d{2}$/);
+    expect(result2.split(" ")[1]).toMatch(/^\d{2}:\d{2}$/);
   });
 });
