@@ -171,7 +171,8 @@ export function ServerDashboard() {
         setSupportedVersions(result.value);
       } else {
         setSupportedVersions(FALLBACK_VERSIONS);
-        setVersionError(t("servers.create.errors.failedToLoadVersions"));
+        // Set a flag for error message translation later
+        setVersionError("TRANSLATION_NEEDED");
       }
       setIsLoadingVersions(false);
     };
@@ -181,23 +182,32 @@ export function ServerDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [t]);
+  }, []); // Empty dependency array - only run on mount
+
+  // Translate error message when needed
+  useEffect(() => {
+    if (versionError === "TRANSLATION_NEEDED") {
+      setVersionError(t("servers.create.errors.failedToLoadVersions"));
+    }
+  }, [versionError, t]);
 
   // Initialize form with first available version when versions are loaded
   useEffect(() => {
-    if (
-      supportedVersions.length > 0 &&
-      !hasInitializedVersion &&
-      !createForm.minecraft_version
-    ) {
-      setCreateForm((prev) => ({
-        ...prev,
-        minecraft_version:
-          supportedVersions[0] || (FALLBACK_VERSIONS[0] as string),
-      }));
+    if (supportedVersions.length > 0 && !hasInitializedVersion) {
+      setCreateForm((prev) => {
+        // Only update if no version is currently set
+        if (!prev.minecraft_version) {
+          return {
+            ...prev,
+            minecraft_version:
+              supportedVersions[0] || (FALLBACK_VERSIONS[0] as string),
+          };
+        }
+        return prev;
+      });
       setHasInitializedVersion(true);
     }
-  }, [supportedVersions, hasInitializedVersion, createForm.minecraft_version]);
+  }, [supportedVersions, hasInitializedVersion]);
 
   // Status polling effect for servers in transitional states
   useEffect(() => {
