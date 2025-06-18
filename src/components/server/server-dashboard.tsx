@@ -84,9 +84,23 @@ export function ServerDashboard() {
   const [selectedServerStatus, setSelectedServerStatus] = useState<
     ServerStatus | "all"
   >("all");
+  const [selectedMinecraftVersion, setSelectedMinecraftVersion] =
+    useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Filter servers based on selected type, status, and search query
+  // Get unique minecraft versions from existing servers
+  const availableVersions = Array.from(
+    new Set(servers.map((server) => server.minecraft_version))
+  ).sort((a, b) => {
+    // Sort versions in descending order (newest first)
+    const parseVersion = (version: string) => {
+      const parts = version.split(".").map(Number);
+      return (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
+    };
+    return parseVersion(b) - parseVersion(a);
+  });
+
+  // Filter servers based on selected type, status, version, and search query
   const filteredServers = servers.filter((server) => {
     // Check server type filter
     if (
@@ -99,6 +113,13 @@ export function ServerDashboard() {
     if (
       selectedServerStatus !== "all" &&
       server.status !== selectedServerStatus
+    ) {
+      return false;
+    }
+    // Check minecraft version filter
+    if (
+      selectedMinecraftVersion !== "all" &&
+      server.minecraft_version !== selectedMinecraftVersion
     ) {
       return false;
     }
@@ -410,6 +431,20 @@ export function ServerDashboard() {
                 <option value={ServerStatus.ERROR}>
                   {t("servers.filters.status.error")}
                 </option>
+              </select>
+              <select
+                id="serverVersionFilter"
+                value={selectedMinecraftVersion}
+                onChange={(e) => setSelectedMinecraftVersion(e.target.value)}
+                className={styles.compactFilterSelect}
+                title={t("servers.filters.version.label")}
+              >
+                <option value="all">{t("servers.filters.version.all")}</option>
+                {availableVersions.map((version) => (
+                  <option key={version} value={version}>
+                    {version}
+                  </option>
+                ))}
               </select>
               <input
                 id="serverSearchInput"

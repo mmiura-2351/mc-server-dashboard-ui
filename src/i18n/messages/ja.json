@@ -184,7 +184,7 @@
       },
       "version": {
         "label": "Minecraftバージョン",
-        "all": "すべてのバージョン"
+        "all": "すべて (バージョン)"
       },
       "sort": {
         "label": "並び順",

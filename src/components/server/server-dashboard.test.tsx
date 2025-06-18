@@ -79,6 +79,8 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.status.error": "Error",
   "servers.filters.search.label": "Search Servers",
   "servers.filters.search.placeholder": "Search by server name...",
+  "servers.filters.version.label": "Minecraft Version",
+  "servers.filters.version.all": "All (Versions)",
   "servers.filters.resultsCount": "Showing {count} of {total} servers",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
@@ -294,9 +296,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      // Check server 1 details - use getAllByText since "Running" appears in filter too
+      // Check server 1 details - use getAllByText since text appears in filter and server details
       expect(screen.getAllByText("Running")).toHaveLength(2); // One in filter, one in server status
-      expect(screen.getByText("1.21.5")).toBeInTheDocument();
+      expect(screen.getAllByText("1.21.5")).toHaveLength(2); // One in filter, one in server details
       expect(screen.getByText("vanilla")).toBeInTheDocument();
       expect(screen.getByText("0/20")).toBeInTheDocument();
       expect(screen.getByText("2048MB")).toBeInTheDocument();
@@ -306,7 +308,7 @@ describe("ServerDashboard", () => {
       // Check server 2 details
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
       expect(screen.getAllByText("Stopped")).toHaveLength(2); // One in filter, one in server status
-      expect(screen.getByText("1.20.6")).toBeInTheDocument();
+      expect(screen.getAllByText("1.20.6")).toHaveLength(2); // One in filter, one in server details
       expect(screen.getByText("paper")).toBeInTheDocument();
       expect(screen.getByText("0/50")).toBeInTheDocument();
       expect(screen.getByText("4096MB")).toBeInTheDocument();
@@ -514,16 +516,19 @@ describe("ServerDashboard", () => {
         expect(serverService.getSupportedVersions).toHaveBeenCalled();
       });
 
-      // Test a few key versions from our mock
-      expect(
-        screen.getByRole("option", { name: "1.21.5" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: "1.21.4" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("option", { name: "1.20.6" })
-      ).toBeInTheDocument();
+      // Test that specific versions exist in create form select (using getAllByRole to handle duplicates)
+      const versionOptions = screen.getAllByRole("option", { name: "1.21.5" });
+      expect(versionOptions.length).toBeGreaterThanOrEqual(1); // Should appear in at least one select
+
+      const versionOptions1214 = screen.getAllByRole("option", {
+        name: "1.21.4",
+      });
+      expect(versionOptions1214.length).toBeGreaterThanOrEqual(1);
+
+      const versionOptions1206 = screen.getAllByRole("option", {
+        name: "1.20.6",
+      });
+      expect(versionOptions1206.length).toBeGreaterThanOrEqual(1);
     });
 
     test("renders all server types in select", () => {
@@ -1191,6 +1196,9 @@ describe("ServerDashboard", () => {
       // Check that compact filters are displayed
       expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
       expect(document.getElementById("serverStatusFilter")).toBeInTheDocument();
+      expect(
+        document.getElementById("serverVersionFilter")
+      ).toBeInTheDocument();
       expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
       expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
     });
@@ -1210,6 +1218,9 @@ describe("ServerDashboard", () => {
       ).not.toBeInTheDocument();
       expect(
         document.getElementById("serverStatusFilter")
+      ).not.toBeInTheDocument();
+      expect(
+        document.getElementById("serverVersionFilter")
       ).not.toBeInTheDocument();
       expect(
         document.getElementById("serverSearchInput")
@@ -1645,6 +1656,111 @@ describe("ServerDashboard", () => {
       expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
       expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+  });
+
+  describe("Minecraft Version Filtering", () => {
+    test("displays version filter when servers are present", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      expect(
+        document.getElementById("serverVersionFilter")
+      ).toBeInTheDocument();
+      expect(screen.getByTitle("Minecraft Version")).toBeInTheDocument();
+    });
+
+    test("version filter contains all unique versions from servers", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const versionFilter = document.getElementById(
+        "serverVersionFilter"
+      ) as HTMLSelectElement;
+      const options = Array.from(versionFilter.querySelectorAll("option")).map(
+        (option) => ({ value: option.value, text: option.textContent })
+      );
+
+      expect(options).toEqual([
+        { value: "all", text: "All (Versions)" },
+        { value: "1.21.5", text: "1.21.5" },
+        { value: "1.20.6", text: "1.20.6" },
+      ]);
+    });
+
+    test("filters servers by minecraft version", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+      const versionFilter = document.getElementById(
+        "serverVersionFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(versionFilter, "1.21.5");
+
+      // Should show only Test Server 1 (1.21.5)
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("resets to show all servers when version filter set to 'All'", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+      const versionFilter = document.getElementById(
+        "serverVersionFilter"
+      ) as HTMLSelectElement;
+
+      // First filter by version
+      await user.selectOptions(versionFilter, "1.20.6");
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
+
+      // Reset to all
+      await user.selectOptions(versionFilter, "all");
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+    });
+
+    test("combines version filter with other filters", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+
+      // Filter by paper type and 1.20.6 version
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      const versionFilter = document.getElementById(
+        "serverVersionFilter"
+      ) as HTMLSelectElement;
+
+      await user.selectOptions(typeFilter, "paper");
+      await user.selectOptions(versionFilter, "1.20.6");
+
+      // Should show only Test Server 2 (paper + 1.20.6)
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 1")).not.toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
     });
   });
 });
