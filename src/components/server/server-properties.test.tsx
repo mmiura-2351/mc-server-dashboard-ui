@@ -375,6 +375,53 @@ describe("ServerPropertiesEditor", () => {
     expect(pvpSelect).toHaveValue("false");
   });
 
+  test("should correctly display false boolean values in select dropdowns", async () => {
+    const propertiesWithFalseValues = {
+      ...mockServerProperties,
+      "allow-flight": false,
+      "white-list": false,
+      hardcore: false,
+      pvp: true, // Mix of true and false
+    };
+
+    vi.mocked(serverService.getServerProperties).mockResolvedValueOnce(
+      ok(propertiesWithFalseValues)
+    );
+
+    render(<ServerPropertiesEditor serverId={1} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole("heading", { name: "Server Properties" })[0]
+      ).toBeInTheDocument();
+    });
+
+    // Test that false values are correctly displayed as "false" in select dropdowns
+    const allowFlightSelect = document.getElementById(
+      "allow-flight"
+    ) as HTMLSelectElement;
+    expect(allowFlightSelect).toBeInTheDocument();
+    expect(allowFlightSelect.tagName).toBe("SELECT");
+    expect(allowFlightSelect.value).toBe("false"); // Should show "false", not "true"
+
+    const whiteListSelect = document.getElementById(
+      "white-list"
+    ) as HTMLSelectElement;
+    expect(whiteListSelect).toBeInTheDocument();
+    expect(whiteListSelect.value).toBe("false");
+
+    const hardcoreSelect = document.getElementById(
+      "hardcore"
+    ) as HTMLSelectElement;
+    expect(hardcoreSelect).toBeInTheDocument();
+    expect(hardcoreSelect.value).toBe("false");
+
+    // Test that true values still work correctly
+    const pvpSelect = document.getElementById("pvp") as HTMLSelectElement;
+    expect(pvpSelect).toBeInTheDocument();
+    expect(pvpSelect.value).toBe("true");
+  });
+
   test("should show guidance text for value formats", async () => {
     vi.mocked(serverService.getServerProperties).mockResolvedValueOnce(
       ok(mockServerProperties)
