@@ -174,9 +174,12 @@ export function ServerPropertiesEditor({
   }, [serverId, logout]);
 
   const handleChange = (key: string, value: string) => {
+    const initialValue = properties ? properties[key] : value;
+    const isBooleanProperty = typeof initialValue === "boolean";
+
     setEditedProperties((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: isBooleanProperty ? value === "true" : value,
     }));
     setSuccessMessage(null);
   };
@@ -357,12 +360,13 @@ export function ServerPropertiesEditor({
             as-is. Refer to the descriptions for guidance.
           </p>
           <div className={styles.propertyGrid}>
-            {propertyKeys.map((key) =>
-              renderPropertyInput(
-                key,
-                (editedProperties[key] ?? properties[key]) || ""
-              )
-            )}
+            {propertyKeys.map((key) => {
+              const value =
+                editedProperties[key] !== undefined
+                  ? editedProperties[key]
+                  : properties[key];
+              return renderPropertyInput(key, value ?? "");
+            })}
           </div>
         </div>
 
