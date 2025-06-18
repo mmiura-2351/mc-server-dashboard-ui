@@ -90,6 +90,25 @@ export function ServerDashboard() {
   const [sortBy, setSortBy] = useState<"name" | "status" | "created">("status");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  // Reset all filters to default state
+  const resetFilters = () => {
+    setSelectedServerType("all");
+    setSelectedServerStatus("all");
+    setSelectedMinecraftVersion("all");
+    setSearchQuery("");
+    setSortBy("status");
+    setSortOrder("desc");
+  };
+
+  // Check if any filters are active (not in default state)
+  const hasActiveFilters =
+    selectedServerType !== "all" ||
+    selectedServerStatus !== "all" ||
+    selectedMinecraftVersion !== "all" ||
+    searchQuery.trim() !== "" ||
+    sortBy !== "status" ||
+    sortOrder !== "desc";
+
   // Get unique minecraft versions from existing servers
   const availableVersions = Array.from(
     new Set(servers.map((server) => server.minecraft_version))
@@ -516,6 +535,15 @@ export function ServerDashboard() {
               >
                 {sortOrder === "asc" ? "↑" : "↓"}
               </button>
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className={styles.resetFiltersButton}
+                  title={t("servers.filters.reset")}
+                >
+                  {t("servers.filters.reset")}
+                </button>
+              )}
             </div>
           )}
           <button

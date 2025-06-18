@@ -87,6 +87,7 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.sort.created": "Created Date",
   "servers.filters.sort.ascending": "A-Z",
   "servers.filters.sort.descending": "Z-A",
+  "servers.filters.reset": "Reset Filters",
   "servers.filters.resultsCount": "Showing {count} of {total} servers",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
@@ -1876,6 +1877,195 @@ describe("ServerDashboard", () => {
         "serverSortBy"
       ) as HTMLSelectElement;
       expect(sortSelect.value).toBe("status"); // Default sort
+    });
+  });
+
+  describe("Filter Reset Functionality", () => {
+    test("shows reset button only when filters are active", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Initially no reset button should be visible (all filters at default)
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+
+      const user = userEvent.setup();
+
+      // Apply a filter
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "vanilla");
+
+      // Now reset button should be visible
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+    });
+
+    test("resets all filters when reset button is clicked", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+
+      // Apply various filters
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+      const versionFilter = document.getElementById(
+        "serverVersionFilter"
+      ) as HTMLSelectElement;
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+
+      await user.selectOptions(typeFilter, "vanilla");
+      await user.selectOptions(statusFilter, "running");
+      await user.selectOptions(versionFilter, "1.21.5");
+      await user.type(searchInput, "test");
+      await user.selectOptions(sortSelect, "name");
+
+      // Change sort order
+      const sortButton = screen.getByTitle("Z-A");
+      await user.click(sortButton);
+
+      // Verify filters are applied
+      expect(typeFilter.value).toBe("vanilla");
+      expect(statusFilter.value).toBe("running");
+      expect(versionFilter.value).toBe("1.21.5");
+      expect(searchInput.value).toBe("test");
+      expect(sortSelect.value).toBe("name");
+      expect(screen.getByTitle("A-Z")).toBeInTheDocument(); // Sort order changed
+
+      // Click reset button
+      const resetButton = screen.getByText("Reset Filters");
+      await user.click(resetButton);
+
+      // Verify all filters are reset to defaults
+      expect(typeFilter.value).toBe("all");
+      expect(statusFilter.value).toBe("all");
+      expect(versionFilter.value).toBe("all");
+      expect(searchInput.value).toBe("");
+      expect(sortSelect.value).toBe("status");
+      expect(screen.getByTitle("Z-A")).toBeInTheDocument(); // Sort order reset
+
+      // Reset button should be hidden again
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+    });
+
+    test("reset button appears for each type of filter change", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+
+      // Test server type filter
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "paper");
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+
+      const resetButton1 = screen.getByText("Reset Filters");
+      await user.click(resetButton1);
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+
+      // Test server status filter
+      const statusFilter = document.getElementById(
+        "serverStatusFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(statusFilter, "stopped");
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+
+      const resetButton2 = screen.getByText("Reset Filters");
+      await user.click(resetButton2);
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+
+      // Test search input
+      const searchInput = document.getElementById(
+        "serverSearchInput"
+      ) as HTMLInputElement;
+      await user.type(searchInput, "search");
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+
+      const resetButton3 = screen.getByText("Reset Filters");
+      await user.click(resetButton3);
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+
+      // Test version filter
+      const versionFilter = document.getElementById(
+        "serverVersionFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(versionFilter, "1.21.5");
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+
+      const resetButton4 = screen.getByText("Reset Filters");
+      await user.click(resetButton4);
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+
+      // Test sort change
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+      await user.selectOptions(sortSelect, "name");
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+
+      const resetButton5 = screen.getByText("Reset Filters");
+      await user.click(resetButton5);
+      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+
+      // Test sort order change
+      const sortButton = screen.getByTitle("Z-A");
+      await user.click(sortButton);
+      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+    });
+
+    test("reset restores original server list display", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+
+      // Verify initially showing both servers
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+
+      // Apply filter that hides one server
+      const typeFilter = document.getElementById(
+        "serverTypeFilter"
+      ) as HTMLSelectElement;
+      await user.selectOptions(typeFilter, "vanilla"); // Only Test Server 1 is vanilla
+
+      // Should show only one server
+      expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
+
+      // Reset filters
+      const resetButton = screen.getByText("Reset Filters");
+      await user.click(resetButton);
+
+      // Should show both servers again
+      expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 1")).toBeInTheDocument();
+      expect(screen.getByText("Test Server 2")).toBeInTheDocument();
     });
   });
 });
