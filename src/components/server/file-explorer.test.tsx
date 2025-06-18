@@ -2342,9 +2342,7 @@ describe("FileExplorer", () => {
       // Check success message
       await waitFor(() => {
         expect(
-          screen.getByText(
-            /Successfully renamed old-name.txt to new-name.txt/
-          )
+          screen.getByText(/Successfully renamed old-name.txt to new-name.txt/)
         ).toBeInTheDocument();
       });
     });
