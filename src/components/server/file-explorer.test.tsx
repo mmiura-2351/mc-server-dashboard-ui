@@ -27,9 +27,74 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "files.uploadError": "Upload Error",
     "files.noFilesAllowed":
       "No files could be uploaded due to security restrictions.",
+    "files.loadingFiles": "Loading files...",
+    "files.errorLoadingFiles": "Error loading files",
+    "files.retry": "Retry",
+    "files.cannotPreviewFile":
+      "Cannot preview {extension} files. Use download to save the file.",
+    "files.failedToLoadFile": "Failed to load file: {error}",
+    "files.successfullyDeleted": "Successfully deleted {name}",
+    "files.failedToDeleteFile": "Failed to delete file: {error}",
+    "files.successfullyDeletedMultiple": "Successfully deleted {count} file(s)",
+    "files.deletedPartialSuccess":
+      "Deleted {successCount} file(s), failed {failCount}",
+    "files.successfullyDownloaded": "Successfully downloaded {name}",
+    "files.failedToDownloadFile": "Failed to download file: {error}",
+    "files.noFilesToDownload": "No files found to download",
+    "files.creatingZipFile": "Creating ZIP file with {count} file(s)...",
+    "files.processingFiles": "Processing {current}/{total} files...",
+    "files.fileInfoMissing": "File information missing for item {index}",
+    "files.generatingZip": "Generating ZIP file...",
+    "files.zipCreationSuccess":
+      "Successfully created and downloaded {name} containing {count} file(s) ({size})",
+    "files.zipCreationFailed": "Failed to create ZIP file",
+    "files.noFilesDownloaded": "No files could be downloaded",
+    "files.successfullySaved": "Successfully saved {name}",
+    "files.failedToSaveFile": "Failed to save file: {error}",
+    "files.successfullyRenamed": "Successfully renamed {oldName} to {newName}",
+    "files.failedToRenameFile": "Failed to rename file: {error}",
+    "files.root": "🏠 Root",
+    "files.selected": "selected",
+    "files.clear": "✖️ Clear",
+    "files.uploadFiles": "📁 Upload Files",
+    "files.uploadFolder": "📂 Upload Folder",
+    "files.up": "⬆️ Up",
+    "files.refresh": "🔄 Refresh",
+    "files.columns.name": "Name",
+    "files.columns.size": "Size",
+    "files.columns.modified": "Modified",
+    "files.emptyDirectory": "This directory is empty",
+    "files.dropHint": "Drop files or folders here to upload",
+    "files.dropOverlay": "📁 Drop files or folders here to upload",
+    "files.loadingFileContent": "Loading file content...",
+    "files.loadingImage": "Loading image...",
+    "files.saving": "💾 Saving...",
+    "files.save": "💾 Save",
+    "files.cancel": "❌ Cancel",
+    "files.edit": "✏️ Edit",
+    "files.download": "📥 Download",
+    "files.close": "Close",
+    "files.uploadProgress": "📤 Upload Progress",
+    "files.uploadingFiles": "Uploading files...",
+    "files.completed": "✅ Completed",
+    "files.failed": "❌ Failed",
+    "files.rename": "✏️ Rename",
+    "files.folder": "Folder",
+    "files.file": "File",
+    "files.newNameFor": "New name for",
+    "files.renaming": "✏️ Renaming...",
+    "files.itemsSelected": "item(s) selected",
+    "files.downloadAsZip": "📥 Download as ZIP",
+    "files.deleteSelected": "🗑️ Delete Selected",
+    "files.openFolder": "📁 Open Folder",
+    "files.renameFolder": "✏️ Rename Folder",
+    "files.deleteFolder": "🗑️ Delete Folder",
+    "files.viewFile": "👁️ View File",
+    "files.renameFile": "✏️ Rename",
     "common.cancel": "Cancel",
     "common.confirm": "Confirm",
     "common.ok": "OK",
+    "common.delete": "🗑️ Delete",
   };
 
   let translation = translations[key] || key;
@@ -2222,7 +2287,7 @@ describe("FileExplorer", () => {
         expect(screen.getByText("✏️ Rename File")).toBeInTheDocument();
         expect(screen.getByDisplayValue("old-name.txt")).toBeInTheDocument();
         expect(screen.getByText("✏️ Rename")).toBeInTheDocument();
-        expect(screen.getByText("Cancel")).toBeInTheDocument();
+        expect(screen.getByText("❌ Cancel")).toBeInTheDocument();
       });
     });
 
@@ -2277,9 +2342,7 @@ describe("FileExplorer", () => {
       // Check success message
       await waitFor(() => {
         expect(
-          screen.getByText(
-            /Successfully renamed "old-name.txt" to "new-name.txt"/
-          )
+          screen.getByText(/Successfully renamed old-name.txt to new-name.txt/)
         ).toBeInTheDocument();
       });
     });

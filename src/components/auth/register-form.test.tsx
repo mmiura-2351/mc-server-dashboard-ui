@@ -19,6 +19,43 @@ vi.mock("@/contexts/auth", () => ({
   useAuth: () => mockAuthContext,
 }));
 
+// Mock the language context
+const translations: Record<string, string> = {
+  "auth.register": "Register",
+  "auth.username": "Username",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.confirmPassword": "Confirm Password",
+  "auth.registering": "Registering...",
+  "auth.alreadyHaveAccount": "Already have an account?",
+  "auth.loginHere": "Login here",
+  "auth.usernameTooltip":
+    "Username must contain only letters, numbers, underscores, and hyphens",
+  "auth.errors.usernameRequired":
+    "Username is required and must contain only valid characters",
+  "auth.errors.emailRequired": "Email is required and must be valid",
+  "auth.errors.passwordRequired": "Password is required",
+  "auth.errors.confirmPasswordRequired": "Password confirmation is required",
+  "auth.errors.usernameMinLength":
+    "Username must be at least 3 characters long",
+  "auth.errors.passwordMinLength":
+    "Password must be at least 6 characters long",
+  "auth.errors.passwordsDoNotMatch": "Passwords do not match",
+  "auth.errors.emailInvalid": "Please enter a valid email address",
+  "auth.errors.usernameExists": "This username is already taken",
+  "auth.errors.registrationFailed": "Registration failed. Please try again.",
+  "messages.registrationSuccess":
+    "Registration successful! You can now log in.",
+  "messages.registrationSuccessPending":
+    "Registration successful! Your account is pending approval. Please wait for an administrator to approve your account before you can log in.",
+};
+
+const mockT = vi.fn((key: string) => translations[key] || key);
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT }),
+}));
+
 describe("RegisterForm", () => {
   const user = userEvent.setup();
   const mockOnSuccess = vi.fn();
@@ -193,7 +230,7 @@ describe("RegisterForm", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Username or email already exists")
+        screen.getByText("This username is already taken")
       ).toBeInTheDocument();
     });
     expect(mockOnSuccess).not.toHaveBeenCalled();

@@ -273,7 +273,7 @@ export default function ServerDetailPage() {
   if (authLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading...</div>
+        <div className={styles.loading}>{t("common.loading")}</div>
       </div>
     );
   }
@@ -363,19 +363,19 @@ export default function ServerDetailPage() {
           className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("settings")}
         >
-          Settings
+          {t("servers.tabs.settings")}
         </button>
         <button
           className={`${styles.tab} ${activeTab === "properties" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("properties")}
         >
-          Properties
+          {t("servers.tabs.properties")}
         </button>
         <button
           className={`${styles.tab} ${activeTab === "files" ? styles.activeTab : ""}`}
           onClick={() => handleTabChange("files")}
         >
-          Files
+          {t("servers.tabs.files")}
         </button>
         <button
           className={`${styles.tab} ${activeTab === "backups" ? styles.activeTab : ""}`}

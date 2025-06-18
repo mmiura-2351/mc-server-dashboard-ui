@@ -22,7 +22,9 @@
     "create": "作成",
     "creating": "作成中...",
     "add": "追加",
-    "adding": "追加中..."
+    "adding": "追加中...",
+    "true": "true",
+    "false": "false"
   },
   "navigation": {
     "servers": "サーバー",
@@ -42,7 +44,31 @@
     "currentPassword": "現在のパスワード",
     "newPassword": "新しいパスワード",
     "confirmPassword": "パスワード確認",
-    "confirmNewPassword": "新しいパスワードの確認"
+    "confirmNewPassword": "新しいパスワードの確認",
+    "loggingIn": "ログイン中...",
+    "registering": "登録中...",
+    "dontHaveAccount": "アカウントをお持ちでないですか？",
+    "alreadyHaveAccount": "既にアカウントをお持ちですか？",
+    "registerHere": "こちらから登録",
+    "loginHere": "こちらからログイン",
+    "usernameTooltip": "ユーザー名には文字、数字、アンダースコア、ハイフンのみ使用できます",
+    "errors": {
+      "usernameRequired": "ユーザー名は必須です。有効な文字のみを含む必要があります",
+      "passwordRequired": "パスワードは必須です",
+      "emailRequired": "メールアドレスは必須です。有効なメールアドレスを入力してください",
+      "confirmPasswordRequired": "パスワードの確認は必須です",
+      "usernameMinLength": "ユーザー名は3文字以上である必要があります",
+      "passwordMinLength": "パスワードは6文字以上である必要があります",
+      "passwordsDoNotMatch": "パスワードが一致しません",
+      "emailInvalid": "有効なメールアドレスを入力してください",
+      "pendingApproval": "アカウントは承認待ちです。管理者による承認をお待ちください",
+      "invalidCredentials": "ユーザー名またはパスワードが正しくありません",
+      "tooManyAttempts": "ログイン試行回数が多すぎます。しばらく後に再試行してください",
+      "loginFailed": "ログインに失敗しました。再試行してください",
+      "registrationFailed": "登録に失敗しました。再試行してください",
+      "usernameExists": "このユーザー名は既に使用されています",
+      "emailExists": "このメールアドレスは既に登録されています"
+    }
   },
   "account": {
     "title": "アカウント設定",
@@ -64,6 +90,10 @@
     "onceYouDeleteYourAccount": "アカウントを削除すると元に戻すことはできません。慎重に行ってください。",
     "typeDeleteToConfirm": "確認のため DELETE と入力"
   },
+  "admin": {
+    "title": "管理",
+    "loading": "読み込み中..."
+  },
   "userManagement": {
     "title": "ユーザー管理",
     "accessDenied": "アクセス拒否",
@@ -78,7 +108,18 @@
     "deleteUser": "ユーザー削除",
     "areYouSureDeleteUser": "ユーザー「{username}」を削除してもよろしいですか？この操作は元に戻せません。",
     "userDeletedSuccessfully": "ユーザーを削除しました",
-    "noUsersFound": "ユーザーが見つかりません。"
+    "noUsersFound": "ユーザーが見つかりません。",
+    "errors": {
+      "loadingUsers": "ユーザー読み込み中にエラーが発生しました",
+      "approvingUser": "ユーザー承認中にエラーが発生しました",
+      "updatingUserRole": "ユーザーロール更新中にエラーが発生しました",
+      "deletingUser": "ユーザー削除中にエラーが発生しました"
+    },
+    "roles": {
+      "user": "ユーザー",
+      "operator": "オペレーター",
+      "admin": "管理者"
+    }
   },
   "dashboard": {
     "title": "MC Server Dashboard",
@@ -232,7 +273,14 @@
       "createFile": "プロパティファイルを作成",
       "saving": "保存中..."
     },
-    "backups": "バックアップ"
+    "backups": "バックアップ",
+    "tabs": {
+      "settings": "設定",
+      "properties": "プロパティ",
+      "files": "ファイル"
+    },
+    "fileNotFoundMessage": "サーバープロパティファイルが見つかりません。まだ開始されていない新しいサーバーでは正常です。",
+    "enterPlaceholder": "{label}を入力"
   },
   "backups": {
     "description": "サーバーのバックアップを管理できます。手動でバックアップを作成したり、自動バックアップスケジュールを設定してワールドデータを保護できます。",
@@ -317,7 +365,70 @@
     "securityWarning": "セキュリティ警告",
     "blockedFilesMessage": "セキュリティ上の理由により、一部のファイルがブロックされました：",
     "uploadError": "アップロードエラー",
-    "noFilesAllowed": "セキュリティ制限により、ファイルをアップロードできませんでした。"
+    "noFilesAllowed": "セキュリティ制限により、ファイルをアップロードできませんでした。",
+    "loadingFiles": "ファイル読み込み中...",
+    "errorLoadingFiles": "ファイル読み込みエラー",
+    "retry": "再試行",
+    "cannotPreviewFile": "{extension}ファイルはプレビューできません。ダウンロードしてファイルを保存してください。",
+    "failedToLoadFile": "ファイルの読み込みに失敗しました：{error}",
+    "successfullyDeleted": "{name}を削除しました",
+    "failedToDeleteFile": "ファイルの削除に失敗しました：{error}",
+    "successfullyDeletedMultiple": "{count}個のファイルを削除しました",
+    "deletedPartialSuccess": "{successCount}個のファイルを削除、{failCount}個が失敗",
+    "successfullyDownloaded": "{name}をダウンロードしました",
+    "failedToDownloadFile": "ファイルのダウンロードに失敗しました：{error}",
+    "noFilesToDownload": "ダウンロードするファイルが見つかりません",
+    "creatingZipFile": "{count}個のファイルでZIPファイルを作成中...",
+    "processingFiles": "{current}/{total}個のファイルを処理中...",
+    "fileInfoMissing": "項目{index}のファイル情報が不足しています",
+    "generatingZip": "ZIPファイルを生成中...",
+    "zipCreationSuccess": "{count}個のファイル（{size}）を含む{name}を作成・ダウンロードしました",
+    "zipCreationFailed": "ZIPファイルの作成に失敗しました",
+    "noFilesDownloaded": "ダウンロードできるファイルがありませんでした",
+    "successfullySaved": "{name}を保存しました",
+    "failedToSaveFile": "ファイルの保存に失敗しました：{error}",
+    "successfullyRenamed": "{oldName}を{newName}に名前変更しました",
+    "failedToRenameFile": "ファイルの名前変更に失敗しました：{error}",
+    "root": "🏠 ルート",
+    "selected": "選択中",
+    "clear": "✖️ クリア",
+    "uploadFiles": "📁 ファイルアップロード",
+    "uploadFolder": "📂 フォルダアップロード",
+    "up": "⬆️ 上へ",
+    "refresh": "🔄 更新",
+    "columns": {
+      "name": "名前",
+      "size": "サイズ",
+      "modified": "更新日時"
+    },
+    "emptyDirectory": "このディレクトリは空です",
+    "dropHint": "ファイルやフォルダをここにドロップしてアップロード",
+    "dropOverlay": "📁 ファイルやフォルダをここにドロップしてアップロード",
+    "loadingFileContent": "ファイル内容を読み込み中...",
+    "loadingImage": "画像を読み込み中...",
+    "saving": "💾 保存中...",
+    "save": "💾 保存",
+    "cancel": "❌ キャンセル",
+    "edit": "✏️ 編集",
+    "download": "📥 ダウンロード",
+    "close": "閉じる",
+    "uploadProgress": "📤 アップロード進行状況",
+    "uploadingFiles": "ファイルをアップロード中...",
+    "completed": "✅ 完了",
+    "failed": "❌ 失敗",
+    "rename": "✏️ 名前変更",
+    "folder": "フォルダ",
+    "file": "ファイル",
+    "newNameFor": "新しい名前",
+    "renaming": "✏️ 名前変更中...",
+    "itemsSelected": "項目が選択されています",
+    "downloadAsZip": "📥 ZIPとしてダウンロード",
+    "deleteSelected": "🗑️ 選択を削除",
+    "openFolder": "📁 フォルダを開く",
+    "renameFolder": "✏️ フォルダ名前変更",
+    "deleteFolder": "🗑️ フォルダを削除",
+    "viewFile": "👁️ ファイルを表示",
+    "renameFile": "✏️ ファイル名前変更"
   },
   "groups": {
     "title": "グループ管理",

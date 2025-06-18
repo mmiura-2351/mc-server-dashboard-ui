@@ -26,6 +26,59 @@ vi.mock("@/services/server", () => ({
   updateServerProperties: vi.fn(),
 }));
 
+// Mock the language context
+const translations: Record<string, string> = {
+  "servers.properties.loadingProperties": "Loading server properties...",
+  "servers.properties.loadError": "Failed to load server properties",
+  "servers.properties.noProperties": "No properties available",
+  "servers.properties.title": "Server Properties",
+  "servers.properties.description":
+    "Configure your Minecraft server settings. Changes will be applied after server restart.",
+  "servers.properties.fileNotFound":
+    "Properties file was not found, showing default values.",
+  "servers.properties.guidance":
+    'All properties are editable as text values. Boolean values should be "true" or "false", numbers as digits, and text as-is. Refer to the descriptions for guidance.',
+  "servers.properties.resetChanges": "Reset Changes",
+  "servers.properties.saveProperties": "Save Properties",
+  "servers.properties.createFile": "Create Properties File",
+  "servers.properties.saving": "Saving...",
+  "servers.properties.noChanges": "No changes to save",
+  "servers.properties.updated": "Server properties updated successfully",
+  "servers.properties.labels.server-port": "Server Port",
+  "servers.properties.labels.max-players": "Max Players",
+  "servers.properties.labels.difficulty": "Difficulty",
+  "servers.properties.labels.gamemode": "Game Mode",
+  "servers.properties.descriptions.server-port":
+    "Port number for the server (default: 25565)",
+  "servers.properties.descriptions.max-players":
+    "Maximum number of players that can join the server",
+  "servers.properties.descriptions.difficulty":
+    "Difficulty level: peaceful, easy, normal, hard",
+  "servers.properties.descriptions.gamemode":
+    "Default game mode: survival, creative, adventure, spectator",
+  "servers.properties.descriptions.motd":
+    "Message of the day shown in server list",
+  "servers.fileNotFoundMessage":
+    "Server properties file not found. This is normal for new servers that haven't been started yet.",
+  "common.true": "True",
+  "common.false": "False",
+  "servers.enterPlaceholder": "Enter {label}",
+};
+
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT }),
+}));
+
 describe("ServerPropertiesEditor", () => {
   const user = userEvent.setup();
   const mockServerProperties = {
@@ -123,10 +176,12 @@ describe("ServerPropertiesEditor", () => {
 
     // Check for description text
     expect(
-      screen.getByText(/peaceful\/easy\/normal\/hard or 0\/1\/2\/3/)
+      screen.getByText(/Difficulty level: peaceful, easy, normal, hard/)
     ).toBeInTheDocument();
     expect(screen.getByText(/Maximum number of players/)).toBeInTheDocument();
-    expect(screen.getByText(/Message of the day/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Message of the day shown in server list/)
+    ).toBeInTheDocument();
   });
 
   test("should handle input changes", async () => {

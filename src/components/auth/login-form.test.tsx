@@ -26,6 +26,37 @@ vi.mock("@/contexts/auth", () => ({
   useAuth: () => mockAuthContext,
 }));
 
+// Mock the language context
+const translations: Record<string, string> = {
+  "auth.login": "Login",
+  "auth.username": "Username",
+  "auth.password": "Password",
+  "auth.loggingIn": "Logging in...",
+  "auth.dontHaveAccount": "Don't have an account?",
+  "auth.registerHere": "Register here",
+  "auth.usernameTooltip":
+    "Username must contain only letters, numbers, underscores, and hyphens",
+  "auth.errors.usernameRequired":
+    "Username is required and must contain only valid characters",
+  "auth.errors.passwordRequired": "Password is required",
+  "auth.errors.usernameMinLength":
+    "Username must be at least 3 characters long",
+  "auth.errors.passwordMinLength":
+    "Password must be at least 6 characters long",
+  "auth.errors.pendingApproval":
+    "Your account is pending approval. Please wait for an administrator to approve your account before you can log in.",
+  "auth.errors.invalidCredentials": "Invalid username or password",
+  "auth.errors.tooManyAttempts":
+    "Too many login attempts. Please try again later.",
+  "auth.errors.loginFailed": "Login failed. Please try again.",
+};
+
+const mockT = vi.fn((key: string) => translations[key] || key);
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT }),
+}));
+
 describe("LoginForm", () => {
   const user = userEvent.setup();
   const mockOnSuccess = vi.fn();
