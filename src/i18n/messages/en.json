@@ -22,7 +22,9 @@
     "create": "Create",
     "creating": "Creating...",
     "add": "Add",
-    "adding": "Adding..."
+    "adding": "Adding...",
+    "true": "true",
+    "false": "false"
   },
   "navigation": {
     "servers": "Servers",
@@ -110,7 +112,13 @@
     "errors": {
       "loadingUsers": "An error occurred while loading users",
       "approvingUser": "An error occurred while approving user",
-      "updatingUserRole": "An error occurred while updating user role"
+      "updatingUserRole": "An error occurred while updating user role",
+      "deletingUser": "An error occurred while deleting user"
+    },
+    "roles": {
+      "user": "User",
+      "operator": "Operator",
+      "admin": "Admin"
     }
   },
   "dashboard": {
@@ -386,7 +394,14 @@
         "spawn-npcs": "Spawn NPCs (villagers) in the world"
       }
     },
-    "backups": "Backups"
+    "backups": "Backups",
+    "tabs": {
+      "settings": "Settings",
+      "properties": "Properties",
+      "files": "Files"
+    },
+    "fileNotFoundMessage": "Server properties file not found. This is normal for new servers that haven't been started yet.",
+    "enterPlaceholder": "Enter {label}"
   },
   "backups": {
     "description": "Manage your server backups. Create manual backups or set up automatic scheduled backups to protect your world data.",
@@ -471,7 +486,70 @@
     "securityWarning": "Security Warning",
     "blockedFilesMessage": "Some files were blocked for security reasons:",
     "uploadError": "Upload Error",
-    "noFilesAllowed": "No files could be uploaded due to security restrictions."
+    "noFilesAllowed": "No files could be uploaded due to security restrictions.",
+    "loadingFiles": "Loading files...",
+    "errorLoadingFiles": "Error loading files",
+    "retry": "Retry",
+    "cannotPreviewFile": "Cannot preview {extension} files. Use download to save the file.",
+    "failedToLoadFile": "Failed to load file: {error}",
+    "successfullyDeleted": "Successfully deleted {name}",
+    "failedToDeleteFile": "Failed to delete file: {error}",
+    "successfullyDeletedMultiple": "Successfully deleted {count} file(s)",
+    "deletedPartialSuccess": "Deleted {successCount} file(s), failed {failCount}",
+    "successfullyDownloaded": "Successfully downloaded {name}",
+    "failedToDownloadFile": "Failed to download file: {error}",
+    "noFilesToDownload": "No files found to download",
+    "creatingZipFile": "Creating ZIP file with {count} file(s)...",
+    "processingFiles": "Processing {current}/{total} files...",
+    "fileInfoMissing": "File information missing for item {index}",
+    "generatingZip": "Generating ZIP file...",
+    "zipCreationSuccess": "Successfully created and downloaded {name} containing {count} file(s) ({size})",
+    "zipCreationFailed": "Failed to create ZIP file",
+    "noFilesDownloaded": "No files could be downloaded",
+    "successfullySaved": "Successfully saved {name}",
+    "failedToSaveFile": "Failed to save file: {error}",
+    "successfullyRenamed": "Successfully renamed {oldName} to {newName}",
+    "failedToRenameFile": "Failed to rename file: {error}",
+    "root": "🏠 Root",
+    "selected": "selected",
+    "clear": "✖️ Clear",
+    "uploadFiles": "📁 Upload Files",
+    "uploadFolder": "📂 Upload Folder",
+    "up": "⬆️ Up",
+    "refresh": "🔄 Refresh",
+    "columns": {
+      "name": "Name",
+      "size": "Size",
+      "modified": "Modified"
+    },
+    "emptyDirectory": "This directory is empty",
+    "dropHint": "Drop files or folders here to upload",
+    "dropOverlay": "📁 Drop files or folders here to upload",
+    "loadingFileContent": "Loading file content...",
+    "loadingImage": "Loading image...",
+    "saving": "💾 Saving...",
+    "save": "💾 Save",
+    "cancel": "❌ Cancel",
+    "edit": "✏️ Edit",
+    "download": "📥 Download",
+    "close": "Close",
+    "uploadProgress": "📤 Upload Progress",
+    "uploadingFiles": "Uploading files...",
+    "completed": "✅ Completed",
+    "failed": "❌ Failed",
+    "rename": "✏️ Rename",
+    "folder": "Folder",
+    "file": "File",
+    "newNameFor": "New name for",
+    "renaming": "✏️ Renaming...",
+    "itemsSelected": "item(s) selected",
+    "downloadAsZip": "📥 Download as ZIP",
+    "deleteSelected": "🗑️ Delete Selected",
+    "openFolder": "📁 Open Folder",
+    "renameFolder": "✏️ Rename Folder",
+    "deleteFolder": "🗑️ Delete Folder",
+    "viewFile": "👁️ View File",
+    "renameFile": "✏️ Rename"
   },
   "groups": {
     "title": "Group Management",

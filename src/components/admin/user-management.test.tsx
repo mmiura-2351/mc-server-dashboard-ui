@@ -49,6 +49,17 @@ vi.mock("@/contexts/language", () => ({
         "userManagement.userRoleUpdatedSuccessfully":
           "User role updated successfully",
         "userManagement.userDeletedSuccessfully": "User deleted successfully",
+        "userManagement.errors.loadingUsers":
+          "An error occurred while loading users",
+        "userManagement.errors.approvingUser":
+          "An error occurred while approving user",
+        "userManagement.errors.updatingUserRole":
+          "An error occurred while updating user role",
+        "userManagement.errors.deletingUser":
+          "An error occurred while deleting user",
+        "userManagement.roles.user": "User",
+        "userManagement.roles.operator": "Operator",
+        "userManagement.roles.admin": "Admin",
       };
       let translation = translations[key] || key;
       if (params) {

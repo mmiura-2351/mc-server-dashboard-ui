@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import { UserManagement } from "@/components/admin/user-management";
 import { Role } from "@/types/auth";
 import { useRouter } from "next/navigation";
@@ -8,6 +9,7 @@ import { useEffect } from "react";
 
 export default function AdminPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { t } = useTranslation();
   const router = useRouter();
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function AdminPage() {
           color: "#6b7280",
         }}
       >
-        Loading...
+        {t("common.loading")}
       </div>
     );
   }

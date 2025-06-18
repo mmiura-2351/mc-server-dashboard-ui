@@ -169,7 +169,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       if (result.isOk()) {
         setFiles(result.value);
       } else {
-        setError(result.error.message || "Failed to load files");
+        setError(result.error.message || t("files.loadingFiles"));
       }
 
       setIsLoading(false);
@@ -239,7 +239,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       // Show toast for non-viewable files
       const extension = file.name.split(".").pop()?.toLowerCase() || "unknown";
       showToast(
-        `Cannot preview ${extension.toUpperCase()} files. Use download to save the file.`,
+        t("files.cannotPreviewFile", { extension: extension.toUpperCase() }),
         "info"
       );
     }
@@ -273,7 +273,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         setEditedContent(result.value.content);
       }
     } else {
-      showToast(`Failed to load file: ${result.error.message}`, "error");
+      showToast(
+        t("files.failedToLoadFile", { error: result.error.message }),
+        "error"
+      );
       setShowFileViewer(false);
       setSelectedFile(null);
     }
@@ -370,9 +373,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       if (result.isOk()) {
         // Update file list by removing the deleted file
         setFiles((prevFiles) => prevFiles.filter((f) => f.name !== file.name));
-        showToast(`Successfully deleted ${file.name}`, "info");
+        showToast(t("files.successfullyDeleted", { name: file.name }), "info");
       } else {
-        showToast(`Failed to delete file: ${result.error.message}`, "error");
+        showToast(
+          t("files.failedToDeleteFile", { error: result.error.message }),
+          "error"
+        );
       }
 
       setConfirmModal({
@@ -422,10 +428,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       }
 
       if (failCount === 0) {
-        showToast(`Successfully deleted ${successCount} file(s)`, "info");
+        showToast(
+          t("files.successfullyDeletedMultiple", {
+            count: successCount.toString(),
+          }),
+          "info"
+        );
       } else {
         showToast(
-          `Deleted ${successCount} file(s), failed ${failCount}`,
+          t("files.deletedPartialSuccess", {
+            successCount: successCount.toString(),
+            failCount: failCount.toString(),
+          }),
           "error"
         );
       }
@@ -480,9 +494,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         document.body.removeChild(a);
       }
       URL.revokeObjectURL(url);
-      showToast(`Successfully downloaded ${file.name}`, "info");
+      showToast(t("files.successfullyDownloaded", { name: file.name }), "info");
     } else {
-      showToast(`Failed to download file: ${result.error.message}`, "error");
+      showToast(
+        t("files.failedToDownloadFile", { error: result.error.message }),
+        "error"
+      );
     }
   };
 
@@ -539,12 +556,15 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     totalFiles = filesToDownload.length;
 
     if (totalFiles === 0) {
-      showToast("No files found to download", "error");
+      showToast(t("files.noFilesToDownload"), "error");
       clearSelection();
       return;
     }
 
-    showToast(`Creating ZIP file with ${totalFiles} file(s)...`, "info");
+    showToast(
+      t("files.creatingZipFile", { count: totalFiles.toString() }),
+      "info"
+    );
 
     // Download and add each file to ZIP
     for (let i = 0; i < filesToDownload.length; i++) {
@@ -552,11 +572,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       // Update progress
       if (i % 5 === 0 || i === filesToDownload.length - 1) {
-        showToast(`Processing ${i + 1}/${totalFiles} files...`, "info");
+        showToast(
+          t("files.processingFiles", {
+            current: (i + 1).toString(),
+            total: totalFiles.toString(),
+          }),
+          "info"
+        );
       }
 
       if (!fileInfo) {
-        showToast(`File information missing for item ${i + 1}`, "error");
+        showToast(
+          t("files.fileInfoMissing", { index: (i + 1).toString() }),
+          "error"
+        );
         continue;
       }
 
@@ -577,7 +606,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     if (successCount > 0) {
       try {
-        showToast("Generating ZIP file...", "info");
+        showToast(t("files.generatingZip"), "info");
 
         // Generate ZIP file
         const zipBlob = await zip.generateAsync({
@@ -618,21 +647,28 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
         if (failCount === 0) {
           showToast(
-            `Successfully created ZIP with ${successCount} file(s)`,
+            t("files.zipCreationSuccess", {
+              name: a.download,
+              count: successCount.toString(),
+              size: formatFileSize(zipBlob.size),
+            }),
             "info"
           );
         } else {
           showToast(
-            `Created ZIP with ${successCount} file(s), failed ${failCount}`,
+            t("files.deletedPartialSuccess", {
+              successCount: successCount.toString(),
+              failCount: failCount.toString(),
+            }),
             "error"
           );
         }
       } catch (error) {
         console.error("ZIP generation error:", error);
-        showToast("Failed to create ZIP file", "error");
+        showToast(t("files.zipCreationFailed"), "error");
       }
     } else {
-      showToast("No files could be downloaded", "error");
+      showToast(t("files.noFilesDownloaded"), "error");
     }
 
     clearSelection();
@@ -673,9 +709,15 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     if (result.isOk()) {
       setFileContent(editedContent);
       setIsEditing(false);
-      showToast(`Successfully saved ${selectedFile.name}`, "info");
+      showToast(
+        t("files.successfullySaved", { name: selectedFile.name }),
+        "info"
+      );
     } else {
-      showToast(`Failed to save file: ${result.error.message}`, "error");
+      showToast(
+        t("files.failedToSaveFile", { error: result.error.message }),
+        "error"
+      );
     }
 
     setIsSaving(false);
@@ -714,12 +756,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         )
       );
       showToast(
-        `Successfully renamed "${renamingFile.name}" to "${newName.trim()}"`,
+        t("files.successfullyRenamed", {
+          oldName: renamingFile.name,
+          newName: newName.trim(),
+        }),
         "info"
       );
       handleRenameCancel();
     } else {
-      showToast(`Failed to rename file: ${result.error.message}`, "error");
+      showToast(
+        t("files.failedToRenameFile", { error: result.error.message }),
+        "error"
+      );
     }
 
     setIsRenaming(false);
@@ -1111,7 +1159,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           onClick={() => setCurrentPath("/")}
           className={`${styles.breadcrumbItem} ${styles.active}`}
         >
-          🏠 Root
+          {t("files.root")}
         </button>
       );
     }
@@ -1126,7 +1174,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         onClick={() => setCurrentPath("/")}
         className={styles.breadcrumbItem}
       >
-        🏠 Root
+        {t("files.root")}
       </button>,
     ];
 
@@ -1182,7 +1230,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading files...</div>
+        <div className={styles.loading}>{t("files.loadingFiles")}</div>
       </div>
     );
   }
@@ -1191,10 +1239,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <h3>Error loading files</h3>
+          <h3>{t("files.errorLoadingFiles")}</h3>
           <p>{error}</p>
           <button onClick={() => loadFiles()} className={styles.retryButton}>
-            Retry
+            {t("files.retry")}
           </button>
         </div>
       </div>
@@ -1234,10 +1282,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           {isSelectionMode && (
             <>
               <span className={styles.selectionInfo}>
-                {selectedFiles.size} selected
+                {selectedFiles.size} {t("files.selected")}
               </span>
               <button onClick={clearSelection} className={styles.actionButton}>
-                ✖️ Clear
+                {t("files.clear")}
               </button>
             </>
           )}
@@ -1246,24 +1294,24 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             className={styles.actionButton}
             disabled={uploadState.isUploading}
           >
-            📁 Upload Files
+            {t("files.uploadFiles")}
           </button>
           <button
             onClick={() => folderInputRef.current?.click()}
             className={styles.actionButton}
             disabled={uploadState.isUploading}
           >
-            📂 Upload Folder
+            {t("files.uploadFolder")}
           </button>
           <button
             onClick={navigateUp}
             disabled={currentPath === "/"}
             className={styles.actionButton}
           >
-            ⬆️ Up
+            {t("files.up")}
           </button>
           <button onClick={() => loadFiles()} className={styles.actionButton}>
-            🔄 Refresh
+            {t("files.refresh")}
           </button>
         </div>
       </div>
@@ -1284,17 +1332,17 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               disabled={files.length === 0}
             />
           </div>
-          <div className={styles.columnName}>Name</div>
-          <div className={styles.columnSize}>Size</div>
-          <div className={styles.columnDate}>Modified</div>
+          <div className={styles.columnName}>{t("files.columns.name")}</div>
+          <div className={styles.columnSize}>{t("files.columns.size")}</div>
+          <div className={styles.columnDate}>{t("files.columns.modified")}</div>
         </div>
 
         {files.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>This directory is empty</p>
+            <p>{t("files.emptyDirectory")}</p>
             {isDragOver && (
               <div className={styles.dropHint}>
-                <p>Drop files or folders here to upload</p>
+                <p>{t("files.dropHint")}</p>
               </div>
             )}
           </div>
@@ -1303,7 +1351,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             {isDragOver && (
               <div className={styles.dropOverlay}>
                 <div className={styles.dropHint}>
-                  <p>📁 Drop files or folders here to upload</p>
+                  <p>{t("files.dropOverlay")}</p>
                 </div>
               </div>
             )}
@@ -1365,7 +1413,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             <div className={styles.modalBody}>
               {isLoadingFile ? (
                 <div className={styles.fileLoading}>
-                  Loading file content...
+                  {t("files.loadingFileContent")}
                 </div>
               ) : isImageFile(selectedFile.name) ? (
                 <div className={styles.imageContainer}>
@@ -1383,7 +1431,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                       }}
                     />
                   ) : (
-                    <div className={styles.fileLoading}>Loading image...</div>
+                    <div className={styles.fileLoading}>
+                      {t("files.loadingImage")}
+                    </div>
                   )}
                 </div>
               ) : isEditing ? (
@@ -1408,14 +1458,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                           className={`${styles.modalButton} ${styles.primaryButton}`}
                           disabled={isSaving || isLoadingFile}
                         >
-                          {isSaving ? "💾 Saving..." : "💾 Save"}
+                          {isSaving ? t("files.saving") : t("files.save")}
                         </button>
                         <button
                           onClick={handleCancelEdit}
                           className={styles.modalButton}
                           disabled={isSaving}
                         >
-                          ❌ Cancel
+                          {t("files.cancel")}
                         </button>
                       </>
                     ) : (
@@ -1424,7 +1474,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                         className={styles.modalButton}
                         disabled={isLoadingFile}
                       >
-                        ✏️ Edit
+                        {t("files.edit")}
                       </button>
                     )}
                   </>
@@ -1434,14 +1484,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 className={styles.modalButton}
                 disabled={isLoadingFile || isSaving}
               >
-                📥 Download
+                {t("files.download")}
               </button>
               <button
                 onClick={closeFileViewer}
                 className={styles.modalButton}
                 disabled={isSaving}
               >
-                Close
+                {t("files.close")}
               </button>
             </div>
           </div>
@@ -1453,7 +1503,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h3>📤 Upload Progress</h3>
+              <h3>{t("files.uploadProgress")}</h3>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className={styles.closeButton}
@@ -1465,7 +1515,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             <div className={styles.modalBody}>
               {uploadState.isUploading && (
                 <div className={styles.uploadOverallProgress}>
-                  <p>Uploading files...</p>
+                  <p>{t("files.uploadingFiles")}</p>
                   <div className={styles.overallProgressBar}>
                     <div
                       className={styles.overallProgressFill}
@@ -1512,7 +1562,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 {uploadState.completed.length > 0 && (
                   <div className={styles.uploadSection}>
                     <h4 className={styles.uploadSectionTitle}>
-                      ✅ Completed ({uploadState.completed.length})
+                      {t("files.completed")} ({uploadState.completed.length})
                     </h4>
                     {uploadState.completed.map((filename) => (
                       <div
@@ -1528,7 +1578,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 {uploadState.failed.length > 0 && (
                   <div className={styles.uploadSection}>
                     <h4 className={styles.uploadSectionTitle}>
-                      ❌ Failed ({uploadState.failed.length})
+                      {t("files.failed")} ({uploadState.failed.length})
                     </h4>
                     {uploadState.failed.map((failure) => (
                       <div
@@ -1556,7 +1606,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   }}
                   className={styles.modalButton}
                 >
-                  Close
+                  {t("files.close")}
                 </button>
               )}
             </div>
@@ -1569,7 +1619,12 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         <div className={styles.modal}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h3>✏️ Rename {renamingFile.is_directory ? "Folder" : "File"}</h3>
+              <h3>
+                {t("files.rename")}{" "}
+                {renamingFile.is_directory
+                  ? t("files.folder")
+                  : t("files.file")}
+              </h3>
               <button
                 onClick={handleRenameCancel}
                 className={styles.closeButton}
@@ -1580,7 +1635,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             <div className={styles.modalBody}>
               <div className={styles.renameForm}>
                 <label htmlFor="newName">
-                  New name for &ldquo;{renamingFile.name}&rdquo;:
+                  {t("files.newNameFor")} &ldquo;{renamingFile.name}&rdquo;:
                 </label>
                 <input
                   id="newName"
@@ -1613,14 +1668,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   isRenaming || !newName.trim() || newName === renamingFile.name
                 }
               >
-                {isRenaming ? "✏️ Renaming..." : "✏️ Rename"}
+                {isRenaming ? t("files.renaming") : t("files.rename")}
               </button>
               <button
                 onClick={handleRenameCancel}
                 className={styles.modalButton}
                 disabled={isRenaming}
               >
-                Cancel
+                {t("files.cancel")}
               </button>
             </div>
           </div>
@@ -1644,7 +1699,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             selectedFiles.has(contextMenu.file.name)) ? (
             <>
               <div className={styles.contextMenuHeader}>
-                {selectedFiles.size} item(s) selected
+                {selectedFiles.size} {t("files.itemsSelected")}
               </div>
               <button
                 className={styles.contextMenuItem}
@@ -1653,7 +1708,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   handleBulkDownload();
                 }}
               >
-                📥 Download as ZIP ({selectedFiles.size})
+                {t("files.downloadAsZip")} ({selectedFiles.size})
               </button>
               <hr className={styles.contextMenuSeparator} />
               <button
@@ -1663,7 +1718,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   handleBulkDelete();
                 }}
               >
-                🗑️ Delete Selected ({selectedFiles.size})
+                {t("files.deleteSelected")} ({selectedFiles.size})
               </button>
             </>
           ) : contextMenu.file.is_directory ? (
@@ -1672,20 +1727,20 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                 className={styles.contextMenuItem}
                 onClick={() => handleFileClick(contextMenu.file!)}
               >
-                📁 Open Folder
+                {t("files.openFolder")}
               </button>
               <button
                 className={styles.contextMenuItem}
                 onClick={() => handleRenameFile(contextMenu.file!)}
               >
-                ✏️ Rename Folder
+                {t("files.renameFolder")}
               </button>
               <hr className={styles.contextMenuSeparator} />
               <button
                 className={`${styles.contextMenuItem} ${styles.danger}`}
                 onClick={() => handleDeleteFile(contextMenu.file!)}
               >
-                🗑️ Delete Folder
+                {t("files.deleteFolder")}
               </button>
             </>
           ) : (
@@ -1695,27 +1750,27 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   className={styles.contextMenuItem}
                   onClick={() => handleViewFileFromContext(contextMenu.file!)}
                 >
-                  👁️ View File
+                  {t("files.viewFile")}
                 </button>
               )}
               <button
                 className={styles.contextMenuItem}
                 onClick={() => handleDownloadFile(contextMenu.file!)}
               >
-                📥 Download
+                {t("files.download")}
               </button>
               <button
                 className={styles.contextMenuItem}
                 onClick={() => handleRenameFile(contextMenu.file!)}
               >
-                ✏️ Rename
+                {t("files.renameFile")}
               </button>
               <hr className={styles.contextMenuSeparator} />
               <button
                 className={`${styles.contextMenuItem} ${styles.danger}`}
                 onClick={() => handleDeleteFile(contextMenu.file!)}
               >
-                🗑️ Delete
+                {t("common.delete")}
               </button>
             </>
           )}

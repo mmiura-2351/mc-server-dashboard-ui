@@ -71,9 +71,7 @@ export function ServerPropertiesEditor({
           result.error.message.toLowerCase().includes("file not found")
         ) {
           setFileNotFound(true);
-          setError(
-            "Server properties file not found. This is normal for new servers that haven't been started yet."
-          );
+          setError(t("servers.fileNotFoundMessage"));
 
           // Create default properties for new servers
           const defaultProperties: ServerProperties = {
@@ -214,8 +212,8 @@ export function ServerPropertiesEditor({
             onChange={(e) => handleChange(key, e.target.value)}
             disabled={isSaving}
           >
-            <option value="true">true</option>
-            <option value="false">false</option>
+            <option value="true">{t("common.true")}</option>
+            <option value="false">{t("common.false")}</option>
           </select>
         ) : (
           <input
@@ -224,7 +222,9 @@ export function ServerPropertiesEditor({
             value={String(value)}
             onChange={(e) => handleChange(key, e.target.value)}
             disabled={isSaving}
-            placeholder={`Enter ${label.toLowerCase()}`}
+            placeholder={t("servers.enterPlaceholder", {
+              label: label.toLowerCase(),
+            })}
           />
         )}
       </div>

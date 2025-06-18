@@ -51,7 +51,7 @@ export function UserManagement() {
       const errorMessage =
         typeof result.error.message === "string"
           ? result.error.message
-          : "An error occurred while loading users";
+          : t("userManagement.errors.loadingUsers");
       setMessage({ type: "error", text: errorMessage });
     }
     setIsLoading(false);
@@ -72,7 +72,7 @@ export function UserManagement() {
       const errorMessage =
         typeof result.error.message === "string"
           ? result.error.message
-          : "An error occurred while approving user";
+          : t("userManagement.errors.approvingUser");
       setMessage({ type: "error", text: errorMessage });
     }
   };
@@ -95,7 +95,7 @@ export function UserManagement() {
       const errorMessage =
         typeof result.error.message === "string"
           ? result.error.message
-          : "An error occurred while updating user role";
+          : t("userManagement.errors.updatingUserRole");
       setMessage({ type: "error", text: errorMessage });
     }
   };
@@ -116,7 +116,7 @@ export function UserManagement() {
         const errorMessage =
           typeof result.error.message === "string"
             ? result.error.message
-            : "An error occurred while deleting user";
+            : t("userManagement.errors.deletingUser");
         setMessage({ type: "error", text: errorMessage });
       }
 
@@ -198,9 +198,15 @@ export function UserManagement() {
                     className={styles.roleSelect}
                     disabled={userItem.id === user?.id}
                   >
-                    <option value={RoleEnum.USER}>User</option>
-                    <option value={RoleEnum.OPERATOR}>Operator</option>
-                    <option value={RoleEnum.ADMIN}>Admin</option>
+                    <option value={RoleEnum.USER}>
+                      {t("userManagement.roles.user")}
+                    </option>
+                    <option value={RoleEnum.OPERATOR}>
+                      {t("userManagement.roles.operator")}
+                    </option>
+                    <option value={RoleEnum.ADMIN}>
+                      {t("userManagement.roles.admin")}
+                    </option>
                   </select>
                 </td>
                 <td>
