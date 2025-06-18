@@ -1193,19 +1193,21 @@ describe("ServerDashboard", () => {
   });
 
   describe("Server Type Filtering", () => {
-    test("displays filters section when servers are present", async () => {
+    test("displays compact filters when servers are present", async () => {
       render(<ServerDashboard />);
 
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      expect(screen.getByText("Filters")).toBeInTheDocument();
+      // Check that compact filters are displayed
       expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
+      expect(document.getElementById("serverStatusFilter")).toBeInTheDocument();
+      expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
       expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
     });
 
-    test("does not display filters section when no servers", async () => {
+    test("does not display compact filters when no servers", async () => {
       vi.mocked(serverService.getServers).mockResolvedValue(ok([]));
 
       render(<ServerDashboard />);
@@ -1214,7 +1216,16 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("No servers found")).toBeInTheDocument();
       });
 
-      expect(screen.queryByText("Filters")).not.toBeInTheDocument();
+      // Compact filters should not be displayed when no servers
+      expect(
+        document.getElementById("serverTypeFilter")
+      ).not.toBeInTheDocument();
+      expect(
+        document.getElementById("serverStatusFilter")
+      ).not.toBeInTheDocument();
+      expect(
+        document.getElementById("serverSearchInput")
+      ).not.toBeInTheDocument();
     });
 
     test("filters servers by vanilla type", async () => {
@@ -1343,7 +1354,7 @@ describe("ServerDashboard", () => {
       });
 
       expect(document.getElementById("serverStatusFilter")).toBeInTheDocument();
-      expect(screen.getByText("Server Status")).toBeInTheDocument();
+      expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
     });
 
     test("filters servers by running status", async () => {
@@ -1496,7 +1507,9 @@ describe("ServerDashboard", () => {
       });
 
       expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
-      expect(screen.getByText("Search Servers")).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText("Search by server name...")
+      ).toBeInTheDocument();
     });
 
     test("filters servers by search query (case-insensitive)", async () => {

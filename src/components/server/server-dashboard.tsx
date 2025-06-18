@@ -366,13 +366,76 @@ export function ServerDashboard() {
     <div className={styles.container}>
       <div className={styles.containerHeader}>
         <h1 className={styles.title}>{t("servers.title")}</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className={styles.createButton}
-          disabled={isCreating}
-        >
-          {t("servers.createServer")}
-        </button>
+        <div className={styles.headerActions}>
+          {servers.length > 0 && (
+            <div className={styles.compactFilters}>
+              <select
+                id="serverTypeFilter"
+                value={selectedServerType}
+                onChange={(e) =>
+                  setSelectedServerType(e.target.value as ServerType | "all")
+                }
+                className={styles.compactFilterSelect}
+                title={t("servers.filters.type.label")}
+              >
+                <option value="all">{t("servers.filters.type.all")}</option>
+                <option value={ServerType.VANILLA}>
+                  {t("servers.filters.type.vanilla")}
+                </option>
+                <option value={ServerType.PAPER}>
+                  {t("servers.filters.type.paper")}
+                </option>
+                <option value={ServerType.FORGE}>
+                  {t("servers.filters.type.forge")}
+                </option>
+              </select>
+              <select
+                id="serverStatusFilter"
+                value={selectedServerStatus}
+                onChange={(e) =>
+                  setSelectedServerStatus(
+                    e.target.value as ServerStatus | "all"
+                  )
+                }
+                className={styles.compactFilterSelect}
+                title={t("servers.filters.status.label")}
+              >
+                <option value="all">{t("servers.filters.status.all")}</option>
+                <option value={ServerStatus.RUNNING}>
+                  {t("servers.filters.status.running")}
+                </option>
+                <option value={ServerStatus.STOPPED}>
+                  {t("servers.filters.status.stopped")}
+                </option>
+                <option value={ServerStatus.STARTING}>
+                  {t("servers.filters.status.starting")}
+                </option>
+                <option value={ServerStatus.STOPPING}>
+                  {t("servers.filters.status.stopping")}
+                </option>
+                <option value={ServerStatus.ERROR}>
+                  {t("servers.filters.status.error")}
+                </option>
+              </select>
+              <input
+                id="serverSearchInput"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("servers.filters.search.placeholder")}
+                className={styles.compactFilterInput}
+                title={t("servers.filters.search.label")}
+              />
+            </div>
+          )}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className={styles.createButton}
+            disabled={isCreating}
+          >
+            {t("servers.createServer")}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -392,100 +455,11 @@ export function ServerDashboard() {
       ) : (
         <>
           {servers.length > 0 && (
-            <div className={styles.filtersSection}>
-              <h3 className={styles.filtersTitle}>
-                {t("servers.filters.title")}
-              </h3>
-              <div className={styles.filtersContainer}>
-                <div className={styles.filterGroup}>
-                  <label
-                    htmlFor="serverTypeFilter"
-                    className={styles.filterLabel}
-                  >
-                    {t("servers.filters.type.label")}
-                  </label>
-                  <select
-                    id="serverTypeFilter"
-                    value={selectedServerType}
-                    onChange={(e) =>
-                      setSelectedServerType(
-                        e.target.value as ServerType | "all"
-                      )
-                    }
-                    className={styles.filterSelect}
-                  >
-                    <option value="all">{t("servers.filters.type.all")}</option>
-                    <option value={ServerType.VANILLA}>
-                      {t("servers.filters.type.vanilla")}
-                    </option>
-                    <option value={ServerType.PAPER}>
-                      {t("servers.filters.type.paper")}
-                    </option>
-                    <option value={ServerType.FORGE}>
-                      {t("servers.filters.type.forge")}
-                    </option>
-                  </select>
-                </div>
-                <div className={styles.filterGroup}>
-                  <label
-                    htmlFor="serverStatusFilter"
-                    className={styles.filterLabel}
-                  >
-                    {t("servers.filters.status.label")}
-                  </label>
-                  <select
-                    id="serverStatusFilter"
-                    value={selectedServerStatus}
-                    onChange={(e) =>
-                      setSelectedServerStatus(
-                        e.target.value as ServerStatus | "all"
-                      )
-                    }
-                    className={styles.filterSelect}
-                  >
-                    <option value="all">
-                      {t("servers.filters.status.all")}
-                    </option>
-                    <option value={ServerStatus.RUNNING}>
-                      {t("servers.filters.status.running")}
-                    </option>
-                    <option value={ServerStatus.STOPPED}>
-                      {t("servers.filters.status.stopped")}
-                    </option>
-                    <option value={ServerStatus.STARTING}>
-                      {t("servers.filters.status.starting")}
-                    </option>
-                    <option value={ServerStatus.STOPPING}>
-                      {t("servers.filters.status.stopping")}
-                    </option>
-                    <option value={ServerStatus.ERROR}>
-                      {t("servers.filters.status.error")}
-                    </option>
-                  </select>
-                </div>
-                <div className={styles.filterGroup}>
-                  <label
-                    htmlFor="serverSearchInput"
-                    className={styles.filterLabel}
-                  >
-                    {t("servers.filters.search.label")}
-                  </label>
-                  <input
-                    id="serverSearchInput"
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t("servers.filters.search.placeholder")}
-                    className={styles.filterInput}
-                  />
-                </div>
-                <div className={styles.resultsCount}>
-                  {t("servers.filters.resultsCount", {
-                    count: filteredServers.length.toString(),
-                    total: servers.length.toString(),
-                  })}
-                </div>
-              </div>
+            <div className={styles.resultsCount}>
+              {t("servers.filters.resultsCount", {
+                count: filteredServers.length.toString(),
+                total: servers.length.toString(),
+              })}
             </div>
           )}
           {servers.length === 0 ? (
