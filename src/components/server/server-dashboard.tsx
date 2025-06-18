@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
@@ -30,6 +30,7 @@ export function ServerDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
+  const hasInitializedVersion = useRef(false);
 
   // Helper function to get a safe minecraft version
   const getDefaultMinecraftVersion = (): string => {
@@ -89,6 +90,7 @@ export function ServerDashboard() {
       description: "",
     });
     setImportFile(null);
+    hasInitializedVersion.current = false; // Reset flag to allow re-initialization
   };
 
   const closeModal = () => {
@@ -109,30 +111,13 @@ export function ServerDashboard() {
     const result = await serverService.getSupportedVersions();
     if (result.isOk()) {
       setSupportedVersions(result.value);
-      // Update form if no version is selected yet
-      if (!createForm.minecraft_version && result.value.length > 0) {
-        const firstVersion = result.value[0];
-        if (firstVersion) {
-          setCreateForm((prev) => ({
-            ...prev,
-            minecraft_version: firstVersion,
-          }));
-        }
-      }
     } else {
       // Use fallback versions if API call fails
       setSupportedVersions(FALLBACK_VERSIONS);
       setVersionError(t("servers.create.errors.failedToLoadVersions"));
-      // Update form if no version is selected yet
-      if (!createForm.minecraft_version) {
-        setCreateForm((prev) => ({
-          ...prev,
-          minecraft_version: FALLBACK_VERSIONS[0] as string,
-        }));
-      }
     }
     setIsLoadingVersions(false);
-  }, [t, createForm.minecraft_version]);
+  }, [t]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -171,6 +156,22 @@ export function ServerDashboard() {
     loadData();
     loadSupportedVersions();
   }, [loadData, loadSupportedVersions]);
+
+  // Initialize form with first available version when versions are loaded (only once)
+  useEffect(() => {
+    if (
+      supportedVersions.length > 0 &&
+      !hasInitializedVersion.current &&
+      !createForm.minecraft_version
+    ) {
+      setCreateForm((prev) => ({
+        ...prev,
+        minecraft_version:
+          supportedVersions[0] || (FALLBACK_VERSIONS[0] as string),
+      }));
+      hasInitializedVersion.current = true;
+    }
+  }, [supportedVersions]);
 
   // Status polling effect for servers in transitional states
   useEffect(() => {
