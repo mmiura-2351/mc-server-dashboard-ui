@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
@@ -30,7 +30,6 @@ export function ServerDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
-  const hasInitializedVersion = useRef(false);
 
   // Helper function to get a safe minecraft version
   const getDefaultMinecraftVersion = (): string => {
@@ -47,6 +46,7 @@ export function ServerDashboard() {
   const [isLoadingVersions, setIsLoadingVersions] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [versionError, setVersionError] = useState<string | null>(null);
+  const [hasInitializedVersion, setHasInitializedVersion] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [modalTab, setModalTab] = useState<"create" | "import">("create");
   const [isCreating, setIsCreating] = useState(false);
@@ -90,7 +90,7 @@ export function ServerDashboard() {
       description: "",
     });
     setImportFile(null);
-    hasInitializedVersion.current = false; // Reset flag to allow re-initialization
+    setHasInitializedVersion(false); // Reset flag to allow re-initialization
   };
 
   const closeModal = () => {
@@ -104,64 +104,90 @@ export function ServerDashboard() {
     // Don't reset forms on tab switch to preserve user input
   };
 
-  const loadSupportedVersions = useCallback(async () => {
-    setIsLoadingVersions(true);
-    setVersionError(null);
+  // Load data only once on mount
+  useEffect(() => {
+    let isMounted = true;
 
-    const result = await serverService.getSupportedVersions();
-    if (result.isOk()) {
-      setSupportedVersions(result.value);
-    } else {
-      // Use fallback versions if API call fails
-      setSupportedVersions(FALLBACK_VERSIONS);
-      setVersionError(t("servers.create.errors.failedToLoadVersions"));
-    }
-    setIsLoadingVersions(false);
-  }, [t]);
+    const loadData = async () => {
+      if (!isMounted) return;
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+      setIsLoading(true);
+      setError(null);
 
-    // Removed debug logging for security
+      try {
+        const [serversResult, templatesResult] = await Promise.all([
+          serverService.getServers(),
+          serverService.getServerTemplates(),
+        ]);
 
-    try {
-      const [serversResult, templatesResult] = await Promise.all([
-        serverService.getServers(),
-        serverService.getServerTemplates(),
-      ]);
+        if (!isMounted) return;
 
-      if (serversResult.isOk()) {
-        setServers(serversResult.value);
-      } else {
-        // Handle authentication errors
-        if (serversResult.error.status === 401) {
-          logout();
-          return;
+        if (serversResult.isOk()) {
+          setServers(serversResult.value);
+        } else {
+          if (serversResult.error.status === 401) {
+            logout();
+            return;
+          }
+          setError(serversResult.error.message);
         }
-        setError(serversResult.error.message);
-      }
 
-      if (templatesResult.isOk()) {
-        setTemplates(templatesResult.value);
+        if (templatesResult.isOk()) {
+          setTemplates(templatesResult.value);
+        }
+      } catch {
+        if (isMounted) {
+          setError("Failed to load data");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    } catch {
-      setError("Failed to load data");
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [logout]);
 
+  // Load supported versions only once on mount
   useEffect(() => {
-    loadData();
-    loadSupportedVersions();
-  }, [loadData, loadSupportedVersions]);
+    let isMounted = true;
 
-  // Initialize form with first available version when versions are loaded (only once)
+    const loadSupportedVersions = async () => {
+      if (!isMounted) return;
+
+      setIsLoadingVersions(true);
+      setVersionError(null);
+
+      const result = await serverService.getSupportedVersions();
+
+      if (!isMounted) return;
+
+      if (result.isOk()) {
+        setSupportedVersions(result.value);
+      } else {
+        setSupportedVersions(FALLBACK_VERSIONS);
+        setVersionError(t("servers.create.errors.failedToLoadVersions"));
+      }
+      setIsLoadingVersions(false);
+    };
+
+    loadSupportedVersions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [t]);
+
+  // Initialize form with first available version when versions are loaded
   useEffect(() => {
     if (
       supportedVersions.length > 0 &&
-      !hasInitializedVersion.current &&
+      !hasInitializedVersion &&
       !createForm.minecraft_version
     ) {
       setCreateForm((prev) => ({
@@ -169,9 +195,9 @@ export function ServerDashboard() {
         minecraft_version:
           supportedVersions[0] || (FALLBACK_VERSIONS[0] as string),
       }));
-      hasInitializedVersion.current = true;
+      setHasInitializedVersion(true);
     }
-  }, [supportedVersions]);
+  }, [supportedVersions, hasInitializedVersion, createForm.minecraft_version]);
 
   // Status polling effect for servers in transitional states
   useEffect(() => {
