@@ -166,18 +166,16 @@
       "title": "フィルター",
       "type": {
         "label": "サーバータイプ",
-        "all": "すべて",
+        "all": "すべて (サーバータイプ)",
         "vanilla": "Vanilla",
         "paper": "Paper",
         "forge": "Forge"
       },
       "status": {
         "label": "サーバーステータス",
-        "all": "すべて",
+        "all": "すべて (ステータス)",
         "running": "起動中",
         "stopped": "停止中",
-        "starting": "開始中",
-        "stopping": "停止中",
         "error": "エラー"
       },
       "search": {

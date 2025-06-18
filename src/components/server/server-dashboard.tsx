@@ -407,12 +407,6 @@ export function ServerDashboard() {
                 <option value={ServerStatus.STOPPED}>
                   {t("servers.filters.status.stopped")}
                 </option>
-                <option value={ServerStatus.STARTING}>
-                  {t("servers.filters.status.starting")}
-                </option>
-                <option value={ServerStatus.STOPPING}>
-                  {t("servers.filters.status.stopping")}
-                </option>
                 <option value={ServerStatus.ERROR}>
                   {t("servers.filters.status.error")}
                 </option>

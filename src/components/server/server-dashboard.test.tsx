@@ -68,16 +68,14 @@ const mockTranslations: Record<string, string> = {
   "servers.import.title": "Import Server",
   "servers.filters.title": "Filters",
   "servers.filters.type.label": "Server Type",
-  "servers.filters.type.all": "All",
+  "servers.filters.type.all": "All (Server Type)",
   "servers.filters.type.vanilla": "Vanilla",
   "servers.filters.type.paper": "Paper",
   "servers.filters.type.forge": "Forge",
   "servers.filters.status.label": "Server Status",
-  "servers.filters.status.all": "All",
+  "servers.filters.status.all": "All (Server Status)",
   "servers.filters.status.running": "Running",
   "servers.filters.status.stopped": "Stopped",
-  "servers.filters.status.starting": "Starting",
-  "servers.filters.status.stopping": "Stopping",
   "servers.filters.status.error": "Error",
   "servers.filters.search.label": "Search Servers",
   "servers.filters.search.placeholder": "Search by server name...",
@@ -995,16 +993,6 @@ describe("ServerDashboard", () => {
           text: "Stopped",
           filterText: "Stopped",
         },
-        {
-          status: ServerStatus.STARTING,
-          text: "Starting...",
-          filterText: "Starting",
-        },
-        {
-          status: ServerStatus.STOPPING,
-          text: "Stopping...",
-          filterText: "Stopping",
-        },
         { status: ServerStatus.ERROR, text: "Error", filterText: "Error" },
       ];
 
@@ -1337,7 +1325,7 @@ describe("ServerDashboard", () => {
       );
 
       expect(options).toEqual([
-        { value: "all", text: "All" },
+        { value: "all", text: "All (Server Type)" },
         { value: "vanilla", text: "Vanilla" },
         { value: "paper", text: "Paper" },
         { value: "forge", text: "Forge" },
@@ -1457,11 +1445,9 @@ describe("ServerDashboard", () => {
       );
 
       expect(options).toEqual([
-        { value: "all", text: "All" },
+        { value: "all", text: "All (Server Status)" },
         { value: "running", text: "Running" },
         { value: "stopped", text: "Stopped" },
-        { value: "starting", text: "Starting" },
-        { value: "stopping", text: "Stopping" },
         { value: "error", text: "Error" },
       ]);
     });

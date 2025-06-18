@@ -166,18 +166,16 @@
       "title": "Filters",
       "type": {
         "label": "Server Type",
-        "all": "All",
+        "all": "All (Server Type)",
         "vanilla": "Vanilla",
         "paper": "Paper",
         "forge": "Forge"
       },
       "status": {
         "label": "Server Status",
-        "all": "All",
+        "all": "All (Server Status)",
         "running": "Running",
         "stopped": "Stopped",
-        "starting": "Starting",
-        "stopping": "Stopping",
         "error": "Error"
       },
       "search": {
