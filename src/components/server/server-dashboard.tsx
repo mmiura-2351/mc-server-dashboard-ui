@@ -89,6 +89,7 @@ export function ServerDashboard() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"name" | "status" | "created">("status");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Reset all filters to default state
   const resetFilters = () => {
@@ -439,110 +440,215 @@ export function ServerDashboard() {
         <h1 className={styles.title}>{t("servers.title")}</h1>
         <div className={styles.headerActions}>
           {servers.length > 0 && (
-            <div className={styles.compactFilters}>
-              <select
-                id="serverTypeFilter"
-                value={selectedServerType}
-                onChange={(e) =>
-                  setSelectedServerType(e.target.value as ServerType | "all")
-                }
-                className={styles.compactFilterSelect}
-                title={t("servers.filters.type.label")}
-              >
-                <option value="all">{t("servers.filters.type.all")}</option>
-                <option value={ServerType.VANILLA}>
-                  {t("servers.filters.type.vanilla")}
-                </option>
-                <option value={ServerType.PAPER}>
-                  {t("servers.filters.type.paper")}
-                </option>
-                <option value={ServerType.FORGE}>
-                  {t("servers.filters.type.forge")}
-                </option>
-              </select>
-              <select
-                id="serverStatusFilter"
-                value={selectedServerStatus}
-                onChange={(e) =>
-                  setSelectedServerStatus(
-                    e.target.value as ServerStatus | "all"
-                  )
-                }
-                className={styles.compactFilterSelect}
-                title={t("servers.filters.status.label")}
-              >
-                <option value="all">{t("servers.filters.status.all")}</option>
-                <option value={ServerStatus.RUNNING}>
-                  {t("servers.filters.status.running")}
-                </option>
-                <option value={ServerStatus.STOPPED}>
-                  {t("servers.filters.status.stopped")}
-                </option>
-                <option value={ServerStatus.ERROR}>
-                  {t("servers.filters.status.error")}
-                </option>
-              </select>
-              <select
-                id="serverVersionFilter"
-                value={selectedMinecraftVersion}
-                onChange={(e) => setSelectedMinecraftVersion(e.target.value)}
-                className={styles.compactFilterSelect}
-                title={t("servers.filters.version.label")}
-              >
-                <option value="all">{t("servers.filters.version.all")}</option>
-                {availableVersions.map((version) => (
-                  <option key={version} value={version}>
-                    {version}
-                  </option>
-                ))}
-              </select>
-              <input
-                id="serverSearchInput"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("servers.filters.search.placeholder")}
-                className={styles.compactFilterInput}
-                title={t("servers.filters.search.label")}
-              />
-              <select
-                id="serverSortBy"
-                value={sortBy}
-                onChange={(e) =>
-                  setSortBy(e.target.value as "name" | "status" | "created")
-                }
-                className={styles.compactFilterSelect}
-                title={t("servers.filters.sort.label")}
-              >
-                <option value="status">
-                  {t("servers.filters.sort.status")}
-                </option>
-                <option value="name">{t("servers.filters.sort.name")}</option>
-                <option value="created">
-                  {t("servers.filters.sort.created")}
-                </option>
-              </select>
+            <div className={styles.filterControls}>
               <button
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
-                className={styles.compactSortButton}
-                title={
-                  sortOrder === "asc"
-                    ? t("servers.filters.sort.ascending")
-                    : t("servers.filters.sort.descending")
-                }
+                onClick={() => setShowFilters(!showFilters)}
+                className={styles.filterToggleButton}
+                title={t("servers.filters.title")}
               >
-                {sortOrder === "asc" ? "↑" : "↓"}
+                🔍 {t("servers.filters.title")}
+                {hasActiveFilters && (
+                  <span className={styles.activeIndicator}></span>
+                )}
               </button>
-              {hasActiveFilters && (
-                <button
-                  onClick={resetFilters}
-                  className={styles.resetFiltersButton}
-                  title={t("servers.filters.reset")}
-                >
-                  {t("servers.filters.reset")}
-                </button>
+              {showFilters && (
+                <div className={styles.expandedFilters}>
+                  <div className={styles.filterHeader}>
+                    <h3>{t("servers.filters.title")}</h3>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className={styles.closeFiltersButton}
+                      aria-label="Close filters"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Search Section - moved to top */}
+                  <div className={styles.searchSection}>
+                    <div className={styles.filterGroup}>
+                      <label
+                        htmlFor="serverSearchInput"
+                        className={styles.filterLabel}
+                      >
+                        {t("servers.filters.search.label")}
+                      </label>
+                      <input
+                        id="serverSearchInput"
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t("servers.filters.search.placeholder")}
+                        className={styles.filterInput}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filter Section */}
+                  <div className={styles.filterSection}>
+                    <h4 className={styles.sectionTitle}>
+                      🔍 {t("servers.filters.filterBy")}
+                    </h4>
+                    <div className={styles.filterGrid}>
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverTypeFilter"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.type.label")}
+                        </label>
+                        <select
+                          id="serverTypeFilter"
+                          value={selectedServerType}
+                          onChange={(e) =>
+                            setSelectedServerType(
+                              e.target.value as ServerType | "all"
+                            )
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="all">
+                            {t("servers.filters.type.all")}
+                          </option>
+                          <option value={ServerType.VANILLA}>
+                            {t("servers.filters.type.vanilla")}
+                          </option>
+                          <option value={ServerType.PAPER}>
+                            {t("servers.filters.type.paper")}
+                          </option>
+                          <option value={ServerType.FORGE}>
+                            {t("servers.filters.type.forge")}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverStatusFilter"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.status.label")}
+                        </label>
+                        <select
+                          id="serverStatusFilter"
+                          value={selectedServerStatus}
+                          onChange={(e) =>
+                            setSelectedServerStatus(
+                              e.target.value as ServerStatus | "all"
+                            )
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="all">
+                            {t("servers.filters.status.all")}
+                          </option>
+                          <option value={ServerStatus.RUNNING}>
+                            {t("servers.filters.status.running")}
+                          </option>
+                          <option value={ServerStatus.STOPPED}>
+                            {t("servers.filters.status.stopped")}
+                          </option>
+                          <option value={ServerStatus.ERROR}>
+                            {t("servers.filters.status.error")}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverVersionFilter"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.version.label")}
+                        </label>
+                        <select
+                          id="serverVersionFilter"
+                          value={selectedMinecraftVersion}
+                          onChange={(e) =>
+                            setSelectedMinecraftVersion(e.target.value)
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="all">
+                            {t("servers.filters.version.all")}
+                          </option>
+                          {availableVersions.map((version) => (
+                            <option key={version} value={version}>
+                              {version}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sort Section */}
+                  <div className={styles.sortSection}>
+                    <h4 className={styles.sectionTitle}>
+                      📊 {t("servers.filters.sortBy")}
+                    </h4>
+                    <div className={styles.sortControls}>
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverSortBy"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.sort.label")}
+                        </label>
+                        <select
+                          id="serverSortBy"
+                          value={sortBy}
+                          onChange={(e) =>
+                            setSortBy(
+                              e.target.value as "name" | "status" | "created"
+                            )
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="status">
+                            {t("servers.filters.sort.status")}
+                          </option>
+                          <option value="name">
+                            {t("servers.filters.sort.name")}
+                          </option>
+                          <option value="created">
+                            {t("servers.filters.sort.created")}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>
+                          {t("servers.filters.sort.order")}
+                        </label>
+                        <button
+                          onClick={() =>
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                          }
+                          className={styles.sortOrderButton}
+                        >
+                          {sortOrder === "asc" ? (
+                            <>↑ {t("servers.filters.sort.ascending")}</>
+                          ) : (
+                            <>↓ {t("servers.filters.sort.descending")}</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reset Button */}
+                  {hasActiveFilters && (
+                    <div className={styles.resetSection}>
+                      <button
+                        onClick={resetFilters}
+                        className={styles.resetFiltersButtonLarge}
+                      >
+                        🔄 {t("servers.filters.reset")}
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}

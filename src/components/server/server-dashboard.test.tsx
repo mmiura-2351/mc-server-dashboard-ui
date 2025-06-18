@@ -66,7 +66,6 @@ const mockTranslations: Record<string, string> = {
   "servers.create.errors.failedToLoadVersions":
     "Failed to load versions, using fallback list",
   "servers.import.title": "Import Server",
-  "servers.filters.title": "Filters",
   "servers.filters.type.label": "Server Type",
   "servers.filters.type.all": "All (Server Type)",
   "servers.filters.type.vanilla": "Vanilla",
@@ -85,10 +84,14 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.sort.name": "Name",
   "servers.filters.sort.status": "Status",
   "servers.filters.sort.created": "Created Date",
+  "servers.filters.sort.order": "Sort Order",
   "servers.filters.sort.ascending": "A-Z",
   "servers.filters.sort.descending": "Z-A",
   "servers.filters.reset": "Reset Filters",
   "servers.filters.resultsCount": "Showing {count} of {total} servers",
+  "servers.filters.title": "Filters",
+  "servers.filters.filterBy": "Filter",
+  "servers.filters.sortBy": "Sort",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
 };
@@ -102,6 +105,17 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
   }
   return translation;
 });
+
+// Helper function to open filters
+const openFilters = async (user: ReturnType<typeof userEvent.setup>) => {
+  const filtersButton = screen.getByText("🔍 Filters");
+  await user.click(filtersButton);
+
+  // Wait for filters to be visible
+  await waitFor(() => {
+    expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
+  });
+};
 
 // Mock modules
 vi.mock("@/contexts/auth", () => ({
@@ -303,9 +317,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      // Check server 1 details - use getAllByText since text appears in filter and server details
-      expect(screen.getAllByText("Running")).toHaveLength(2); // One in filter, one in server status
-      expect(screen.getAllByText("1.21.5")).toHaveLength(2); // One in filter, one in server details
+      // Check server 1 details - with filters hidden by default, text only appears in server details
+      expect(screen.getByText("Running")).toBeInTheDocument();
+      expect(screen.getByText("1.21.5")).toBeInTheDocument();
       expect(screen.getByText("vanilla")).toBeInTheDocument();
       expect(screen.getByText("0/20")).toBeInTheDocument();
       expect(screen.getByText("2048MB")).toBeInTheDocument();
@@ -314,8 +328,8 @@ describe("ServerDashboard", () => {
 
       // Check server 2 details
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
-      expect(screen.getAllByText("Stopped")).toHaveLength(2); // One in filter, one in server status
-      expect(screen.getAllByText("1.20.6")).toHaveLength(2); // One in filter, one in server details
+      expect(screen.getByText("Stopped")).toBeInTheDocument();
+      expect(screen.getByText("1.20.6")).toBeInTheDocument();
       expect(screen.getByText("paper")).toBeInTheDocument();
       expect(screen.getByText("0/50")).toBeInTheDocument();
       expect(screen.getByText("4096MB")).toBeInTheDocument();
@@ -372,7 +386,7 @@ describe("ServerDashboard", () => {
       });
 
       expect(screen.getByText("Stopping...")).toBeInTheDocument(); // Server status
-      expect(screen.getAllByText("Error")).toHaveLength(2); // Filter and server status (same text)
+      expect(screen.getByText("Error")).toBeInTheDocument(); // Server status only (filters hidden)
     });
   });
 
@@ -998,17 +1012,15 @@ describe("ServerDashboard", () => {
         {
           status: ServerStatus.RUNNING,
           text: "Running",
-          filterText: "Running",
         },
         {
           status: ServerStatus.STOPPED,
           text: "Stopped",
-          filterText: "Stopped",
         },
-        { status: ServerStatus.ERROR, text: "Error", filterText: "Error" },
+        { status: ServerStatus.ERROR, text: "Error" },
       ];
 
-      for (const { status, text, filterText } of statusTests) {
+      for (const { status, text } of statusTests) {
         const serverWithStatus = {
           ...mockServers[0],
           status,
@@ -1021,13 +1033,8 @@ describe("ServerDashboard", () => {
         const { unmount } = render(<ServerDashboard />);
 
         await waitFor(() => {
-          // For status text that is the same in both filter and server status
-          if (text === filterText) {
-            expect(screen.getAllByText(text)).toHaveLength(2); // One in filter, one in server status
-          } else {
-            expect(screen.getByText(text)).toBeInTheDocument(); // Server status text
-            expect(screen.getByText(filterText)).toBeInTheDocument(); // Filter option text
-          }
+          // With filters hidden by default, text only appears in server status
+          expect(screen.getByText(text)).toBeInTheDocument(); // Server status text
         });
 
         unmount();
@@ -1200,15 +1207,8 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      // Check that compact filters are displayed
-      expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
-      expect(document.getElementById("serverStatusFilter")).toBeInTheDocument();
-      expect(
-        document.getElementById("serverVersionFilter")
-      ).toBeInTheDocument();
-      expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
-      expect(document.getElementById("serverSortBy")).toBeInTheDocument();
-      expect(screen.getByTitle("Sort By")).toBeInTheDocument();
+      // Check that filter toggle button is displayed
+      expect(screen.getByText("🔍 Filters")).toBeInTheDocument();
       expect(screen.getByText("Showing 2 of 2 servers")).toBeInTheDocument();
     });
 
@@ -1221,20 +1221,8 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("No servers found")).toBeInTheDocument();
       });
 
-      // Compact filters should not be displayed when no servers
-      expect(
-        document.getElementById("serverTypeFilter")
-      ).not.toBeInTheDocument();
-      expect(
-        document.getElementById("serverStatusFilter")
-      ).not.toBeInTheDocument();
-      expect(
-        document.getElementById("serverVersionFilter")
-      ).not.toBeInTheDocument();
-      expect(
-        document.getElementById("serverSearchInput")
-      ).not.toBeInTheDocument();
-      expect(document.getElementById("serverSortBy")).not.toBeInTheDocument();
+      // Filter toggle button should not be displayed when no servers
+      expect(screen.queryByText("🔍 Filters")).not.toBeInTheDocument();
     });
 
     test("filters servers by vanilla type", async () => {
@@ -1244,9 +1232,14 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+
       // Both servers should be visible initially
       expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+
+      // Open filters first
+      await openFilters(user);
 
       // Filter by vanilla
       const typeFilter = document.getElementById(
@@ -1269,6 +1262,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 2")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       // Filter by paper
       const typeFilter = document.getElementById(
         "serverTypeFilter"
@@ -1289,6 +1285,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // Filter by paper first
       const typeFilter = document.getElementById(
@@ -1315,6 +1314,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       // Filter by forge (no servers have this type)
       const typeFilter = document.getElementById(
         "serverTypeFilter"
@@ -1337,6 +1339,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       const typeFilter = document.getElementById(
         "serverTypeFilter"
@@ -1362,6 +1367,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       expect(document.getElementById("serverStatusFilter")).toBeInTheDocument();
       expect(document.getElementById("serverTypeFilter")).toBeInTheDocument();
     });
@@ -1376,6 +1384,9 @@ describe("ServerDashboard", () => {
       // Both servers should be visible initially
       expect(screen.getByText("Test Server 1")).toBeInTheDocument(); // running
       expect(screen.getByText("Test Server 2")).toBeInTheDocument(); // stopped
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // Filter by running status
       const statusFilter = document.getElementById(
@@ -1398,6 +1409,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 2")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       // Filter by stopped status
       const statusFilter = document.getElementById(
         "serverStatusFilter"
@@ -1418,6 +1432,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // Filter by vanilla type first
       const typeFilter = document.getElementById(
@@ -1458,6 +1475,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       const statusFilter = document.getElementById(
         "serverStatusFilter"
       ) as HTMLSelectElement;
@@ -1479,6 +1499,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // Apply both filters
       const typeFilter = document.getElementById(
@@ -1513,6 +1536,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       expect(document.getElementById("serverSearchInput")).toBeInTheDocument();
       expect(
         screen.getByPlaceholderText("Search by server name...")
@@ -1529,6 +1555,9 @@ describe("ServerDashboard", () => {
       // Both servers should be visible initially
       expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // Search for "server 1"
       const searchInput = document.getElementById(
@@ -1549,6 +1578,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       // Search with uppercase
       const searchInput = document.getElementById(
         "serverSearchInput"
@@ -1567,6 +1599,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // Search for something that doesn't exist
       const searchInput = document.getElementById(
@@ -1587,6 +1622,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       // First apply type filter for vanilla
       const typeFilter = document.getElementById(
@@ -1618,6 +1656,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       const searchInput = document.getElementById(
         "serverSearchInput"
       ) as HTMLInputElement;
@@ -1642,6 +1683,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       const searchInput = document.getElementById(
         "serverSearchInput"
       ) as HTMLInputElement;
@@ -1654,6 +1698,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       const searchInput = document.getElementById(
         "serverSearchInput"
@@ -1677,10 +1724,13 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       expect(
         document.getElementById("serverVersionFilter")
       ).toBeInTheDocument();
-      expect(screen.getByTitle("Minecraft Version")).toBeInTheDocument();
+      expect(screen.getByText("Minecraft Version")).toBeInTheDocument();
     });
 
     test("version filter contains all unique versions from servers", async () => {
@@ -1689,6 +1739,9 @@ describe("ServerDashboard", () => {
       await waitFor(() => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
+
+      const user = userEvent.setup();
+      await openFilters(user);
 
       const versionFilter = document.getElementById(
         "serverVersionFilter"
@@ -1712,6 +1765,8 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
+
       const versionFilter = document.getElementById(
         "serverVersionFilter"
       ) as HTMLSelectElement;
@@ -1731,6 +1786,8 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
+
       const versionFilter = document.getElementById(
         "serverVersionFilter"
       ) as HTMLSelectElement;
@@ -1755,6 +1812,7 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
 
       // Filter by paper type and 1.20.6 version
       const typeFilter = document.getElementById(
@@ -1782,6 +1840,9 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
+      const user = userEvent.setup();
+      await openFilters(user);
+
       const sortSelect = document.getElementById(
         "serverSortBy"
       ) as HTMLSelectElement;
@@ -1796,6 +1857,8 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
+
       const sortSelect = document.getElementById(
         "serverSortBy"
       ) as HTMLSelectElement;
@@ -1828,6 +1891,7 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
 
       // Switch to name sorting first
       const sortSelect = document.getElementById(
@@ -1841,7 +1905,7 @@ describe("ServerDashboard", () => {
       expect(serverCards[1]?.textContent).toBe("Test Server 1");
 
       // Click sort order button to change to ascending (A-Z) - starts as descending by default
-      const sortButton = screen.getByTitle("Z-A");
+      const sortButton = screen.getByText(/↓.*Z-A/);
       await user.click(sortButton);
 
       // Now should be ascending - Test Server 1, Test Server 2
@@ -1849,8 +1913,8 @@ describe("ServerDashboard", () => {
       expect(serverCards[0]?.textContent).toBe("Test Server 1");
       expect(serverCards[1]?.textContent).toBe("Test Server 2");
 
-      // Button title should change
-      expect(screen.getByTitle("A-Z")).toBeInTheDocument();
+      // Button text should change
+      expect(screen.getByText(/↑.*A-Z/)).toBeInTheDocument();
     });
 
     test("sorting works with filters", async () => {
@@ -1861,6 +1925,7 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
 
       // Filter by vanilla type (only Test Server 1)
       const typeFilter = document.getElementById(
@@ -1888,10 +1953,11 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       });
 
-      // Initially no reset button should be visible (all filters at default)
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
-
       const user = userEvent.setup();
+      await openFilters(user);
+
+      // Initially no reset button should be visible (all filters at default)
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
 
       // Apply a filter
       const typeFilter = document.getElementById(
@@ -1899,8 +1965,8 @@ describe("ServerDashboard", () => {
       ) as HTMLSelectElement;
       await user.selectOptions(typeFilter, "vanilla");
 
-      // Now reset button should be visible
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      // Now reset button should be visible (filters are open and have active filters)
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
     });
 
     test("resets all filters when reset button is clicked", async () => {
@@ -1911,6 +1977,7 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
 
       // Apply various filters
       const typeFilter = document.getElementById(
@@ -1936,7 +2003,7 @@ describe("ServerDashboard", () => {
       await user.selectOptions(sortSelect, "name");
 
       // Change sort order
-      const sortButton = screen.getByTitle("Z-A");
+      const sortButton = screen.getByText(/↓.*Z-A/);
       await user.click(sortButton);
 
       // Verify filters are applied
@@ -1945,10 +2012,10 @@ describe("ServerDashboard", () => {
       expect(versionFilter.value).toBe("1.21.5");
       expect(searchInput.value).toBe("test");
       expect(sortSelect.value).toBe("name");
-      expect(screen.getByTitle("A-Z")).toBeInTheDocument(); // Sort order changed
+      expect(screen.getByText(/↑.*A-Z/)).toBeInTheDocument(); // Sort order changed
 
       // Click reset button
-      const resetButton = screen.getByText("Reset Filters");
+      const resetButton = screen.getByText(/Reset Filters/);
       await user.click(resetButton);
 
       // Verify all filters are reset to defaults
@@ -1957,10 +2024,10 @@ describe("ServerDashboard", () => {
       expect(versionFilter.value).toBe("all");
       expect(searchInput.value).toBe("");
       expect(sortSelect.value).toBe("status");
-      expect(screen.getByTitle("Z-A")).toBeInTheDocument(); // Sort order reset
+      expect(screen.getByText(/↓.*Z-A/)).toBeInTheDocument(); // Sort order reset
 
       // Reset button should be hidden again
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
     });
 
     test("reset button appears for each type of filter change", async () => {
@@ -1971,66 +2038,67 @@ describe("ServerDashboard", () => {
       });
 
       const user = userEvent.setup();
+      await openFilters(user);
 
       // Test server type filter
       const typeFilter = document.getElementById(
         "serverTypeFilter"
       ) as HTMLSelectElement;
       await user.selectOptions(typeFilter, "paper");
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
 
-      const resetButton1 = screen.getByText("Reset Filters");
+      const resetButton1 = screen.getByText(/Reset Filters/);
       await user.click(resetButton1);
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
 
       // Test server status filter
       const statusFilter = document.getElementById(
         "serverStatusFilter"
       ) as HTMLSelectElement;
       await user.selectOptions(statusFilter, "stopped");
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
 
-      const resetButton2 = screen.getByText("Reset Filters");
+      const resetButton2 = screen.getByText(/Reset Filters/);
       await user.click(resetButton2);
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
 
       // Test search input
       const searchInput = document.getElementById(
         "serverSearchInput"
       ) as HTMLInputElement;
       await user.type(searchInput, "search");
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
 
-      const resetButton3 = screen.getByText("Reset Filters");
+      const resetButton3 = screen.getByText(/Reset Filters/);
       await user.click(resetButton3);
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
 
       // Test version filter
       const versionFilter = document.getElementById(
         "serverVersionFilter"
       ) as HTMLSelectElement;
       await user.selectOptions(versionFilter, "1.21.5");
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
 
-      const resetButton4 = screen.getByText("Reset Filters");
+      const resetButton4 = screen.getByText(/Reset Filters/);
       await user.click(resetButton4);
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
 
       // Test sort change
       const sortSelect = document.getElementById(
         "serverSortBy"
       ) as HTMLSelectElement;
       await user.selectOptions(sortSelect, "name");
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
 
-      const resetButton5 = screen.getByText("Reset Filters");
+      const resetButton5 = screen.getByText(/Reset Filters/);
       await user.click(resetButton5);
-      expect(screen.queryByText("Reset Filters")).not.toBeInTheDocument();
+      expect(screen.queryByText(/Reset Filters/)).not.toBeInTheDocument();
 
       // Test sort order change
-      const sortButton = screen.getByTitle("Z-A");
+      const sortButton = screen.getByText(/↓.*Z-A/);
       await user.click(sortButton);
-      expect(screen.getByText("Reset Filters")).toBeInTheDocument();
+      expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
     });
 
     test("reset restores original server list display", async () => {
@@ -2047,6 +2115,8 @@ describe("ServerDashboard", () => {
       expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       expect(screen.getByText("Test Server 2")).toBeInTheDocument();
 
+      await openFilters(user);
+
       // Apply filter that hides one server
       const typeFilter = document.getElementById(
         "serverTypeFilter"
@@ -2059,7 +2129,7 @@ describe("ServerDashboard", () => {
       expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
 
       // Reset filters
-      const resetButton = screen.getByText("Reset Filters");
+      const resetButton = screen.getByText(/Reset Filters/);
       await user.click(resetButton);
 
       // Should show both servers again

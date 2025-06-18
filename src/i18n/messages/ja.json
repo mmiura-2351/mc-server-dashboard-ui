@@ -191,9 +191,12 @@
         "name": "名前",
         "status": "ステータス",
         "created": "作成日",
+        "order": "並び順",
         "ascending": "昇順",
         "descending": "降順"
       },
+      "filterBy": "フィルター",
+      "sortBy": "ソート",
       "reset": "フィルターリセット",
       "resultsCount": "{total}台中{count}台のサーバーを表示"
     },

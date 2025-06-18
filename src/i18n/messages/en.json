@@ -191,9 +191,12 @@
         "name": "Name",
         "status": "Status",
         "created": "Created Date",
+        "order": "Sort Order",
         "ascending": "A-Z",
         "descending": "Z-A"
       },
+      "filterBy": "Filter",
+      "sortBy": "Sort",
       "reset": "Reset Filters",
       "resultsCount": "Showing {count} of {total} servers"
     },
