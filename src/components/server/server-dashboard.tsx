@@ -6,17 +6,46 @@ import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type { MinecraftServer, ServerTemplate } from "@/types/server";
-import { ServerType, ServerStatus, MINECRAFT_VERSIONS } from "@/types/server";
+import { ServerType, ServerStatus } from "@/types/server";
 import styles from "./server-dashboard.module.css";
+
+// Fallback versions if API call fails
+const FALLBACK_VERSIONS = [
+  "1.21.5",
+  "1.21.4",
+  "1.21.3",
+  "1.21.2",
+  "1.21.1",
+  "1.21",
+  "1.20.6",
+  "1.20.5",
+  "1.20.4",
+  "1.20.3",
+  "1.20.2",
+  "1.20.1",
+  "1.20",
+];
 
 export function ServerDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
+
+  // Helper function to get a safe minecraft version
+  const getDefaultMinecraftVersion = (): string => {
+    if (supportedVersions.length > 0) {
+      const firstVersion = supportedVersions[0];
+      if (firstVersion) return firstVersion;
+    }
+    return FALLBACK_VERSIONS[0] as string;
+  };
   const [servers, setServers] = useState<MinecraftServer[]>([]);
   const [, setTemplates] = useState<ServerTemplate[]>([]);
+  const [supportedVersions, setSupportedVersions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [versionError, setVersionError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [modalTab, setModalTab] = useState<"create" | "import">("create");
   const [isCreating, setIsCreating] = useState(false);
@@ -31,7 +60,7 @@ export function ServerDashboard() {
     description: string;
   }>({
     name: "",
-    minecraft_version: "1.21.5",
+    minecraft_version: "",
     server_type: ServerType.VANILLA,
     max_memory: 2048,
     description: "",
@@ -50,7 +79,7 @@ export function ServerDashboard() {
   const resetForms = () => {
     setCreateForm({
       name: "",
-      minecraft_version: "1.21.5",
+      minecraft_version: getDefaultMinecraftVersion(),
       server_type: ServerType.VANILLA,
       max_memory: 2048,
       description: "",
@@ -72,6 +101,38 @@ export function ServerDashboard() {
     setModalTab(tab);
     // Don't reset forms on tab switch to preserve user input
   };
+
+  const loadSupportedVersions = useCallback(async () => {
+    setIsLoadingVersions(true);
+    setVersionError(null);
+
+    const result = await serverService.getSupportedVersions();
+    if (result.isOk()) {
+      setSupportedVersions(result.value);
+      // Update form if no version is selected yet
+      if (!createForm.minecraft_version && result.value.length > 0) {
+        const firstVersion = result.value[0];
+        if (firstVersion) {
+          setCreateForm((prev) => ({
+            ...prev,
+            minecraft_version: firstVersion,
+          }));
+        }
+      }
+    } else {
+      // Use fallback versions if API call fails
+      setSupportedVersions(FALLBACK_VERSIONS);
+      setVersionError(t("servers.create.errors.failedToLoadVersions"));
+      // Update form if no version is selected yet
+      if (!createForm.minecraft_version) {
+        setCreateForm((prev) => ({
+          ...prev,
+          minecraft_version: FALLBACK_VERSIONS[0] as string,
+        }));
+      }
+    }
+    setIsLoadingVersions(false);
+  }, [t, createForm.minecraft_version]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -108,7 +169,8 @@ export function ServerDashboard() {
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    loadSupportedVersions();
+  }, [loadData, loadSupportedVersions]);
 
   // Status polling effect for servers in transitional states
   useEffect(() => {
@@ -404,13 +466,27 @@ export function ServerDashboard() {
                         minecraft_version: e.target.value,
                       })
                     }
+                    disabled={isLoadingVersions}
                   >
-                    {MINECRAFT_VERSIONS.map((version) => (
-                      <option key={version} value={version}>
-                        {version}
+                    {isLoadingVersions ? (
+                      <option value="">
+                        {t("servers.create.loadingVersions")}
                       </option>
-                    ))}
+                    ) : supportedVersions.length > 0 ? (
+                      supportedVersions.map((version) => (
+                        <option key={version} value={version}>
+                          {version}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">
+                        {t("servers.create.noVersionsAvailable")}
+                      </option>
+                    )}
                   </select>
+                  {versionError && (
+                    <div className={styles.errorText}>{versionError}</div>
+                  )}
                 </div>
 
                 <div className={styles.field}>
