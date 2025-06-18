@@ -8,7 +8,7 @@ import {
   DEFAULT_UPLOAD_CONFIG,
 } from "@/utils/file-upload-security";
 import { InputSanitizer } from "@/utils/input-sanitizer";
-import { formatFileSize } from "@/utils/format";
+import { formatFileSize, formatDateTime } from "@/utils/format";
 import { ConfirmationModal, AlertModal } from "@/components/modal";
 import { useTranslation } from "@/contexts/language";
 import styles from "./file-explorer.module.css";
@@ -1103,10 +1103,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
-  };
-
   // Helper function to render breadcrumb with truncation for long paths
   const renderBreadcrumb = () => {
     if (currentPath === "/") {
@@ -1345,7 +1341,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
                   {!file.is_directory ? formatFileSize(file.size || 0) : "—"}
                 </div>
                 <div className={styles.fileDate}>
-                  {file.modified ? formatDate(file.modified) : "—"}
+                  {file.modified ? formatDateTime(file.modified) : "—"}
                 </div>
               </div>
             ))}

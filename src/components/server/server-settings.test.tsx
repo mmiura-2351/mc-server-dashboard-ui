@@ -94,7 +94,7 @@ describe("ServerSettings", () => {
     expect(screen.getByText("1.21.5")).toBeInTheDocument();
     expect(screen.getByText("vanilla")).toBeInTheDocument();
     expect(screen.getByText("25565")).toBeInTheDocument();
-    expect(screen.getByText("1/1/2025")).toBeInTheDocument();
+    expect(screen.getByText("2025/01/01")).toBeInTheDocument();
   });
 
   test("should handle input changes", async () => {
