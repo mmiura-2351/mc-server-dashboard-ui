@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import type { LoginRequest } from "@/types/auth";
 import { InputSanitizer } from "@/utils/input-sanitizer";
 import styles from "./auth-form.module.css";
@@ -13,6 +14,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<LoginRequest>({
     username: "",
     password: "",
@@ -32,22 +34,22 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
 
     // Enhanced validation
     if (!sanitizedUsername) {
-      setError("Username is required and must contain only valid characters");
+      setError(t("auth.errors.usernameRequired"));
       return;
     }
 
     if (!sanitizedPassword) {
-      setError("Password is required");
+      setError(t("auth.errors.passwordRequired"));
       return;
     }
 
     if (sanitizedUsername.length < 3) {
-      setError("Username must be at least 3 characters long");
+      setError(t("auth.errors.usernameMinLength"));
       return;
     }
 
     if (sanitizedPassword.length < 6) {
-      setError("Password must be at least 6 characters long");
+      setError(t("auth.errors.passwordMinLength"));
       return;
     }
 
@@ -64,15 +66,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         result.error.status === 403 &&
         result.error.message.includes("pending approval")
       ) {
-        setError(
-          "Your account is pending approval. Please wait for an administrator to approve your account before you can log in."
-        );
+        setError(t("auth.errors.pendingApproval"));
       } else if (result.error.status === 401) {
-        setError("Invalid username or password");
+        setError(t("auth.errors.invalidCredentials"));
       } else if (result.error.status === 429) {
-        setError("Too many login attempts. Please try again later.");
+        setError(t("auth.errors.tooManyAttempts"));
       } else {
-        setError("Login failed. Please try again.");
+        setError(t("auth.errors.loginFailed"));
       }
       return;
     }
@@ -106,7 +106,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <h2 className={styles.title}>Login</h2>
+      <h2 className={styles.title}>{t("auth.login")}</h2>
 
       {error && (
         <div className={styles.error} role="alert">
@@ -116,7 +116,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
 
       <div className={styles.field}>
         <label htmlFor="username" className={styles.label}>
-          Username
+          {t("auth.username")}
         </label>
         <input
           id="username"
@@ -130,13 +130,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           minLength={3}
           maxLength={50}
           pattern="[a-zA-Z0-9._-]+"
-          title="Username must contain only letters, numbers, dots, underscores, and hyphens"
+          title={t("auth.usernameTooltip")}
         />
       </div>
 
       <div className={styles.field}>
         <label htmlFor="password" className={styles.label}>
-          Password
+          {t("auth.password")}
         </label>
         <input
           id="password"
@@ -158,19 +158,19 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         className={styles.submitButton}
         disabled={isLoading}
       >
-        {isLoading ? "Logging in..." : "Login"}
+        {isLoading ? t("auth.loggingIn") : t("auth.login")}
       </button>
 
       {onSwitchToRegister && (
         <p className={styles.switchText}>
-          Don&apos;t have an account?{" "}
+          {t("auth.dontHaveAccount")}{" "}
           <button
             type="button"
             onClick={onSwitchToRegister}
             className={styles.switchButton}
             disabled={isLoading}
           >
-            Register here
+            {t("auth.registerHere")}
           </button>
         </p>
       )}

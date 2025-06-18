@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import type { UserCreate } from "@/types/auth";
 import { InputSanitizer } from "@/utils/input-sanitizer";
 import styles from "./auth-form.module.css";
@@ -16,6 +17,7 @@ export function RegisterForm({
   onSwitchToLogin,
 }: RegisterFormProps) {
   const { register, isLoading } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<UserCreate>({
     username: "",
     email: "",
@@ -40,40 +42,40 @@ export function RegisterForm({
 
     // Enhanced validation
     if (!sanitizedUsername) {
-      setError("Username is required and must contain only valid characters");
+      setError(t("auth.errors.usernameRequired"));
       return;
     }
 
     if (!sanitizedEmail) {
-      setError("Email is required and must be valid");
+      setError(t("auth.errors.emailRequired"));
       return;
     }
 
     if (!sanitizedPassword) {
-      setError("Password is required");
+      setError(t("auth.errors.passwordRequired"));
       return;
     }
 
     if (!sanitizedConfirmPassword) {
-      setError("Password confirmation is required");
+      setError(t("auth.errors.confirmPasswordRequired"));
       return;
     }
 
     // Username validation
     if (sanitizedUsername.length < 3) {
-      setError("Username must be at least 3 characters long");
+      setError(t("auth.errors.usernameMinLength"));
       return;
     }
 
     if (sanitizedUsername.length > 50) {
-      setError("Username must not exceed 50 characters");
+      setError(t("auth.errors.usernameRequired")); // Reuse for now, or add specific key
       return;
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(sanitizedEmail)) {
-      setError("Please enter a valid email address");
+      setError(t("auth.errors.emailInvalid"));
       return;
     }
 
@@ -81,12 +83,14 @@ export function RegisterForm({
     const passwordValidation =
       InputSanitizer.validatePassword(sanitizedPassword);
     if (!passwordValidation.isValid) {
-      setError(passwordValidation.errors[0] || "Password validation failed"); // Show first error
+      setError(
+        passwordValidation.errors[0] || t("auth.errors.passwordMinLength")
+      ); // Show first error
       return;
     }
 
     if (sanitizedPassword !== sanitizedConfirmPassword) {
-      setError("Passwords do not match");
+      setError(t("auth.errors.passwordsDoNotMatch"));
       return;
     }
 
@@ -99,11 +103,11 @@ export function RegisterForm({
     if (result.isErr()) {
       // Handle specific error cases
       if (result.error.status === 409) {
-        setError("Username or email already exists");
+        setError(t("auth.errors.usernameExists"));
       } else if (result.error.status === 422) {
-        setError("Invalid input data. Please check your entries.");
+        setError(t("auth.errors.emailRequired"));
       } else {
-        setError("Registration failed. Please try again.");
+        setError(t("auth.errors.registrationFailed"));
       }
       return;
     }
@@ -111,11 +115,9 @@ export function RegisterForm({
     // Check user approval status
     const user = result.value;
     if (user.is_approved) {
-      setSuccess("Registration successful! You can now log in.");
+      setSuccess(t("messages.registrationSuccess"));
     } else {
-      setSuccess(
-        "Registration successful! Your account is pending approval. Please wait for an administrator to approve your account before you can log in."
-      );
+      setSuccess(t("messages.registrationSuccessPending"));
     }
 
     setFormData({ username: "", email: "", password: "" });
@@ -159,7 +161,7 @@ export function RegisterForm({
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <h2 className={styles.title}>Register</h2>
+      <h2 className={styles.title}>{t("auth.register")}</h2>
 
       {error && (
         <div className={styles.error} role="alert">
@@ -175,7 +177,7 @@ export function RegisterForm({
 
       <div className={styles.field}>
         <label htmlFor="username" className={styles.label}>
-          Username
+          {t("auth.username")}
         </label>
         <input
           id="username"
@@ -189,14 +191,14 @@ export function RegisterForm({
           minLength={3}
           maxLength={50}
           pattern="[a-zA-Z0-9._-]+"
-          title="Username must contain only letters, numbers, dots, underscores, and hyphens"
+          title={t("auth.usernameTooltip")}
           autoComplete="username"
         />
       </div>
 
       <div className={styles.field}>
         <label htmlFor="email" className={styles.label}>
-          Email
+          {t("auth.email")}
         </label>
         <input
           id="email"
@@ -214,7 +216,7 @@ export function RegisterForm({
 
       <div className={styles.field}>
         <label htmlFor="password" className={styles.label}>
-          Password
+          {t("auth.password")}
         </label>
         <input
           id="password"
@@ -228,13 +230,13 @@ export function RegisterForm({
           minLength={8}
           maxLength={128}
           autoComplete="new-password"
-          title="Password must be at least 8 characters with uppercase, lowercase, number, and special character"
+          title={t("auth.errors.passwordMinLength")}
         />
       </div>
 
       <div className={styles.field}>
         <label htmlFor="confirmPassword" className={styles.label}>
-          Confirm Password
+          {t("auth.confirmPassword")}
         </label>
         <input
           id="confirmPassword"
@@ -256,19 +258,19 @@ export function RegisterForm({
         className={styles.submitButton}
         disabled={isLoading}
       >
-        {isLoading ? "Registering..." : "Register"}
+        {isLoading ? t("auth.registering") : t("auth.register")}
       </button>
 
       {onSwitchToLogin && (
         <p className={styles.switchText}>
-          Already have an account?{" "}
+          {t("auth.alreadyHaveAccount")}{" "}
           <button
             type="button"
             onClick={onSwitchToLogin}
             className={styles.switchButton}
             disabled={isLoading}
           >
-            Login here
+            {t("auth.loginHere")}
           </button>
         </p>
       )}

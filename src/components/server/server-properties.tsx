@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
+import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type { ServerProperties } from "@/types/server";
 import styles from "./server-properties.module.css";
@@ -10,94 +11,32 @@ interface ServerPropertiesEditorProps {
   serverId: number;
 }
 
-// Common property labels with more additions
-const PROPERTY_LABELS: Record<string, string> = {
-  "server-port": "Server Port",
-  "max-players": "Max Players",
-  difficulty: "Difficulty",
-  gamemode: "Game Mode",
-  pvp: "PVP",
-  "spawn-protection": "Spawn Protection",
-  "view-distance": "View Distance",
-  "simulation-distance": "Simulation Distance",
-  "enable-command-block": "Enable Command Block",
-  motd: "MOTD (Server Message)",
-  "white-list": "Whitelist",
-  "online-mode": "Online Mode",
-  "allow-flight": "Allow Flight",
-  "spawn-monsters": "Spawn Monsters",
-  "spawn-animals": "Spawn Animals",
-  "spawn-npcs": "Spawn NPCs",
-  hardcore: "Hardcore Mode",
-  "level-name": "World Name",
-  "level-seed": "World Seed",
-  "level-type": "World Type",
-  "generate-structures": "Generate Structures",
-  "max-world-size": "Max World Size",
-  "max-build-height": "Max Build Height",
-  "server-ip": "Server IP",
-  "resource-pack": "Resource Pack URL",
-  "resource-pack-sha1": "Resource Pack SHA1",
-  "force-gamemode": "Force Gamemode",
-  "allow-nether": "Allow Nether",
-  "enforce-whitelist": "Enforce Whitelist",
-  "enable-query": "Enable Query",
-  "enable-rcon": "Enable RCON",
-  "rcon.password": "RCON Password",
-  "rcon.port": "RCON Port",
-  "query.port": "Query Port",
-  "player-idle-timeout": "Player Idle Timeout",
-  "broadcast-console-to-ops": "Broadcast Console to Ops",
-  "broadcast-rcon-to-ops": "Broadcast RCON to Ops",
-  "op-permission-level": "OP Permission Level",
-  "enable-jmx-monitoring": "Enable JMX Monitoring",
-  "sync-chunk-writes": "Sync Chunk Writes",
-  "enable-status": "Enable Status",
-  "entity-broadcast-range-percentage": "Entity Broadcast Range %",
-  "rate-limit": "Rate Limit",
-  "network-compression-threshold": "Network Compression Threshold",
-  "use-native-transport": "Use Native Transport",
-  "prevent-proxy-connections": "Prevent Proxy Connections",
-  "hide-online-players": "Hide Online Players",
-  "require-resource-pack": "Require Resource Pack",
-  "resource-pack-prompt": "Resource Pack Prompt",
-};
+// Helper function to get property labels from translations
+function getPropertyLabel(key: string, t: (key: string) => string): string {
+  // Try to get translation with fallback to key
+  const translationKey = `servers.properties.labels.${key}`;
+  const translated = t(translationKey);
+  // If translation returns the key itself, it means translation is missing
+  return translated === translationKey ? key : translated;
+}
 
-// Common property descriptions for better UX
-const PROPERTY_DESCRIPTIONS: Record<string, string> = {
-  "server-port": "Port number for the server (default: 25565)",
-  "max-players": "Maximum number of players (default: 20)",
-  difficulty: "Difficulty level (peaceful/easy/normal/hard or 0/1/2/3)",
-  gamemode:
-    "Default game mode (survival/creative/adventure/spectator or 0/1/2/3)",
-  pvp: "Player vs Player combat (true/false)",
-  "spawn-protection": "Spawn protection radius in blocks (default: 16)",
-  "view-distance": "View distance in chunks (default: 10)",
-  "simulation-distance": "Simulation distance in chunks (default: 10)",
-  "enable-command-block": "Enable command blocks (true/false)",
-  motd: "Message of the day displayed in server list",
-  "white-list": "Enable whitelist mode (true/false)",
-  "online-mode": "Verify player accounts with Mojang (true/false)",
-  "allow-flight": "Allow flight in survival mode (true/false)",
-  "spawn-monsters": "Spawn hostile mobs (true/false)",
-  "spawn-animals": "Spawn animals (true/false)",
-  "spawn-npcs": "Spawn NPCs/villagers (true/false)",
-  hardcore: "Hardcore mode - ban on death (true/false)",
-  "level-name": "World/level name (default: world)",
-  "level-seed": "World generation seed (leave empty for random)",
-  "level-type": "World type (minecraft:normal/flat/amplified/etc)",
-  "generate-structures": "Generate structures like villages (true/false)",
-  "enforce-whitelist": "Enforce whitelist for existing players (true/false)",
-  "enable-query": "Enable GameSpy4 protocol server listener (true/false)",
-  "enable-rcon": "Enable remote console (true/false)",
-  "rcon.password": "Remote console password",
-  "rcon.port": "Remote console port (default: 25575)",
-};
+// Helper function to get property descriptions from translations
+function getPropertyDescription(
+  key: string,
+  t: (key: string) => string
+): string {
+  // Try to get translation with fallback to empty string
+  const translationKey = `servers.properties.descriptions.${key}`;
+  const translated = t(translationKey);
+  // If translation returns the key itself, it means translation is missing
+  return translated === translationKey ? "" : translated;
+}
 
 export function ServerPropertiesEditor({
   serverId,
 }: ServerPropertiesEditorProps) {
   const { logout } = useAuth();
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<ServerProperties | null>(null);
   const [editedProperties, setEditedProperties] = useState<
     Partial<ServerProperties>
@@ -201,7 +140,7 @@ export function ServerPropertiesEditor({
     });
 
     if (Object.keys(changedProperties).length === 0) {
-      setError("No changes to save");
+      setError(t("servers.properties.noChanges"));
       setIsSaving(false);
       return;
     }
@@ -211,7 +150,7 @@ export function ServerPropertiesEditor({
       changedProperties
     );
     if (result.isOk()) {
-      setSuccessMessage("Server properties updated successfully");
+      setSuccessMessage(t("servers.properties.updated"));
       const updatedProperties = properties
         ? { ...properties, ...changedProperties }
         : null;
@@ -240,7 +179,11 @@ export function ServerPropertiesEditor({
     );
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading server properties...</div>;
+    return (
+      <div className={styles.loading}>
+        {t("servers.properties.loadingProperties")}
+      </div>
+    );
   }
 
   // Render property input with appropriate control based on initial value type
@@ -248,13 +191,8 @@ export function ServerPropertiesEditor({
     key: string,
     value: string | number | boolean
   ) => {
-    const label =
-      PROPERTY_LABELS[key] ||
-      key
-        .replace(/-/g, " ")
-        .replace(/\./g, " ")
-        .replace(/\b\w/g, (l) => l.toUpperCase());
-    const description = PROPERTY_DESCRIPTIONS[key];
+    const label = getPropertyLabel(key, t);
+    const description = getPropertyDescription(key, t);
 
     // Check if the initial value (from original properties) was a boolean
     const initialValue = properties ? properties[key] : value;
@@ -296,13 +234,17 @@ export function ServerPropertiesEditor({
   if (error && !properties) {
     return (
       <div className={styles.error}>
-        <p>Failed to load server properties: {error}</p>
+        <p>
+          {t("servers.properties.loadError")}: {error}
+        </p>
       </div>
     );
   }
 
   if (!properties) {
-    return <div className={styles.error}>No properties available</div>;
+    return (
+      <div className={styles.error}>{t("servers.properties.noProperties")}</div>
+    );
   }
 
   // Sort properties alphabetically for easy navigation
@@ -311,15 +253,13 @@ export function ServerPropertiesEditor({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>Server Properties</h2>
+        <h2>{t("servers.properties.title")}</h2>
         <p className={styles.description}>
-          Configure your Minecraft server settings. Changes will be applied
-          after server restart.
+          {t("servers.properties.description")}
           {fileNotFound && (
             <>
               <br />
-              <strong>Note:</strong> Properties file was not found, showing
-              default values.
+              <strong>{t("servers.properties.fileNotFound")}</strong>
             </>
           )}
         </p>
@@ -353,11 +293,9 @@ export function ServerPropertiesEditor({
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.section}>
-          <h3>Server Properties</h3>
+          <h3>{t("servers.properties.title")}</h3>
           <p className={styles.sectionDescription}>
-            All properties are editable as text values. Boolean values should be
-            &quot;true&quot; or &quot;false&quot;, numbers as digits, and text
-            as-is. Refer to the descriptions for guidance.
+            {t("servers.properties.guidance")}
           </p>
           <div className={styles.propertyGrid}>
             {propertyKeys.map((key) => {
@@ -377,7 +315,7 @@ export function ServerPropertiesEditor({
             className={styles.resetButton}
             disabled={isSaving || !hasChanges}
           >
-            Reset Changes
+            {t("servers.properties.resetChanges")}
           </button>
           <button
             type="submit"
@@ -385,10 +323,10 @@ export function ServerPropertiesEditor({
             disabled={isSaving || !hasChanges}
           >
             {isSaving
-              ? "Saving..."
+              ? t("servers.properties.saving")
               : fileNotFound
-                ? "Create Properties File"
-                : "Save Properties"}
+                ? t("servers.properties.createFile")
+                : t("servers.properties.saveProperties")}
           </button>
         </div>
       </form>
