@@ -73,18 +73,23 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   // Refresh files function for manual triggers
   const refreshFiles = useCallback(async () => {
+    console.log("refreshFiles: Starting refresh", { serverId, currentPath });
     setIsLoading(true);
     setError(null);
 
     const result = await fileService.listFiles(serverId, currentPath);
+    console.log("refreshFiles: API result", result);
 
     if (result.isOk()) {
+      console.log("refreshFiles: Setting files", result.value.length, "files");
       setFiles(result.value);
     } else {
+      console.error("refreshFiles: API error", result.error);
       setError(result.error.message);
     }
 
     setIsLoading(false);
+    console.log("refreshFiles: Completed");
   }, [serverId, currentPath, setIsLoading, setError, setFiles]);
 
   // Load files when path changes
@@ -369,8 +374,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       const hasAnySuccess = successCount > 0;
 
       // FORCE refresh after any upload attempt (temporary debug)
+      console.log("FileExplorer: About to call refreshFiles");
       try {
         await refreshFiles();
+        console.log("FileExplorer: refreshFiles completed successfully");
       } catch (error) {
         console.error("Failed to refresh files after upload:", error);
       }

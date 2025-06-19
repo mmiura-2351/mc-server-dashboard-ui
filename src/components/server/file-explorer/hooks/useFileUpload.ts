@@ -44,6 +44,12 @@ export function useFileUpload(serverId: number) {
 
   const handleFileUpload = useCallback(
     async (files: File[], isFolder = false, currentPath: string) => {
+      console.log("useFileUpload: Starting upload", {
+        fileCount: files.length,
+        isFolder,
+        currentPath,
+      });
+
       if (files.length === 0)
         return { success: false, warnings: [], blocked: [] };
 
@@ -116,6 +122,8 @@ export function useFileUpload(serverId: number) {
         }
 
         if (result.isOk()) {
+          console.log("useFileUpload: Upload API succeeded", result.value);
+
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
