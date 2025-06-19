@@ -194,7 +194,7 @@ export function useFileUpload(serverId: number) {
   }, []);
 
   const handleDrop = useCallback(
-    (
+    async (
       e: React.DragEvent,
       currentPath: string,
       onFileUpload?: (files: File[], isFolder?: boolean) => void
@@ -243,7 +243,8 @@ export function useFileUpload(serverId: number) {
         return entry ? processEntry(entry) : Promise.resolve();
       });
 
-      Promise.all(promises).then(() => {
+      try {
+        await Promise.all(promises);
         if (files.length > 0) {
           const hasDirectoryStructure = files.some((f) =>
             (
@@ -259,7 +260,9 @@ export function useFileUpload(serverId: number) {
             handleFileUpload(files, hasDirectoryStructure, currentPath);
           }
         }
-      });
+      } catch (error) {
+        console.error("Error processing dropped files:", error);
+      }
     },
     [handleFileUpload]
   );

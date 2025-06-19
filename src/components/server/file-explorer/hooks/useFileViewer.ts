@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { ok, err, Result } from "neverthrow";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
 
@@ -70,11 +71,15 @@ export function useFileViewer(serverId: number) {
           if (result.isOk()) {
             const url = URL.createObjectURL(result.value);
             setImageUrl(url);
+          } else {
+            console.error("Error loading image file:", result.error);
           }
         } else if (isTextFile(file.name)) {
           const result = await fileService.readTextFile(serverId, filePath);
           if (result.isOk()) {
             setFileContent(result.value.content);
+          } else {
+            console.error("Error loading text file:", result.error);
           }
         }
       } catch (error) {
@@ -112,8 +117,9 @@ export function useFileViewer(serverId: number) {
   }, []);
 
   const saveFile = useCallback(
-    async (currentPath: string) => {
-      if (!selectedFile || !isEditing) return { success: false };
+    async (currentPath: string): Promise<Result<void, string>> => {
+      if (!selectedFile || !isEditing)
+        return err("No file selected or not in editing mode");
 
       setIsSaving(true);
 
@@ -133,15 +139,12 @@ export function useFileViewer(serverId: number) {
           setFileContent(editedContent);
           setIsEditing(false);
           setEditedContent("");
-          return { success: true };
+          return ok(undefined);
         } else {
-          return { success: false, error: result.error };
+          return err(result.error.message);
         }
       } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
+        return err(error instanceof Error ? error.message : "Unknown error");
       } finally {
         setIsSaving(false);
       }
@@ -150,8 +153,8 @@ export function useFileViewer(serverId: number) {
   );
 
   const downloadCurrentFile = useCallback(
-    async (currentPath: string) => {
-      if (!selectedFile) return { success: false };
+    async (currentPath: string): Promise<Result<void, string>> => {
+      if (!selectedFile) return err("No file selected");
 
       const filePath =
         currentPath === "/"
@@ -176,9 +179,9 @@ export function useFileViewer(serverId: number) {
         }
         URL.revokeObjectURL(url);
 
-        return { success: true };
+        return ok(undefined);
       } else {
-        return { success: false, error: result.error };
+        return err(result.error.message);
       }
     },
     [serverId, selectedFile]

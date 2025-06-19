@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { err } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
 
@@ -45,9 +45,9 @@ export function useFileOperations(serverId: number) {
   }, []);
 
   const confirmRename = useCallback(
-    async (currentPath: string) => {
+    async (currentPath: string): Promise<Result<void, string>> => {
       if (!renamingFile || !newName.trim() || newName === renamingFile.name) {
-        return { success: false, error: "Invalid rename parameters" };
+        return err("Invalid rename parameters");
       }
 
       setIsRenaming(true);
@@ -66,9 +66,9 @@ export function useFileOperations(serverId: number) {
       if (result.isOk()) {
         setRenamingFile(null);
         setNewName("");
-        return { success: true };
+        return ok(undefined);
       } else {
-        return { success: false, error: result.error };
+        return err(result.error.message);
       }
     },
     [serverId, renamingFile, newName]
@@ -86,7 +86,15 @@ export function useFileOperations(serverId: number) {
   );
 
   const deleteBulkFiles = useCallback(
-    async (files: FileSystemItem[], currentPath: string) => {
+    async (
+      files: FileSystemItem[],
+      currentPath: string
+    ): Promise<
+      Result<
+        { successCount: number; failCount: number; deletedFileNames: string[] },
+        string
+      >
+    > => {
       const selected = files.filter((f) => selectedFiles.has(f.name));
       let successCount = 0;
       let failCount = 0;
@@ -114,7 +122,7 @@ export function useFileOperations(serverId: number) {
         });
       }
 
-      return { successCount, failCount, deletedFileNames };
+      return ok({ successCount, failCount, deletedFileNames });
     },
     [serverId, selectedFiles]
   );
@@ -135,9 +143,12 @@ export function useFileOperations(serverId: number) {
   );
 
   const downloadBulkFiles = useCallback(
-    async (_files: FileSystemItem[], _currentPath: string) => {
+    async (
+      _files: FileSystemItem[],
+      _currentPath: string
+    ): Promise<Result<void, string>> => {
       // TODO: Implement bulk download functionality
-      return { success: false, error: "Bulk download not yet implemented" };
+      return err("Bulk download not yet implemented");
     },
     []
   );

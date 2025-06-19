@@ -71,8 +71,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     type: "info" as "info" | "warning" | "error",
   });
 
-  // Refresh files function for manual triggers
-  const refreshFiles = useCallback(async () => {
+  // Load files function (shared between manual refresh and automatic loading)
+  const loadFiles = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -89,23 +89,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   // Load files when path changes
   useEffect(() => {
-    const loadFiles = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      const result = await fileService.listFiles(serverId, currentPath);
-
-      if (result.isOk()) {
-        setFiles(result.value);
-      } else {
-        setError(result.error.message);
-      }
-
-      setIsLoading(false);
-    };
-
     loadFiles();
-  }, [serverId, currentPath, setIsLoading, setError, setFiles]);
+  }, [loadFiles]);
+
+  // Alias for manual refresh (for backward compatibility)
+  const refreshFiles = loadFiles;
 
   // Toast utility
   const showToast = useCallback((message: string, type: "error" | "info") => {
@@ -203,7 +191,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   const handleRenameConfirm = useCallback(async () => {
     const result = await operations.confirmRename(navigation.currentPath);
 
-    if (result.success) {
+    if (result.isOk()) {
       await refreshFiles();
       showToast(translations.renameSuccess(), "info");
     } else {
@@ -261,7 +249,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       navigation.currentPath
     );
 
-    if (result.success) {
+    if (result.isOk()) {
       // For now, show a message that bulk download is not implemented
       showToast(translations.bulkDownloadNotImplemented(), "info");
     } else {
@@ -282,26 +270,34 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         navigation.currentPath
       );
 
-      if (result.deletedFileNames.length > 0) {
-        // Update file list by removing successfully deleted files
-        navigation.setFiles((prevFiles) =>
-          prevFiles.filter((f) => !result.deletedFileNames.includes(f.name))
-        );
-      }
+      if (result.isOk()) {
+        if (result.value.deletedFileNames.length > 0) {
+          // Update file list by removing successfully deleted files
+          navigation.setFiles((prevFiles) =>
+            prevFiles.filter(
+              (f) => !result.value.deletedFileNames.includes(f.name)
+            )
+          );
+        }
 
-      if (result.failCount === 0) {
-        showToast(
-          translations.deleteMultipleSuccess(result.successCount.toString()),
-          "info"
-        );
+        if (result.value.failCount === 0) {
+          showToast(
+            translations.deleteMultipleSuccess(
+              result.value.successCount.toString()
+            ),
+            "info"
+          );
+        } else {
+          showToast(
+            translations.deletePartialSuccess(
+              result.value.successCount.toString(),
+              result.value.failCount.toString()
+            ),
+            "error"
+          );
+        }
       } else {
-        showToast(
-          translations.deletePartialSuccess(
-            result.successCount.toString(),
-            result.failCount.toString()
-          ),
-          "error"
-        );
+        showToast(result.error, "error");
       }
 
       operations.clearSelection();
@@ -489,11 +485,21 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             editedContent={viewer.editedContent}
             onClose={viewer.closeFileViewer}
             onEdit={viewer.startEdit}
-            onSave={() => viewer.saveFile(navigation.currentPath)}
+            onSave={async () => {
+              const result = await viewer.saveFile(navigation.currentPath);
+              if (result.isErr()) {
+                showToast(`Save failed: ${result.error}`, "error");
+              }
+            }}
             onCancelEdit={viewer.cancelEdit}
-            onDownload={() =>
-              viewer.downloadCurrentFile(navigation.currentPath)
-            }
+            onDownload={async () => {
+              const result = await viewer.downloadCurrentFile(
+                navigation.currentPath
+              );
+              if (result.isErr()) {
+                showToast(`Download failed: ${result.error}`, "error");
+              }
+            }}
             onContentChange={viewer.setEditedContent}
           />
         )}
