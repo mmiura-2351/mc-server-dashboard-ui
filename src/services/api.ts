@@ -135,11 +135,61 @@ async function handleSuccessResponse<T>(
 
 // Token refresh is now handled by TokenManager
 
+// Retry configuration
+export interface RetryConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+}
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1 second base delay
+  maxDelay: 5000, // 5 second maximum delay
+};
+
+// Track active refresh attempts to prevent simultaneous retries
+const activeRefreshAttempts = new Set<string>();
+
+// Utility functions for retry configuration
+export function createRetryConfig(
+  maxRetries: number = 3,
+  baseDelay: number = 1000,
+  maxDelay: number = 5000
+): RetryConfig {
+  return { maxRetries, baseDelay, maxDelay };
+}
+
+export function createNoRetryConfig(): RetryConfig {
+  return { maxRetries: 0, baseDelay: 0, maxDelay: 0 };
+}
+
+export function createAggressiveRetryConfig(): RetryConfig {
+  return { maxRetries: 5, baseDelay: 500, maxDelay: 3000 };
+}
+
+// Test utility to clear active refresh attempts
+export function clearActiveRefreshAttempts(): void {
+  activeRefreshAttempts.clear();
+}
+
 // Enhanced fetch function with automatic token refresh via TokenManager
 export async function fetchWithErrorHandling<T>(
   url: string,
   config: ApiRequestConfig = {},
-  skipAutoRefresh = false
+  skipAutoRefresh = false,
+  retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG
+): Promise<Result<T, AuthError>> {
+  return fetchWithRetry<T>(url, config, skipAutoRefresh, retryConfig, 0);
+}
+
+// Internal retry function with exponential backoff
+async function fetchWithRetry<T>(
+  url: string,
+  config: ApiRequestConfig,
+  skipAutoRefresh: boolean,
+  retryConfig: RetryConfig,
+  retryCount: number
 ): Promise<Result<T, AuthError>> {
   // Get valid token through TokenManager (handles refresh automatically)
   const token = await tokenManager.getValidAccessToken();
@@ -156,29 +206,69 @@ export async function fetchWithErrorHandling<T>(
   // Make the initial request
   const result = await fetchWithErrorHandlingInternal<T>(url, config);
 
-  // Handle 401 errors with TokenManager
+  // Handle 401 errors with retry limits and exponential backoff
   if (result.isErr() && result.error.status === 401 && !skipAutoRefresh) {
-    // Let TokenManager handle the error and potential logout
-    const handled = tokenManager.handleAPIError(
-      result.error.status || 0,
-      result.error.message
-    );
+    // Check if we've exceeded retry limits
+    if (retryCount >= retryConfig.maxRetries) {
+      return err({
+        message: "Authentication failed after maximum retries",
+        status: 401,
+      });
+    }
 
-    if (handled) {
-      // Try to get a fresh token one more time
-      const freshToken = await tokenManager.getValidAccessToken();
-      if (freshToken) {
-        // Retry the original request with new token
-        const newHeaders = new Headers(config.headers as HeadersInit);
-        newHeaders.set("Authorization", `Bearer ${freshToken}`);
+    // Create unique key for this request to prevent duplicate refresh attempts
+    const requestKey = `${url}-${JSON.stringify(config)}`;
 
-        const newConfig: ApiRequestConfig = {
-          ...config,
-          headers: newHeaders,
-        };
+    // Check if this exact request is already being retried
+    if (activeRefreshAttempts.has(requestKey)) {
+      return err({
+        message: "Refresh already in progress for this request",
+        status: 401,
+      });
+    }
 
-        return fetchWithErrorHandlingInternal<T>(url, newConfig);
+    try {
+      // Mark this request as being retried
+      activeRefreshAttempts.add(requestKey);
+
+      // Let TokenManager handle the error and potential logout
+      const handled = tokenManager.handleAPIError(
+        result.error.status || 0,
+        result.error.message
+      );
+
+      if (handled) {
+        // Apply exponential backoff delay before retry
+        if (retryCount > 0) {
+          const delay = Math.min(
+            retryConfig.baseDelay * Math.pow(2, retryCount - 1),
+            retryConfig.maxDelay
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+
+        // Try to get a fresh token
+        const freshToken = await tokenManager.getValidAccessToken();
+        if (freshToken) {
+          // Retry the original request with new token
+          return fetchWithRetry<T>(
+            url,
+            config,
+            skipAutoRefresh,
+            retryConfig,
+            retryCount + 1
+          );
+        }
       }
+
+      // If token refresh failed or wasn't handled, return auth error
+      return err({
+        message: "Authentication failed - unable to refresh token",
+        status: 401,
+      });
+    } finally {
+      // Always clean up the active refresh attempt
+      activeRefreshAttempts.delete(requestKey);
     }
   }
 
