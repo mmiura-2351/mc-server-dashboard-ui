@@ -70,8 +70,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     type: "info" as "info" | "warning" | "error",
   });
 
-  // Load files
-  const loadFiles = useCallback(async () => {
+  // Refresh files function for manual triggers
+  const refreshFiles = useCallback(async () => {
     navigation.setIsLoading(true);
     navigation.setError(null);
 
@@ -91,8 +91,26 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   // Load files when path changes
   useEffect(() => {
+    const loadFiles = async () => {
+      navigation.setIsLoading(true);
+      navigation.setError(null);
+
+      const result = await fileService.listFiles(
+        serverId,
+        navigation.currentPath
+      );
+
+      if (result.isOk()) {
+        navigation.setFiles(result.value);
+      } else {
+        navigation.setError(result.error.message);
+      }
+
+      navigation.setIsLoading(false);
+    };
+
     loadFiles();
-  }, [loadFiles, navigation.currentPath]);
+  }, [serverId, navigation]);
 
   // Toast utility
   const showToast = useCallback((message: string, type: "error" | "info") => {
@@ -191,12 +209,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     const result = await operations.confirmRename(navigation.currentPath);
 
     if (result.success) {
-      await loadFiles();
+      await refreshFiles();
       showToast(translations.renameSuccess(), "info");
     } else {
       showToast(translations.renameFailed() + ": " + result.error, "error");
     }
-  }, [operations, navigation.currentPath, loadFiles, showToast, translations]);
+  }, [
+    operations,
+    navigation.currentPath,
+    refreshFiles,
+    showToast,
+    translations,
+  ]);
 
   const handleDeleteFile = useCallback(
     (file: FileSystemItem) => {
@@ -209,7 +233,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         );
 
         if (result.isOk()) {
-          await loadFiles();
+          await refreshFiles();
           showToast(translations.deleteSuccess(file.name), "info");
         } else {
           showToast(translations.deleteFailed(file.name), "error");
@@ -230,7 +254,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       hideContextMenu,
       operations,
       navigation.currentPath,
-      loadFiles,
+      refreshFiles,
       showToast,
       translations,
     ]
@@ -344,7 +368,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       if (result.success) {
         // Refresh file list
-        await loadFiles();
+        await refreshFiles();
 
         if (result.failed && result.failed.length === 0) {
           showToast(
@@ -359,7 +383,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         }
       }
     },
-    [upload, navigation.currentPath, loadFiles, showToast, translations]
+    [upload, navigation.currentPath, refreshFiles, showToast, translations]
   );
 
   return (
@@ -435,7 +459,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         onFileSelect={operations.toggleFileSelection}
         onSelectAll={() => operations.selectAllFiles(navigation.files)}
         onClearSelection={operations.clearSelection}
-        onRefresh={loadFiles}
+        onRefresh={refreshFiles}
         onNavigateUp={navigation.navigateUp}
       />
 

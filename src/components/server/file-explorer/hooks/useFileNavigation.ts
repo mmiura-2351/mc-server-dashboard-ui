@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { FileSystemItem } from "@/types/files";
 
 export function useFileNavigation(initialPath = "/") {
@@ -34,16 +34,30 @@ export function useFileNavigation(initialPath = "/") {
     [currentPath]
   );
 
-  return {
-    currentPath,
-    files,
-    isLoading,
-    error,
-    setFiles,
-    setIsLoading,
-    setError,
-    navigateToPath,
-    navigateUp,
-    navigateToFile,
-  };
+  return useMemo(
+    () => ({
+      currentPath,
+      files,
+      isLoading,
+      error,
+      setFiles,
+      setIsLoading,
+      setError,
+      navigateToPath,
+      navigateUp,
+      navigateToFile,
+    }),
+    [
+      currentPath,
+      files,
+      isLoading,
+      error,
+      setFiles,
+      setIsLoading,
+      setError,
+      navigateToPath,
+      navigateUp,
+      navigateToFile,
+    ]
+  );
 }
