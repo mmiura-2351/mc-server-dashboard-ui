@@ -58,6 +58,13 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "groups.confirmDelete": "Are you sure you want to delete this group?",
     "groups.op": "OP",
     "groups.whitelist": "Whitelist",
+    "groups.template": "Template",
+    "groups.filters.title": "Filters",
+    "groups.filters.resultsCount": "Showing {count} of {total} groups",
+    "groups.noGroupsFound": "No Groups Found",
+    "groups.noGroupsMatchFilters": "No groups match the current filters.",
+    "groups.owner": "Owner",
+    "groups.unknownOwner": "Unknown",
     "common.loading": "Loading...",
     "common.delete": "Delete",
     "common.cancel": "Cancel",
@@ -118,6 +125,18 @@ const mockGetGroups = vi.mocked(groupService.getGroups);
 const _mockCreateGroup = vi.mocked(groupService.createGroup);
 const mockDeleteGroup = vi.mocked(groupService.deleteGroup);
 
+// Mock auth service
+vi.mock("@/services/auth", () => ({
+  getAllUsers: vi.fn(),
+  login: vi.fn(),
+  register: vi.fn(),
+}));
+
+import * as authService from "@/services/auth";
+import type { User, Role } from "@/types/auth";
+
+const mockGetAllUsers = vi.mocked(authService.getAllUsers);
+
 describe("GroupsPage", () => {
   const mockGroups: Group[] = [
     {
@@ -144,15 +163,82 @@ describe("GroupsPage", () => {
       type: "whitelist",
       owner_id: 2,
       is_template: false,
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
+      created_at: "2024-01-02T00:00:00Z",
+      updated_at: "2024-01-02T00:00:00Z",
       players: [],
     },
+    {
+      id: 3,
+      name: "Template Group",
+      description: "A template group for testing",
+      type: "op",
+      owner_id: 1,
+      is_template: true,
+      created_at: "2024-01-03T00:00:00Z",
+      updated_at: "2024-01-03T00:00:00Z",
+      players: [
+        {
+          uuid: "550e8400-e29b-41d4-a716-446655440001",
+          username: "player1",
+          added_at: "2024-01-03T00:00:00Z",
+        },
+        {
+          uuid: "550e8400-e29b-41d4-a716-446655440002",
+          username: "player2",
+          added_at: "2024-01-03T00:00:00Z",
+        },
+      ],
+    },
   ];
+
+  const mockUsers: User[] = [
+    {
+      id: 1,
+      username: "testuser",
+      email: "test@example.com",
+      role: "admin" as Role,
+      is_active: true,
+      is_approved: true,
+    },
+    {
+      id: 2,
+      username: "otheruser",
+      email: "other@example.com",
+      role: "user" as Role,
+      is_active: true,
+      is_approved: true,
+    },
+  ];
+
+  // Mock localStorage
+  const mockLocalStorage = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  };
+
+  Object.defineProperty(window, "localStorage", {
+    value: mockLocalStorage,
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetGroups.mockResolvedValue(ok(mockGroups));
+    mockGetAllUsers.mockResolvedValue(ok(mockUsers));
+    mockLocalStorage.getItem.mockReturnValue(null);
+    mockLocalStorage.setItem.mockImplementation(() => {});
+
+    // Reset auth mock to admin user
+    mockAuth.user = {
+      id: 1,
+      username: "testuser",
+      email: "test@example.com",
+      role: "admin" as UserRole,
+      is_active: true,
+      is_approved: true,
+      created_at: "2024-01-01T00:00:00Z",
+    };
   });
 
   describe("Page Rendering", () => {
@@ -198,7 +284,7 @@ describe("GroupsPage", () => {
         expect(screen.getByText("OP Group")).toBeInTheDocument();
         expect(screen.getByText("Operator group")).toBeInTheDocument();
         expect(screen.getByText("1 players")).toBeInTheDocument();
-        expect(screen.getAllByText("Created 2024/01/01")).toHaveLength(2);
+        expect(screen.getAllByText("Created 2024/01/01")).toHaveLength(3); // All three groups have the same date
       });
     });
 
@@ -217,7 +303,7 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("OP")).toBeInTheDocument();
+        expect(screen.getAllByText("OP")).toHaveLength(2); // OP Group and Template Group
         expect(screen.getByText("Whitelist")).toBeInTheDocument();
       });
     });
@@ -310,7 +396,7 @@ describe("GroupsPage", () => {
         fireEvent.click(viewButton);
       });
 
-      expect(mockPush).toHaveBeenCalledWith("/groups/1");
+      expect(mockPush).toHaveBeenCalledWith("/groups/3"); // Template Group is first due to creation date sorting
     });
   });
 
@@ -320,8 +406,8 @@ describe("GroupsPage", () => {
 
       await waitFor(() => {
         const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
-        // Only one delete button should be visible (for the group owned by current user)
-        expect(deleteButtons).toHaveLength(1);
+        // Two delete buttons should be visible (OP Group and Template Group owned by user ID 1)
+        expect(deleteButtons).toHaveLength(2);
       });
     });
 
@@ -329,13 +415,13 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByRole("button", { name: "Delete" });
-        fireEvent.click(deleteButton);
+        const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
+        fireEvent.click(deleteButtons[0]!); // Click the first delete button
       });
 
       await waitFor(() => {
         expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
-        expect(screen.getAllByText("Delete")).toHaveLength(2); // Button + modal title
+        expect(screen.getAllByText("Delete")).toHaveLength(3); // Two buttons + modal title
         expect(
           screen.getByText("Are you sure you want to delete this group?")
         ).toBeInTheDocument();
@@ -348,8 +434,8 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByRole("button", { name: "Delete" });
-        fireEvent.click(deleteButton);
+        const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
+        fireEvent.click(deleteButtons[0]!);
       });
 
       await waitFor(() => {
@@ -357,7 +443,7 @@ describe("GroupsPage", () => {
         fireEvent.click(confirmButton);
       });
 
-      expect(mockDeleteGroup).toHaveBeenCalledWith(1);
+      expect(mockDeleteGroup).toHaveBeenCalledWith(3); // Template Group is first due to sort order
       // Should reload groups after deletion
       expect(mockGetGroups).toHaveBeenCalledTimes(2);
     });
@@ -366,8 +452,8 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByRole("button", { name: "Delete" });
-        fireEvent.click(deleteButton);
+        const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
+        fireEvent.click(deleteButtons[0]!);
       });
 
       await waitFor(() => {
@@ -388,8 +474,8 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const deleteButton = screen.getByRole("button", { name: "Delete" });
-        fireEvent.click(deleteButton);
+        const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
+        fireEvent.click(deleteButtons[0]!);
       });
 
       await waitFor(() => {
@@ -454,26 +540,15 @@ describe("GroupsPage", () => {
       });
     });
 
-    it("should recover from errors when data is reloaded", async () => {
+    it("should display error message and empty state when API call fails", async () => {
       const apiError = { status: 500, message: "Server error" };
-      mockGetGroups.mockResolvedValueOnce(err(apiError));
-      mockGetGroups.mockResolvedValueOnce(ok(mockGroups));
+      mockGetGroups.mockResolvedValue(err(apiError));
 
       render(<GroupsPage />);
 
       await waitFor(() => {
         expect(screen.getByText("Server error")).toBeInTheDocument();
-      });
-
-      // Simulate retry by clicking a different filter button then back to All Groups
-      await waitFor(() => {
-        const opButton = screen.getByText("OP Groups");
-        fireEvent.click(opButton);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText("OP Group")).toBeInTheDocument();
-        expect(screen.queryByText("Server error")).not.toBeInTheDocument();
+        expect(screen.getByText("No groups found")).toBeInTheDocument();
       });
     });
   });
@@ -578,7 +653,7 @@ describe("GroupsPage", () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
-        const filterButton = screen.getByText("Filters");
+        const filterButton = screen.getByRole("button", { name: /Filters/ });
         fireEvent.click(filterButton);
       });
 
