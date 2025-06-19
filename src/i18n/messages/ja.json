@@ -485,7 +485,9 @@
     "noGroups": "グループが見つかりません。最初のグループを作成してください。",
     "notFound": "グループが見つかりません。",
     "name": "グループ名",
+    "namePlaceholder": "グループ名を入力...",
     "description": "説明",
+    "descriptionPlaceholder": "グループの説明を入力...",
     "type": "グループタイプ",
     "op": "OP",
     "whitelist": "ホワイトリスト",
@@ -513,6 +515,48 @@
       "priority": "優先度",
       "noServers": "このグループはどのサーバーにも関連付けられていません。",
       "confirmDetach": "このグループを{server}から切り離してもよろしいですか？"
-    }
+    },
+    "filters": {
+      "title": "フィルター",
+      "search": {
+        "label": "グループ検索",
+        "placeholder": "名前または説明で検索..."
+      },
+      "filterBy": "フィルター",
+      "sortBy": "ソート",
+      "owner": {
+        "label": "作成者",
+        "all": "すべての作成者",
+        "myGroups": "自分のグループ"
+      },
+      "playerCount": {
+        "label": "プレイヤー数",
+        "min": "最小",
+        "max": "最大"
+      },
+      "dateRange": {
+        "label": "作成日"
+      },
+      "templates": {
+        "label": "テンプレート",
+        "show": "テンプレートグループを表示"
+      },
+      "sort": {
+        "label": "並び順",
+        "order": "順序",
+        "name": "名前",
+        "created": "作成日",
+        "playerCount": "プレイヤー数",
+        "ascending": "昇順",
+        "descending": "降順"
+      },
+      "reset": "フィルターリセット",
+      "resultsCount": "{total}件中{count}件のグループを表示"
+    },
+    "noGroupsFound": "グループが見つかりません",
+    "noGroupsMatchFilters": "現在のフィルター条件に一致するグループがありません。",
+    "template": "テンプレート",
+    "owner": "作成者",
+    "unknownOwner": "不明"
   }
 }
