@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import type { UserCreate } from "@/types/auth";
 import { InputSanitizer } from "@/utils/input-sanitizer";
+import { LanguageSwitcher } from "@/components/language/language-switcher";
 import styles from "./auth-form.module.css";
 
 interface RegisterFormProps {
@@ -68,7 +69,7 @@ export function RegisterForm({
     }
 
     if (sanitizedUsername.length > 50) {
-      setError(t("auth.errors.usernameRequired")); // Reuse for now, or add specific key
+      setError(t("auth.errors.usernameMaxLength"));
       return;
     }
 
@@ -161,7 +162,10 @@ export function RegisterForm({
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <h2 className={styles.title}>{t("auth.register")}</h2>
+      <div className={styles.header}>
+        <h2 className={styles.title}>{t("auth.register")}</h2>
+        <LanguageSwitcher variant="header" />
+      </div>
 
       {error && (
         <div className={styles.error} role="alert">

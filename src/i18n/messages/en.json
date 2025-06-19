@@ -58,6 +58,7 @@
       "emailRequired": "Email is required and must be valid",
       "confirmPasswordRequired": "Password confirmation is required",
       "usernameMinLength": "Username must be at least 3 characters long",
+      "usernameMaxLength": "Username must be 50 characters or less",
       "passwordMinLength": "Password must be at least 6 characters long",
       "passwordsDoNotMatch": "Passwords do not match",
       "emailInvalid": "Please enter a valid email address",

@@ -108,6 +108,7 @@ export function ServerPropertiesEditor({
     };
 
     loadProperties();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverId, logout]);
 
   const handleChange = (key: string, value: string) => {
