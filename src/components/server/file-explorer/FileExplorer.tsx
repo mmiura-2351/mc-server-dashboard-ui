@@ -243,6 +243,30 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     ]
   );
 
+  const handleDownloadFolderAsZip = useCallback(
+    async (folder: FileSystemItem) => {
+      hideContextMenu();
+      const result = await operations.downloadBulkFiles(
+        [folder],
+        navigation.currentPath
+      );
+
+      if (result.isOk()) {
+        showToast(
+          t("files.zipCreationSuccess", {
+            name: result.value.filename,
+            count: "1",
+            size: "", // Size will be handled by the backend response
+          }),
+          "info"
+        );
+      } else {
+        showToast(t("files.zipCreationFailed") + ": " + result.error, "error");
+      }
+    },
+    [hideContextMenu, operations, navigation.currentPath, showToast, t]
+  );
+
   const handleBulkDownload = useCallback(async () => {
     const result = await operations.downloadBulkFiles(
       navigation.files,
@@ -250,18 +274,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     );
 
     if (result.isOk()) {
-      // For now, show a message that bulk download is not implemented
-      showToast(translations.bulkDownloadNotImplemented(), "info");
+      showToast(
+        t("files.zipCreationSuccess", {
+          name: result.value.filename,
+          count: result.value.fileCount.toString(),
+          size: "", // Size will be handled by the backend response
+        }),
+        "info"
+      );
     } else {
-      showToast(result.error, "error");
+      showToast(t("files.zipCreationFailed") + ": " + result.error, "error");
     }
-  }, [
-    operations,
-    navigation.files,
-    navigation.currentPath,
-    showToast,
-    translations,
-  ]);
+  }, [operations, navigation.files, navigation.currentPath, showToast, t]);
 
   const handleBulkDelete = useCallback(async () => {
     const confirmBulkDelete = async () => {
@@ -530,6 +554,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         onOpenFolder={handleFileClick}
         onViewFile={handleViewFileFromContext}
         onDownloadFile={handleDownloadFile}
+        onDownloadFolderAsZip={handleDownloadFolderAsZip}
         onRenameFile={handleRenameFile}
         onDeleteFile={handleDeleteFile}
         onBulkDownload={handleBulkDownload}

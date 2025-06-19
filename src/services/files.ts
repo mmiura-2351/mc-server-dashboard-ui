@@ -544,3 +544,75 @@ export async function downloadFile(
     });
   }
 }
+
+// Download multiple files/folders as ZIP
+export async function downloadAsZip(
+  serverId: number,
+  files: FileSystemItem[],
+  currentPath: string
+): Promise<Result<{ blob: Blob; filename: string }, FileError>> {
+  try {
+    const token = await tokenManager.getValidAccessToken();
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    // Prepare the file paths for the backend
+    const filePaths = files.map((file) => {
+      const basePath = currentPath === "/" ? "" : currentPath;
+      return basePath ? `${basePath}/${file.name}` : file.name;
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/download-zip`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          files: filePaths,
+          base_path: currentPath === "/" ? "" : currentPath,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "ZIP download failed";
+
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.detail || errorMessage;
+      } catch {
+        errorMessage = errorText || `HTTP ${response.status}`;
+      }
+
+      return err({
+        message: errorMessage,
+        status: response.status,
+      });
+    }
+
+    // Get filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get("Content-Disposition");
+    let filename = "download.zip";
+
+    if (contentDisposition) {
+      const match = contentDisposition.match(
+        /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+      );
+      if (match && match[1]) {
+        filename = match[1].replace(/['"]/g, "");
+      }
+    }
+
+    const blob = await response.blob();
+    return ok({ blob, filename });
+  } catch (error) {
+    return err({
+      message: error instanceof Error ? error.message : "Network error",
+    });
+  }
+}

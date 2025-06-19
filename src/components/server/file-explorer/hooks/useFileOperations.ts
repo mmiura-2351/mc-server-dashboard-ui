@@ -144,13 +144,44 @@ export function useFileOperations(serverId: number) {
 
   const downloadBulkFiles = useCallback(
     async (
-      _files: FileSystemItem[],
-      _currentPath: string
-    ): Promise<Result<void, string>> => {
-      // TODO: Implement bulk download functionality
-      return err("Bulk download not yet implemented");
+      files: FileSystemItem[],
+      currentPath: string
+    ): Promise<Result<{ filename: string; fileCount: number }, string>> => {
+      const selected = files.filter((f) => selectedFiles.has(f.name));
+
+      if (selected.length === 0) {
+        return err("No files selected for download");
+      }
+
+      const result = await fileService.downloadAsZip(
+        serverId,
+        selected,
+        currentPath
+      );
+
+      if (result.isOk()) {
+        const { blob, filename } = result.value;
+
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+
+        if (document.body.contains(a)) {
+          document.body.removeChild(a);
+        }
+        URL.revokeObjectURL(url);
+
+        return ok({ filename, fileCount: selected.length });
+      } else {
+        return err(result.error.message);
+      }
     },
-    []
+    [serverId, selectedFiles]
   );
 
   return {
