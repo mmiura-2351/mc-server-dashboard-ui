@@ -14,6 +14,7 @@ import {
 import { getAllUsers } from "@/services/auth";
 import type { User } from "@/types/auth";
 import { formatDateSimple } from "@/utils/date-format";
+import { AuthStorage } from "@/utils/secure-storage";
 import { ConfirmationModal } from "@/components/modal";
 import styles from "./groups.module.css";
 
@@ -74,7 +75,7 @@ export default function GroupsPage() {
   const loadUsers = useCallback(async () => {
     if (!user || user.role !== "admin") return;
 
-    const token = localStorage.getItem("authToken");
+    const token = AuthStorage.getAccessToken();
     if (!token) return;
 
     const result = await getAllUsers(token);
