@@ -282,273 +282,276 @@ export default function GroupsPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <div className={styles.containerHeader}>
         <h1 className={styles.title}>{t("groups.title")}</h1>
-        {canCreateGroups && (
-          <button
-            className={styles.createButton}
-            onClick={() => setShowCreateModal(true)}
-          >
-            {t("groups.createGroup")}
-          </button>
-        )}
-      </div>
-
-      <div className={styles.filterControls}>
-        {/* Basic type filters */}
-        <div className={styles.filters}>
-          <button
-            className={`${styles.filterButton} ${filterType === "all" ? styles.active : ""}`}
-            onClick={() => setFilterType("all")}
-          >
-            {t("groups.allGroups")}
-          </button>
-          <button
-            className={`${styles.filterButton} ${filterType === "op" ? styles.active : ""}`}
-            onClick={() => setFilterType("op")}
-          >
-            {t("groups.opGroups")}
-          </button>
-          <button
-            className={`${styles.filterButton} ${filterType === "whitelist" ? styles.active : ""}`}
-            onClick={() => setFilterType("whitelist")}
-          >
-            {t("groups.whitelistGroups")}
-          </button>
-        </div>
-
-        {/* Advanced filters toggle */}
-        {groups.length > 0 && (
-          <div className={styles.advancedFilterControls}>
+        <div className={styles.headerActions}>
+          {/* Basic type filters */}
+          <div className={styles.typeFilters}>
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={styles.filterToggleButton}
-              title={t("groups.filters.title")}
+              className={`${styles.typeFilterButton} ${filterType === "all" ? styles.active : ""}`}
+              onClick={() => setFilterType("all")}
             >
-              🔍 {t("groups.filters.title")}
-              {(hasActiveFilters || filterType !== "all") && (
-                <span className={styles.activeIndicator}></span>
-              )}
+              {t("groups.allGroups")}
             </button>
-            {showFilters && (
-              <div className={styles.expandedFilters}>
-                <div className={styles.filterHeader}>
-                  <h3>{t("groups.filters.title")}</h3>
-                  <button
-                    onClick={() => setShowFilters(false)}
-                    className={styles.closeFiltersButton}
-                    aria-label="Close filters"
-                  >
-                    ×
-                  </button>
-                </div>
+            <button
+              className={`${styles.typeFilterButton} ${filterType === "op" ? styles.active : ""}`}
+              onClick={() => setFilterType("op")}
+            >
+              {t("groups.opGroups")}
+            </button>
+            <button
+              className={`${styles.typeFilterButton} ${filterType === "whitelist" ? styles.active : ""}`}
+              onClick={() => setFilterType("whitelist")}
+            >
+              {t("groups.whitelistGroups")}
+            </button>
+          </div>
 
-                {/* Search Section */}
-                <div className={styles.searchSection}>
-                  <div className={styles.filterGroup}>
-                    <label
-                      htmlFor="groupSearchInput"
-                      className={styles.filterLabel}
+          {/* Advanced filters toggle */}
+          {groups.length > 0 && (
+            <div className={styles.filterControls}>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={styles.filterToggleButton}
+                title={t("groups.filters.title")}
+              >
+                🔍 {t("groups.filters.title")}
+                {(hasActiveFilters || filterType !== "all") && (
+                  <span className={styles.activeIndicator}></span>
+                )}
+              </button>
+              {showFilters && (
+                <div className={styles.expandedFilters}>
+                  <div className={styles.filterHeader}>
+                    <h3>{t("groups.filters.title")}</h3>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className={styles.closeFiltersButton}
+                      aria-label="Close filters"
                     >
-                      {t("groups.filters.search.label")}
-                    </label>
-                    <input
-                      id="groupSearchInput"
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={t("groups.filters.search.placeholder")}
-                      className={styles.filterInput}
-                    />
+                      ×
+                    </button>
                   </div>
-                </div>
 
-                {/* Filter Section */}
-                <div className={styles.filterSection}>
-                  <h4 className={styles.sectionTitle}>
-                    🔍 {t("groups.filters.filterBy")}
-                  </h4>
-                  <div className={styles.filterGrid}>
-                    {/* Owner Filter - Only for admin users */}
-                    {user?.role === "admin" && users.length > 0 && (
+                  {/* Search Section */}
+                  <div className={styles.searchSection}>
+                    <div className={styles.filterGroup}>
+                      <label
+                        htmlFor="groupSearchInput"
+                        className={styles.filterLabel}
+                      >
+                        {t("groups.filters.search.label")}
+                      </label>
+                      <input
+                        id="groupSearchInput"
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t("groups.filters.search.placeholder")}
+                        className={styles.filterInput}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filter Section */}
+                  <div className={styles.filterSection}>
+                    <h4 className={styles.sectionTitle}>
+                      🔍 {t("groups.filters.filterBy")}
+                    </h4>
+                    <div className={styles.filterGrid}>
+                      {/* Owner Filter - Only for admin users */}
+                      {user?.role === "admin" && users.length > 0 && (
+                        <div className={styles.filterGroup}>
+                          <label
+                            htmlFor="ownerFilter"
+                            className={styles.filterLabel}
+                          >
+                            {t("groups.filters.owner.label")}
+                          </label>
+                          <select
+                            id="ownerFilter"
+                            value={selectedOwnerId}
+                            onChange={(e) =>
+                              setSelectedOwnerId(
+                                e.target.value === "all"
+                                  ? "all"
+                                  : parseInt(e.target.value)
+                              )
+                            }
+                            className={styles.filterSelect}
+                          >
+                            <option value="all">
+                              {t("groups.filters.owner.all")}
+                            </option>
+                            <option value={user.id}>
+                              {t("groups.filters.owner.myGroups")}
+                            </option>
+                            {users.map((u) => (
+                              <option key={u.id} value={u.id}>
+                                {u.username}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Player Count Filter */}
+                      <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>
+                          {t("groups.filters.playerCount.label")}
+                        </label>
+                        <div className={styles.rangeInputs}>
+                          <input
+                            type="number"
+                            value={playerCountMin}
+                            onChange={(e) =>
+                              setPlayerCountMin(
+                                e.target.value ? parseInt(e.target.value) : ""
+                              )
+                            }
+                            placeholder={t("groups.filters.playerCount.min")}
+                            className={styles.rangeInput}
+                            min="0"
+                          />
+                          <span className={styles.rangeSeperator}>-</span>
+                          <input
+                            type="number"
+                            value={playerCountMax}
+                            onChange={(e) =>
+                              setPlayerCountMax(
+                                e.target.value ? parseInt(e.target.value) : ""
+                              )
+                            }
+                            placeholder={t("groups.filters.playerCount.max")}
+                            className={styles.rangeInput}
+                            min="0"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Date Range Filter */}
+                      <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>
+                          {t("groups.filters.dateRange.label")}
+                        </label>
+                        <div className={styles.rangeInputs}>
+                          <input
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            className={styles.rangeInput}
+                          />
+                          <span className={styles.rangeSeperator}>-</span>
+                          <input
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            className={styles.rangeInput}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Template Filter */}
+                      <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>
+                          {t("groups.filters.templates.label")}
+                        </label>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            checked={showTemplates}
+                            onChange={(e) => setShowTemplates(e.target.checked)}
+                            className={styles.checkbox}
+                          />
+                          {t("groups.filters.templates.show")}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sort Section */}
+                  <div className={styles.sortSection}>
+                    <h4 className={styles.sectionTitle}>
+                      📊 {t("groups.filters.sortBy")}
+                    </h4>
+                    <div className={styles.sortControls}>
                       <div className={styles.filterGroup}>
                         <label
-                          htmlFor="ownerFilter"
+                          htmlFor="groupSortBy"
                           className={styles.filterLabel}
                         >
-                          {t("groups.filters.owner.label")}
+                          {t("groups.filters.sort.label")}
                         </label>
                         <select
-                          id="ownerFilter"
-                          value={selectedOwnerId}
+                          id="groupSortBy"
+                          value={sortBy}
                           onChange={(e) =>
-                            setSelectedOwnerId(
-                              e.target.value === "all"
-                                ? "all"
-                                : parseInt(e.target.value)
+                            setSortBy(
+                              e.target.value as
+                                | "name"
+                                | "created"
+                                | "playerCount"
                             )
                           }
                           className={styles.filterSelect}
                         >
-                          <option value="all">
-                            {t("groups.filters.owner.all")}
+                          <option value="created">
+                            {t("groups.filters.sort.created")}
                           </option>
-                          <option value={user.id}>
-                            {t("groups.filters.owner.myGroups")}
+                          <option value="name">
+                            {t("groups.filters.sort.name")}
                           </option>
-                          {users.map((u) => (
-                            <option key={u.id} value={u.id}>
-                              {u.username}
-                            </option>
-                          ))}
+                          <option value="playerCount">
+                            {t("groups.filters.sort.playerCount")}
+                          </option>
                         </select>
                       </div>
-                    )}
 
-                    {/* Player Count Filter */}
-                    <div className={styles.filterGroup}>
-                      <label className={styles.filterLabel}>
-                        {t("groups.filters.playerCount.label")}
-                      </label>
-                      <div className={styles.rangeInputs}>
-                        <input
-                          type="number"
-                          value={playerCountMin}
-                          onChange={(e) =>
-                            setPlayerCountMin(
-                              e.target.value ? parseInt(e.target.value) : ""
-                            )
+                      <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>
+                          {t("groups.filters.sort.order")}
+                        </label>
+                        <button
+                          onClick={() =>
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                           }
-                          placeholder={t("groups.filters.playerCount.min")}
-                          className={styles.rangeInput}
-                          min="0"
-                        />
-                        <span className={styles.rangeSeperator}>-</span>
-                        <input
-                          type="number"
-                          value={playerCountMax}
-                          onChange={(e) =>
-                            setPlayerCountMax(
-                              e.target.value ? parseInt(e.target.value) : ""
-                            )
-                          }
-                          placeholder={t("groups.filters.playerCount.max")}
-                          className={styles.rangeInput}
-                          min="0"
-                        />
+                          className={styles.sortOrderButton}
+                        >
+                          {sortOrder === "asc" ? (
+                            <>↑ {t("groups.filters.sort.ascending")}</>
+                          ) : (
+                            <>↓ {t("groups.filters.sort.descending")}</>
+                          )}
+                        </button>
                       </div>
-                    </div>
-
-                    {/* Date Range Filter */}
-                    <div className={styles.filterGroup}>
-                      <label className={styles.filterLabel}>
-                        {t("groups.filters.dateRange.label")}
-                      </label>
-                      <div className={styles.rangeInputs}>
-                        <input
-                          type="date"
-                          value={dateFrom}
-                          onChange={(e) => setDateFrom(e.target.value)}
-                          className={styles.rangeInput}
-                        />
-                        <span className={styles.rangeSeperator}>-</span>
-                        <input
-                          type="date"
-                          value={dateTo}
-                          onChange={(e) => setDateTo(e.target.value)}
-                          className={styles.rangeInput}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Template Filter */}
-                    <div className={styles.filterGroup}>
-                      <label className={styles.filterLabel}>
-                        {t("groups.filters.templates.label")}
-                      </label>
-                      <label className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          checked={showTemplates}
-                          onChange={(e) => setShowTemplates(e.target.checked)}
-                          className={styles.checkbox}
-                        />
-                        {t("groups.filters.templates.show")}
-                      </label>
                     </div>
                   </div>
-                </div>
 
-                {/* Sort Section */}
-                <div className={styles.sortSection}>
-                  <h4 className={styles.sectionTitle}>
-                    📊 {t("groups.filters.sortBy")}
-                  </h4>
-                  <div className={styles.sortControls}>
-                    <div className={styles.filterGroup}>
-                      <label
-                        htmlFor="groupSortBy"
-                        className={styles.filterLabel}
-                      >
-                        {t("groups.filters.sort.label")}
-                      </label>
-                      <select
-                        id="groupSortBy"
-                        value={sortBy}
-                        onChange={(e) =>
-                          setSortBy(
-                            e.target.value as "name" | "created" | "playerCount"
-                          )
-                        }
-                        className={styles.filterSelect}
-                      >
-                        <option value="created">
-                          {t("groups.filters.sort.created")}
-                        </option>
-                        <option value="name">
-                          {t("groups.filters.sort.name")}
-                        </option>
-                        <option value="playerCount">
-                          {t("groups.filters.sort.playerCount")}
-                        </option>
-                      </select>
-                    </div>
-
-                    <div className={styles.filterGroup}>
-                      <label className={styles.filterLabel}>
-                        {t("groups.filters.sort.order")}
-                      </label>
+                  {/* Reset Button */}
+                  {(hasActiveFilters || filterType !== "all") && (
+                    <div className={styles.resetSection}>
                       <button
-                        onClick={() =>
-                          setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                        }
-                        className={styles.sortOrderButton}
+                        onClick={resetFilters}
+                        className={styles.resetFiltersButtonLarge}
                       >
-                        {sortOrder === "asc" ? (
-                          <>↑ {t("groups.filters.sort.ascending")}</>
-                        ) : (
-                          <>↓ {t("groups.filters.sort.descending")}</>
-                        )}
+                        🔄 {t("groups.filters.reset")}
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
+              )}
+            </div>
+          )}
 
-                {/* Reset Button */}
-                {(hasActiveFilters || filterType !== "all") && (
-                  <div className={styles.resetSection}>
-                    <button
-                      onClick={resetFilters}
-                      className={styles.resetFiltersButtonLarge}
-                    >
-                      🔄 {t("groups.filters.reset")}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+          {canCreateGroups && (
+            <button
+              className={styles.createButton}
+              onClick={() => setShowCreateModal(true)}
+            >
+              {t("groups.createGroup")}
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
