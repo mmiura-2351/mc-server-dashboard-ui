@@ -329,12 +329,14 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
   // Upload handlers
   const handleFileUpload = useCallback(
     async (files: File[], isFolder = false) => {
+      // Force refresh regardless of upload result as a test
       const result = await upload.handleFileUpload(
         files,
         isFolder,
         navigation.currentPath
       );
 
+      // Handle blocked files warning
       if (result.blocked && result.blocked.length > 0) {
         const blockedMessage = result.blocked
           .map((b) => `${b.file.name}: ${b.reason}`)
@@ -345,15 +347,6 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           message: translations.blockedFilesMessage() + "\n" + blockedMessage,
           type: "warning",
         });
-
-        // Still refresh if some files were uploaded successfully
-        if (
-          result.success &&
-          result.successful &&
-          result.successful.length > 0
-        ) {
-          await refreshFiles();
-        }
       }
 
       if (result.error) {
@@ -370,13 +363,21 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         return;
       }
 
-      if (result.success) {
-        // Refresh file list
+      // Check if any files were successfully uploaded
+      const successCount = result.successful?.length || 0;
+      const failedCount = result.failed?.length || 0;
+      const hasAnySuccess = successCount > 0;
+
+      // FORCE refresh after any upload attempt (temporary debug)
+      try {
         await refreshFiles();
+      } catch (error) {
+        console.error("Failed to refresh files after upload:", error);
+      }
 
-        const failedCount = result.failed?.length || 0;
-        const successCount = result.successful?.length || 0;
-
+      // Always refresh if there are any successful uploads, regardless of result.success flag
+      if (hasAnySuccess || result.success) {
+        // Show appropriate success/partial success message
         if (failedCount === 0 && successCount > 0) {
           showToast(
             `Successfully uploaded ${successCount} ${isFolder ? "files" : "file(s)"}`,
@@ -387,9 +388,10 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             `Uploaded ${successCount} files, ${failedCount} failed`,
             "info"
           );
-        } else {
-          showToast("Upload failed", "error");
         }
+      } else if (result.error) {
+        // Only show error if no files were uploaded successfully
+        showToast("Upload failed", "error");
       }
     },
     [upload, navigation.currentPath, refreshFiles, showToast, translations]
