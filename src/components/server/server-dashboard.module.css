@@ -223,23 +223,22 @@
 }
 
 .resetSection {
-  text-align: center;
-  padding-top: 1.5rem;
-  margin-top: 1rem;
+  padding-top: 1rem;
   /* Removed border-top to avoid duplicate line with sort section */
 }
 
 .resetFiltersButtonLarge {
-  padding: 1rem 2rem;
-  border: 2px solid #dc2626;
-  border-radius: 8px;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
   background: white;
   color: #dc2626;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   justify-content: center;
