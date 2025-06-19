@@ -7,6 +7,7 @@ import { ConfirmationModal } from "@/components/modal";
 import * as authService from "@/services/auth";
 import type { User, Role, RoleUpdate } from "@/types/auth";
 import { Role as RoleEnum } from "@/types/auth";
+import { AuthStorage } from "@/utils/secure-storage";
 import styles from "./user-management.module.css";
 
 export function UserManagement() {
@@ -35,7 +36,7 @@ export function UserManagement() {
   const isAdmin = user?.role === RoleEnum.ADMIN;
 
   const loadUsers = useCallback(async () => {
-    const token = localStorage.getItem("access_token");
+    const token = AuthStorage.getAccessToken();
     if (!token) return;
 
     setIsLoading(true);
@@ -60,7 +61,7 @@ export function UserManagement() {
   }, [isAdmin]);
 
   const handleApproveUser = async (userId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = AuthStorage.getAccessToken();
     if (!token) return;
 
     const result = await authService.approveUser(token, userId);
@@ -80,7 +81,7 @@ export function UserManagement() {
   };
 
   const handleRoleChange = async (userId: number, newRole: string) => {
-    const token = localStorage.getItem("access_token");
+    const token = AuthStorage.getAccessToken();
     if (!token) return;
 
     // Convert string to Role enum
@@ -104,7 +105,7 @@ export function UserManagement() {
 
   const handleDeleteUser = (userId: number, username: string) => {
     const confirmDelete = async () => {
-      const token = localStorage.getItem("access_token");
+      const token = AuthStorage.getAccessToken();
       if (!token) return;
 
       const result = await authService.deleteUserByAdmin(token, userId);
