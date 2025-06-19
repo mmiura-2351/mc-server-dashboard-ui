@@ -591,7 +591,17 @@
     "renameFolder": "✏️ Rename Folder",
     "deleteFolder": "🗑️ Delete Folder",
     "viewFile": "👁️ View File",
-    "renameFile": "✏️ Rename"
+    "renameFile": "✏️ Rename",
+    "creatingZipFile": "Creating ZIP File",
+    "downloadingFiles": "Downloading files...",
+    "creatingZip": "Creating ZIP archive...",
+    "finalizingZip": "Finalizing ZIP file...",
+    "processingFiles": "Processing files...",
+    "processingFile": "Processing file",
+    "files": "files",
+    "compressingFiles": "Compressing files...",
+    "preparingDownload": "Preparing download...",
+    "zipDownloadComplete": "ZIP file download completed successfully!"
   },
   "groups": {
     "title": "Group Management",

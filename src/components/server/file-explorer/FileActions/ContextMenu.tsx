@@ -22,6 +22,7 @@ interface ContextMenuProps {
   onOpenFolder: (file: FileSystemItem) => void;
   onViewFile: (file: FileSystemItem) => void;
   onDownloadFile: (file: FileSystemItem) => void;
+  onDownloadFolderAsZip: (file: FileSystemItem) => void;
   onRenameFile: (file: FileSystemItem) => void;
   onDeleteFile: (file: FileSystemItem) => void;
   onBulkDownload: () => void;
@@ -68,6 +69,7 @@ export function ContextMenu({
   onOpenFolder,
   onViewFile,
   onDownloadFile,
+  onDownloadFolderAsZip,
   onRenameFile,
   onDeleteFile,
   onBulkDownload,
@@ -124,6 +126,12 @@ export function ContextMenu({
             onClick={() => onOpenFolder(contextMenu.file!)}
           >
             {t("files.openFolder")}
+          </button>
+          <button
+            className={styles.contextMenuItem}
+            onClick={() => onDownloadFolderAsZip(contextMenu.file!)}
+          >
+            {t("files.downloadAsZip")}
           </button>
           <button
             className={styles.contextMenuItem}
