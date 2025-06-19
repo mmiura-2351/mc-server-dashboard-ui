@@ -38,6 +38,7 @@ const translations: Record<string, string> = {
   "auth.errors.confirmPasswordRequired": "Password confirmation is required",
   "auth.errors.usernameMinLength":
     "Username must be at least 3 characters long",
+  "auth.errors.usernameMaxLength": "Username must be 50 characters or less",
   "auth.errors.passwordMinLength":
     "Password must be at least 6 characters long",
   "auth.errors.passwordsDoNotMatch": "Passwords do not match",
@@ -54,6 +55,14 @@ const mockT = vi.fn((key: string) => translations[key] || key);
 
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({ t: mockT }),
+  useLanguage: () => ({ locale: "en", setLocale: vi.fn() }),
+}));
+
+// Mock the LanguageSwitcher component
+vi.mock("@/components/language/language-switcher", () => ({
+  LanguageSwitcher: () => (
+    <div data-testid="language-switcher">Language Switcher</div>
+  ),
 }));
 
 describe("RegisterForm", () => {
@@ -85,6 +94,7 @@ describe("RegisterForm", () => {
       screen.getByRole("button", { name: "Register" })
     ).toBeInTheDocument();
     expect(screen.getByText("Login here")).toBeInTheDocument();
+    expect(screen.getByTestId("language-switcher")).toBeInTheDocument();
   });
 
   test("shows validation error for empty fields", async () => {

@@ -55,6 +55,14 @@ const mockT = vi.fn((key: string) => translations[key] || key);
 
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({ t: mockT }),
+  useLanguage: () => ({ locale: "en", setLocale: vi.fn() }),
+}));
+
+// Mock the LanguageSwitcher component
+vi.mock("@/components/language/language-switcher", () => ({
+  LanguageSwitcher: () => (
+    <div data-testid="language-switcher">Language Switcher</div>
+  ),
 }));
 
 describe("LoginForm", () => {
@@ -80,6 +88,7 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Login" })).toBeInTheDocument();
     expect(screen.getByText("Register here")).toBeInTheDocument();
+    expect(screen.getByTestId("language-switcher")).toBeInTheDocument();
   });
 
   test("shows validation error for empty fields", async () => {
