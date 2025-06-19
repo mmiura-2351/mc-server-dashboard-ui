@@ -703,6 +703,7 @@ function CreateGroupModal({ onClose, onCreate }: CreateGroupModalProps) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder={t("groups.namePlaceholder")}
               required
               maxLength={100}
               className={styles.input}
@@ -715,6 +716,7 @@ function CreateGroupModal({ onClose, onCreate }: CreateGroupModalProps) {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("groups.descriptionPlaceholder")}
               maxLength={500}
               rows={3}
               className={styles.textarea}
