@@ -345,6 +345,15 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           message: translations.blockedFilesMessage() + "\n" + blockedMessage,
           type: "warning",
         });
+
+        // Still refresh if some files were uploaded successfully
+        if (
+          result.success &&
+          result.successful &&
+          result.successful.length > 0
+        ) {
+          await refreshFiles();
+        }
       }
 
       if (result.error) {
@@ -365,16 +374,21 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         // Refresh file list
         await refreshFiles();
 
-        if (result.failed && result.failed.length === 0) {
+        const failedCount = result.failed?.length || 0;
+        const successCount = result.successful?.length || 0;
+
+        if (failedCount === 0 && successCount > 0) {
           showToast(
-            `Successfully uploaded ${result.successful?.length || 0} ${isFolder ? "files" : "files"}`,
+            `Successfully uploaded ${successCount} ${isFolder ? "files" : "file(s)"}`,
+            "info"
+          );
+        } else if (successCount > 0) {
+          showToast(
+            `Uploaded ${successCount} files, ${failedCount} failed`,
             "info"
           );
         } else {
-          showToast(
-            `Uploaded ${result.successful?.length || 0} files, ${result.failed?.length || 0} failed`,
-            (result.successful?.length || 0) > 0 ? "info" : "error"
-          );
+          showToast("Upload failed", "error");
         }
       }
     },

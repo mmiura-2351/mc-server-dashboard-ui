@@ -50,9 +50,10 @@ export function useFileUpload(serverId: number) {
       // Validate files for security
       const securityResult = await FileUploadSecurity.securityFilter(files, {
         ...DEFAULT_UPLOAD_CONFIG,
-        maxFileSize: 50 * 1024 * 1024, // 50MB for Minecraft server files
-        maxTotalSize: 200 * 1024 * 1024, // 200MB total
-        maxFiles: 20, // Reasonable limit for server files
+        maxFileSize: 100 * 1024 * 1024, // 100MB for Minecraft server files (world files can be large)
+        maxTotalSize: 500 * 1024 * 1024, // 500MB total
+        maxFiles: 50, // Allow more files for world uploads
+        blockDangerousExtensions: false, // Allow more file types for Minecraft
       });
 
       // Use only allowed files
