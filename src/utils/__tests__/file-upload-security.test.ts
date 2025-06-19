@@ -106,6 +106,34 @@ describe("FileUploadSecurity", () => {
       expect(result.errors).toContain("File type .js is not allowed");
     });
 
+    test("should allow Minecraft server files", async () => {
+      const minecraftFiles = [
+        "level.dat",
+        "session.lock",
+        "region.mca",
+        "data.dat_mcr",
+        "whitelist.json", // This should work with .json extension
+      ];
+
+      for (const filename of minecraftFiles) {
+        const file = new MockFile(["content"], filename) as unknown as File;
+        const result = await FileUploadSecurity.validateSingleFile(file);
+
+        expect(result.isValid).toBe(true);
+      }
+    });
+
+    test("should allow specific files without extensions", async () => {
+      const noExtensionFiles = ["whitelist", "ops", "banned-players"];
+
+      for (const filename of noExtensionFiles) {
+        const file = new MockFile(["content"], filename) as unknown as File;
+        const result = await FileUploadSecurity.validateSingleFile(file);
+
+        expect(result.isValid).toBe(true);
+      }
+    });
+
     test("should warn about unsupported MIME types", async () => {
       const file = new MockFile(["content"], "test.txt", {
         type: "application/unknown",

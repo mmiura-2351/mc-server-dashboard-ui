@@ -55,6 +55,19 @@ export const DEFAULT_UPLOAD_CONFIG: FileValidationOptions = {
     "tar",
     "gz",
     "bz2",
+    // Minecraft specific files
+    "dat",
+    "dat_mcr",
+    "dat_old",
+    "lock",
+    "mca",
+    "mcr",
+    "nbt",
+    "schematic",
+    "litematic",
+    "mcfunction",
+    "mcmeta",
+    "mcstructure",
     // Media (for resource packs)
     "png",
     "jpg",
@@ -62,10 +75,17 @@ export const DEFAULT_UPLOAD_CONFIG: FileValidationOptions = {
     "gif",
     "ogg",
     "wav",
+    "ttf",
+    "otf",
     // Scripts (with caution)
     "sh",
     "bat",
     "ps1",
+    // Data files
+    "db",
+    "sqlite",
+    "h2",
+    "mv",
   ],
   allowedMimeTypes: [
     "text/plain",
@@ -214,8 +234,27 @@ export class FileUploadSecurity {
 
     // Check file extension
     const extension = sanitizedFilename.split(".").pop()?.toLowerCase();
-    if (!extension) {
-      errors.push("File must have an extension");
+
+    // Handle files without extensions (common for Minecraft server files)
+    if (!extension || extension === sanitizedFilename.toLowerCase()) {
+      // Allow specific Minecraft server files without extensions
+      const allowedNoExtensionFiles = [
+        "whitelist",
+        "ops",
+        "banned-players",
+        "banned-ips",
+        "usercache",
+        "usernamecache",
+      ];
+
+      const baseFilename = sanitizedFilename.toLowerCase();
+      if (
+        !allowedNoExtensionFiles.some((allowed) =>
+          baseFilename.includes(allowed)
+        )
+      ) {
+        errors.push("File must have a valid extension");
+      }
     } else {
       // Check dangerous extensions
       if (
