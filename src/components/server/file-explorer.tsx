@@ -174,7 +174,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       setIsLoading(false);
     },
-    [serverId, currentPath, t]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [serverId, currentPath]
   );
 
   useEffect(() => {

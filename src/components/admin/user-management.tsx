@@ -50,7 +50,8 @@ export function UserManagement() {
       setMessage({ type: "error", text: errorMessage });
     }
     setIsLoading(false);
-  }, [t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isAdmin) return;
