@@ -13,6 +13,7 @@ import { UploadModal } from "./FileUpload/UploadModal";
 import { DragDropZone, useDragDropZone } from "./FileUpload/DragDropZone";
 import { ContextMenu, type ContextMenuState } from "./FileActions/ContextMenu";
 import { RenameModal } from "./FileActions/RenameModal";
+import { ZipProgressModal } from "./FileActions/ZipProgressModal";
 
 // Hooks
 import { useFileNavigation } from "./hooks/useFileNavigation";
@@ -69,6 +70,22 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     title: "",
     message: "",
     type: "info" as "info" | "warning" | "error",
+  });
+
+  interface ZipProgressState {
+    current: number;
+    total: number;
+    percentage: number;
+    currentFile: string;
+    stage: "downloading" | "zipping" | "finalizing";
+  }
+
+  const [zipProgress, setZipProgress] = useState<{
+    isOpen: boolean;
+    progress: ZipProgressState | null;
+  }>({
+    isOpen: false,
+    progress: null,
   });
 
   // Load files function (shared between manual refresh and automatic loading)
@@ -243,49 +260,73 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
     ]
   );
 
+  const zipProgressCallback = useCallback(
+    (progress: Parameters<fileService.ZipProgressCallback>[0]) => {
+      setZipProgress({
+        isOpen: true,
+        progress,
+      });
+    },
+    []
+  );
+
   const handleDownloadFolderAsZip = useCallback(
     async (folder: FileSystemItem) => {
       hideContextMenu();
+      setZipProgress({ isOpen: true, progress: null });
+
       const result = await operations.downloadBulkFiles(
         [folder],
-        navigation.currentPath
+        navigation.currentPath,
+        zipProgressCallback
       );
 
       if (result.isOk()) {
-        showToast(
-          t("files.zipCreationSuccess", {
-            name: result.value.filename,
-            count: "1",
-            size: "", // Size will be handled by the backend response
-          }),
-          "info"
-        );
+        // Keep modal open to show completion message
+        setTimeout(() => {
+          setZipProgress({ isOpen: false, progress: null });
+        }, 2000);
       } else {
+        setZipProgress({ isOpen: false, progress: null });
         showToast(t("files.zipCreationFailed") + ": " + result.error, "error");
       }
     },
-    [hideContextMenu, operations, navigation.currentPath, showToast, t]
+    [
+      hideContextMenu,
+      operations,
+      navigation.currentPath,
+      zipProgressCallback,
+      showToast,
+      t,
+    ]
   );
 
   const handleBulkDownload = useCallback(async () => {
+    setZipProgress({ isOpen: true, progress: null });
+
     const result = await operations.downloadBulkFiles(
       navigation.files,
-      navigation.currentPath
+      navigation.currentPath,
+      zipProgressCallback
     );
 
     if (result.isOk()) {
-      showToast(
-        t("files.zipCreationSuccess", {
-          name: result.value.filename,
-          count: result.value.fileCount.toString(),
-          size: "", // Size will be handled by the backend response
-        }),
-        "info"
-      );
+      // Keep modal open to show completion message
+      setTimeout(() => {
+        setZipProgress({ isOpen: false, progress: null });
+      }, 2000);
     } else {
+      setZipProgress({ isOpen: false, progress: null });
       showToast(t("files.zipCreationFailed") + ": " + result.error, "error");
     }
-  }, [operations, navigation.files, navigation.currentPath, showToast, t]);
+  }, [
+    operations,
+    navigation.files,
+    navigation.currentPath,
+    zipProgressCallback,
+    showToast,
+    t,
+  ]);
 
   const handleBulkDelete = useCallback(async () => {
     const confirmBulkDelete = async () => {
@@ -601,6 +642,13 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         onClose={() =>
           setAlertModal({ isOpen: false, title: "", message: "", type: "info" })
         }
+      />
+
+      {/* ZIP Progress Modal */}
+      <ZipProgressModal
+        isOpen={zipProgress.isOpen}
+        progress={zipProgress.progress}
+        onClose={() => setZipProgress({ isOpen: false, progress: null })}
       />
     </DragDropZone>
   );

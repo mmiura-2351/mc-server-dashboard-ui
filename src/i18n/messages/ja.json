@@ -473,7 +473,17 @@
     "renameFolder": "✏️ フォルダ名前変更",
     "deleteFolder": "🗑️ フォルダを削除",
     "viewFile": "👁️ ファイルを表示",
-    "renameFile": "✏️ ファイル名前変更"
+    "renameFile": "✏️ ファイル名前変更",
+    "creatingZipFile": "ZIPファイルを作成中",
+    "downloadingFiles": "ファイルをダウンロード中...",
+    "creatingZip": "ZIPアーカイブを作成中...",
+    "finalizingZip": "ZIPファイルを完成中...",
+    "processingFiles": "ファイルを処理中...",
+    "processingFile": "処理中のファイル",
+    "files": "ファイル",
+    "compressingFiles": "ファイルを圧縮中...",
+    "preparingDownload": "ダウンロードを準備中...",
+    "zipDownloadComplete": "ZIPファイルのダウンロードが正常に完了しました！"
   },
   "groups": {
     "title": "グループ管理",

@@ -8,6 +8,7 @@ import type {
 } from "@/types/files";
 import { fetchJson, fetchEmpty } from "@/services/api";
 import { tokenManager } from "@/utils/token-manager";
+import type JSZip from "jszip";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -545,74 +546,166 @@ export async function downloadFile(
   }
 }
 
-// Download multiple files/folders as ZIP
+// Progress callback type for ZIP creation tracking
+export type ZipProgressCallback = (progress: {
+  current: number;
+  total: number;
+  percentage: number;
+  currentFile: string;
+  stage: "downloading" | "zipping" | "finalizing";
+}) => void;
+
+// Download multiple files/folders as ZIP (client-side)
 export async function downloadAsZip(
   serverId: number,
   files: FileSystemItem[],
-  currentPath: string
+  currentPath: string,
+  onProgress?: ZipProgressCallback
 ): Promise<Result<{ blob: Blob; filename: string }, FileError>> {
   try {
-    const token = await tokenManager.getValidAccessToken();
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+    // Dynamic import JSZip to avoid SSR issues
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
 
-    // Prepare the file paths for the backend
-    const filePaths = files.map((file) => {
-      const basePath = currentPath === "/" ? "" : currentPath;
-      return basePath ? `${basePath}/${file.name}` : file.name;
+    const totalFiles = files.length;
+    let processedFiles = 0;
+
+    // Generate ZIP filename based on selection
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+    const filename =
+      files.length === 1
+        ? `${files[0]?.name || "file"}_${timestamp}.zip`
+        : `files_${timestamp}.zip`;
+
+    onProgress?.({
+      current: 0,
+      total: totalFiles,
+      percentage: 0,
+      currentFile: "Starting...",
+      stage: "downloading",
     });
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/files/servers/${serverId}/files/download-zip`,
+    // Process each file/folder
+    for (const file of files) {
+      const filePath =
+        currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+
+      onProgress?.({
+        current: processedFiles,
+        total: totalFiles,
+        percentage: Math.round((processedFiles / totalFiles) * 50), // 50% for downloading
+        currentFile: file.name,
+        stage: "downloading",
+      });
+
+      if (file.is_directory) {
+        // For directories, we need to list all files recursively
+        await addDirectoryToZip(zip, serverId, filePath, file.name, onProgress);
+      } else {
+        // For individual files, download and add to ZIP
+        const downloadResult = await downloadFile(serverId, filePath);
+        if (downloadResult.isOk()) {
+          zip.file(file.name, downloadResult.value);
+        } else {
+          console.warn(
+            `Failed to download ${file.name}:`,
+            downloadResult.error
+          );
+          // Continue with other files instead of failing completely
+        }
+      }
+
+      processedFiles++;
+    }
+
+    onProgress?.({
+      current: totalFiles,
+      total: totalFiles,
+      percentage: 75,
+      currentFile: "Creating ZIP...",
+      stage: "zipping",
+    });
+
+    // Generate ZIP file
+    const zipBlob = await zip.generateAsync(
       {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          files: filePaths,
-          base_path: currentPath === "/" ? "" : currentPath,
-        }),
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      },
+      (metadata) => {
+        onProgress?.({
+          current: totalFiles,
+          total: totalFiles,
+          percentage: 75 + Math.round(metadata.percent * 0.25), // 75-100% for ZIP generation
+          currentFile: "Creating ZIP...",
+          stage: "finalizing",
+        });
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorMessage = "ZIP download failed";
+    onProgress?.({
+      current: totalFiles,
+      total: totalFiles,
+      percentage: 100,
+      currentFile: "Complete!",
+      stage: "finalizing",
+    });
 
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.detail || errorMessage;
-      } catch {
-        errorMessage = errorText || `HTTP ${response.status}`;
-      }
-
-      return err({
-        message: errorMessage,
-        status: response.status,
-      });
-    }
-
-    // Get filename from Content-Disposition header or use default
-    const contentDisposition = response.headers.get("Content-Disposition");
-    let filename = "download.zip";
-
-    if (contentDisposition) {
-      const match = contentDisposition.match(
-        /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
-      );
-      if (match && match[1]) {
-        filename = match[1].replace(/['"]/g, "");
-      }
-    }
-
-    const blob = await response.blob();
-    return ok({ blob, filename });
+    return ok({ blob: zipBlob, filename });
   } catch (error) {
     return err({
-      message: error instanceof Error ? error.message : "Network error",
+      message: error instanceof Error ? error.message : "ZIP creation failed",
     });
+  }
+}
+
+// Helper function to recursively add directory contents to ZIP
+async function addDirectoryToZip(
+  zip: JSZip,
+  serverId: number,
+  dirPath: string,
+  zipPath: string,
+  onProgress?: ZipProgressCallback
+): Promise<void> {
+  try {
+    // List directory contents
+    const listResult = await listFiles(serverId, dirPath);
+    if (listResult.isErr()) {
+      console.warn(`Failed to list directory ${dirPath}:`, listResult.error);
+      return;
+    }
+
+    const folder = zip.folder(zipPath);
+    if (!folder) {
+      console.warn(`Failed to create folder ${zipPath}`);
+      return;
+    }
+
+    for (const item of listResult.value) {
+      const itemPath = `${dirPath}/${item.name}`;
+      const itemZipPath = item.name;
+
+      if (item.is_directory) {
+        // Recursively add subdirectory
+        await addDirectoryToZip(
+          folder,
+          serverId,
+          itemPath,
+          itemZipPath,
+          onProgress
+        );
+      } else {
+        // Download and add file
+        const downloadResult = await downloadFile(serverId, itemPath);
+        if (downloadResult.isOk()) {
+          folder.file(itemZipPath, downloadResult.value);
+        } else {
+          console.warn(`Failed to download ${itemPath}:`, downloadResult.error);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(`Error processing directory ${dirPath}:`, error);
   }
 }

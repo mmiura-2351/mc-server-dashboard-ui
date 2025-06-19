@@ -145,7 +145,8 @@ export function useFileOperations(serverId: number) {
   const downloadBulkFiles = useCallback(
     async (
       files: FileSystemItem[],
-      currentPath: string
+      currentPath: string,
+      onProgress?: fileService.ZipProgressCallback
     ): Promise<Result<{ filename: string; fileCount: number }, string>> => {
       const selected = files.filter((f) => selectedFiles.has(f.name));
 
@@ -156,7 +157,8 @@ export function useFileOperations(serverId: number) {
       const result = await fileService.downloadAsZip(
         serverId,
         selected,
-        currentPath
+        currentPath,
+        onProgress
       );
 
       if (result.isOk()) {
