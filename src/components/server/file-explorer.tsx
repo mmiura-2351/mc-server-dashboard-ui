@@ -174,7 +174,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       setIsLoading(false);
     },
-    [serverId, currentPath]
+    [serverId, currentPath, t]
   );
 
   useEffect(() => {

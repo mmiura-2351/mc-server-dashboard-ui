@@ -108,7 +108,7 @@ export function ServerPropertiesEditor({
     };
 
     loadProperties();
-  }, [serverId, logout]);
+  }, [serverId, logout, t]);
 
   const handleChange = (key: string, value: string) => {
     const initialValue = properties ? properties[key] : value;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import { ConfirmationModal } from "@/components/modal";
@@ -34,12 +34,7 @@ export function UserManagement() {
 
   const isAdmin = user?.role === RoleEnum.ADMIN;
 
-  useEffect(() => {
-    if (!isAdmin) return;
-    loadUsers();
-  }, [isAdmin]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
@@ -55,7 +50,13 @@ export function UserManagement() {
       setMessage({ type: "error", text: errorMessage });
     }
     setIsLoading(false);
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   const handleApproveUser = async (userId: number) => {
     const token = localStorage.getItem("access_token");
