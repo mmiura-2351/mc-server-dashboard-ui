@@ -73,23 +73,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   // Refresh files function for manual triggers
   const refreshFiles = useCallback(async () => {
-    console.log("refreshFiles: Starting refresh", { serverId, currentPath });
     setIsLoading(true);
     setError(null);
 
     const result = await fileService.listFiles(serverId, currentPath);
-    console.log("refreshFiles: API result", result);
 
     if (result.isOk()) {
-      console.log("refreshFiles: Setting files", result.value.length, "files");
       setFiles(result.value);
     } else {
-      console.error("refreshFiles: API error", result.error);
       setError(result.error.message);
     }
 
     setIsLoading(false);
-    console.log("refreshFiles: Completed");
   }, [serverId, currentPath, setIsLoading, setError, setFiles]);
 
   // Load files when path changes
@@ -373,11 +368,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       const failedCount = result.failed?.length || 0;
       const hasAnySuccess = successCount > 0;
 
-      // FORCE refresh after any upload attempt (temporary debug)
-      console.log("FileExplorer: About to call refreshFiles");
+      // Refresh after any upload attempt
       try {
         await refreshFiles();
-        console.log("FileExplorer: refreshFiles completed successfully");
       } catch (error) {
         console.error("Failed to refresh files after upload:", error);
       }
@@ -410,7 +403,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       onDragEnter={upload.handleDragEnter}
       onDragLeave={upload.handleDragLeave}
       onDragOver={upload.handleDragOver}
-      onDrop={(e) => upload.handleDrop(e, navigation.currentPath)}
+      onDrop={(e) =>
+        upload.handleDrop(e, navigation.currentPath, handleFileUpload)
+      }
       onFileUpload={handleFileUpload}
       disabled={upload.uploadState.isUploading}
     >

@@ -44,12 +44,6 @@ export function useFileUpload(serverId: number) {
 
   const handleFileUpload = useCallback(
     async (files: File[], isFolder = false, currentPath: string) => {
-      console.log("useFileUpload: Starting upload", {
-        fileCount: files.length,
-        isFolder,
-        currentPath,
-      });
-
       if (files.length === 0)
         return { success: false, warnings: [], blocked: [] };
 
@@ -122,8 +116,6 @@ export function useFileUpload(serverId: number) {
         }
 
         if (result.isOk()) {
-          console.log("useFileUpload: Upload API succeeded", result.value);
-
           setUploadState((prev) => ({
             ...prev,
             isUploading: false,
@@ -202,7 +194,11 @@ export function useFileUpload(serverId: number) {
   }, []);
 
   const handleDrop = useCallback(
-    (e: React.DragEvent, currentPath: string) => {
+    (
+      e: React.DragEvent,
+      currentPath: string,
+      onFileUpload?: (files: File[], isFolder?: boolean) => void
+    ) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
@@ -254,7 +250,14 @@ export function useFileUpload(serverId: number) {
               f as File & { webkitRelativePath?: string }
             ).webkitRelativePath?.includes("/")
           );
-          handleFileUpload(files, hasDirectoryStructure, currentPath);
+
+          // Use parent's onFileUpload if provided (this triggers refresh),
+          // otherwise use internal handleFileUpload
+          if (onFileUpload) {
+            onFileUpload(files, hasDirectoryStructure);
+          } else {
+            handleFileUpload(files, hasDirectoryStructure, currentPath);
+          }
         }
       });
     },
