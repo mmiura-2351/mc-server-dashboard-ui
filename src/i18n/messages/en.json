@@ -631,6 +631,48 @@
       "priority": "Priority",
       "noServers": "This group is not attached to any servers.",
       "confirmDetach": "Are you sure you want to detach this group from {server}?"
-    }
+    },
+    "filters": {
+      "title": "Filters",
+      "search": {
+        "label": "Search Groups",
+        "placeholder": "Search by name or description..."
+      },
+      "filterBy": "Filter By",
+      "sortBy": "Sort By",
+      "owner": {
+        "label": "Owner",
+        "all": "All Owners",
+        "myGroups": "My Groups"
+      },
+      "playerCount": {
+        "label": "Player Count",
+        "min": "Min",
+        "max": "Max"
+      },
+      "dateRange": {
+        "label": "Created Date"
+      },
+      "templates": {
+        "label": "Templates",
+        "show": "Show template groups"
+      },
+      "sort": {
+        "label": "Sort By",
+        "order": "Order",
+        "name": "Name",
+        "created": "Created Date",
+        "playerCount": "Player Count",
+        "ascending": "Ascending",
+        "descending": "Descending"
+      },
+      "reset": "Reset Filters",
+      "resultsCount": "Showing {count} of {total} groups"
+    },
+    "noGroupsFound": "No Groups Found",
+    "noGroupsMatchFilters": "No groups match the current filters.",
+    "template": "Template",
+    "owner": "Owner",
+    "unknownOwner": "Unknown"
   }
 }

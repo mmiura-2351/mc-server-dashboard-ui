@@ -223,8 +223,8 @@ describe("GroupsPage", () => {
     });
   });
 
-  describe("Filtering Functionality", () => {
-    it("should filter by OP groups", async () => {
+  describe("Basic Type Filtering", () => {
+    it("should call getGroups without parameters for client-side filtering", async () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
@@ -232,10 +232,27 @@ describe("GroupsPage", () => {
         fireEvent.click(opButton);
       });
 
-      expect(mockGetGroups).toHaveBeenCalledWith("op");
+      // All filtering is now done client-side, so getGroups is called without parameters
+      expect(mockGetGroups).toHaveBeenCalledWith();
     });
 
-    it("should filter by Whitelist groups", async () => {
+    it("should filter OP groups client-side", async () => {
+      render(<GroupsPage />);
+
+      await waitFor(() => {
+        const opButton = screen.getByText("OP Groups");
+        fireEvent.click(opButton);
+      });
+
+      await waitFor(() => {
+        // Should only show OP groups
+        expect(screen.getByText("OP Group")).toBeInTheDocument();
+        expect(screen.getByText("Template Group")).toBeInTheDocument();
+        expect(screen.queryByText("Whitelist Group")).not.toBeInTheDocument();
+      });
+    });
+
+    it("should filter Whitelist groups client-side", async () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
@@ -243,18 +260,34 @@ describe("GroupsPage", () => {
         fireEvent.click(whitelistButton);
       });
 
-      expect(mockGetGroups).toHaveBeenCalledWith("whitelist");
+      await waitFor(() => {
+        // Should only show whitelist groups
+        expect(screen.queryByText("OP Group")).not.toBeInTheDocument();
+        expect(screen.queryByText("Template Group")).not.toBeInTheDocument();
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+      });
     });
 
     it("should show all groups when All Groups is selected", async () => {
       render(<GroupsPage />);
 
       await waitFor(() => {
+        // First click OP to change state
+        const opButton = screen.getByText("OP Groups");
+        fireEvent.click(opButton);
+      });
+
+      await waitFor(() => {
         const allButton = screen.getByText("All Groups");
         fireEvent.click(allButton);
       });
 
-      expect(mockGetGroups).toHaveBeenCalledWith(undefined);
+      await waitFor(() => {
+        // Should show all groups
+        expect(screen.getByText("OP Group")).toBeInTheDocument();
+        expect(screen.getByText("Template Group")).toBeInTheDocument();
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+      });
     });
 
     it("should update active filter button styling", async () => {
@@ -512,6 +545,62 @@ describe("GroupsPage", () => {
           expect(document.activeElement).toBe(createButton);
         }
       });
+    });
+  });
+
+  describe("Template Groups", () => {
+    it("should display template badge for template groups", async () => {
+      render(<GroupsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Template")).toBeInTheDocument();
+      });
+    });
+
+    it("should include template groups in type filtering", async () => {
+      render(<GroupsPage />);
+
+      await waitFor(() => {
+        const opButton = screen.getByText("OP Groups");
+        fireEvent.click(opButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("OP Group")).toBeInTheDocument();
+        expect(screen.getByText("Template Group")).toBeInTheDocument();
+        expect(screen.queryByText("Whitelist Group")).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Date Range Filtering", () => {
+    it("should filter by date range", async () => {
+      render(<GroupsPage />);
+
+      await waitFor(() => {
+        const filterButton = screen.getByText("Filters");
+        fireEvent.click(filterButton);
+      });
+
+      const dateInputs = screen.getAllByDisplayValue("");
+      const fromDate = dateInputs.find(
+        (input) => input.getAttribute("type") === "date"
+      );
+      const toDate = dateInputs.filter(
+        (input) => input.getAttribute("type") === "date"
+      )[1];
+
+      if (fromDate && toDate) {
+        fireEvent.change(fromDate, { target: { value: "2024-01-02" } });
+        fireEvent.change(toDate, { target: { value: "2024-01-03" } });
+
+        await waitFor(() => {
+          // Should show groups created between 2024-01-02 and 2024-01-03
+          expect(screen.queryByText("OP Group")).not.toBeInTheDocument();
+          expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+          expect(screen.getByText("Template Group")).toBeInTheDocument();
+        });
+      }
     });
   });
 });
