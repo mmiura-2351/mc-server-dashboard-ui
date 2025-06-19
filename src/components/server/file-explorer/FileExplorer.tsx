@@ -19,6 +19,7 @@ import { useFileNavigation } from "./hooks/useFileNavigation";
 import { useFileOperations } from "./hooks/useFileOperations";
 import { useFileUpload } from "./hooks/useFileUpload";
 import { useFileViewer } from "./hooks/useFileViewer";
+import { useStableTranslation } from "./hooks/useStableTranslation";
 
 import styles from "../file-explorer.module.css";
 
@@ -28,6 +29,7 @@ interface FileExplorerProps {
 
 export function FileExplorer({ serverId }: FileExplorerProps) {
   const { t } = useTranslation();
+  const translations = useStableTranslation();
   const {
     fileInputRef,
     folderInputRef,
@@ -163,15 +165,18 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           document.body.removeChild(a);
         }
         URL.revokeObjectURL(url);
-        showToast(
-          t("files.successfullyDownloaded", { name: file.name }),
-          "info"
-        );
+        showToast(translations.downloadSuccess(file.name), "info");
       } else {
-        showToast(t("files.downloadFailed", { name: file.name }), "error");
+        showToast(translations.downloadFailed(file.name), "error");
       }
     },
-    [hideContextMenu, operations, navigation.currentPath, showToast, t]
+    [
+      hideContextMenu,
+      operations,
+      navigation.currentPath,
+      showToast,
+      translations,
+    ]
   );
 
   const handleRenameFile = useCallback(
@@ -187,11 +192,11 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     if (result.success) {
       await loadFiles();
-      showToast(t("files.successfullyRenamed"), "info");
+      showToast(translations.renameSuccess(), "info");
     } else {
-      showToast(t("files.renameFailed") + ": " + result.error, "error");
+      showToast(translations.renameFailed() + ": " + result.error, "error");
     }
-  }, [operations, navigation.currentPath, loadFiles, showToast, t]);
+  }, [operations, navigation.currentPath, loadFiles, showToast, translations]);
 
   const handleDeleteFile = useCallback(
     (file: FileSystemItem) => {
@@ -205,12 +210,9 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
         if (result.isOk()) {
           await loadFiles();
-          showToast(
-            t("files.successfullyDeleted", { name: file.name }),
-            "info"
-          );
+          showToast(translations.deleteSuccess(file.name), "info");
         } else {
-          showToast(t("files.deleteFailed", { name: file.name }), "error");
+          showToast(translations.deleteFailed(file.name), "error");
         }
 
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
@@ -218,8 +220,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       setConfirmModal({
         isOpen: true,
-        title: t("files.deleteFile"),
-        message: t("files.deleteFileConfirmation", { name: file.name }),
+        title: translations.deleteFile(),
+        message: translations.deleteFileConfirmation(file.name),
         variant: "danger",
         onConfirm: confirmDelete,
       });
@@ -230,7 +232,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       navigation.currentPath,
       loadFiles,
       showToast,
-      t,
+      translations,
     ]
   );
 
@@ -242,11 +244,17 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     if (result.success) {
       // For now, show a message that bulk download is not implemented
-      showToast(t("files.bulkDownloadNotImplemented"), "info");
+      showToast(translations.bulkDownloadNotImplemented(), "info");
     } else {
       showToast(result.error, "error");
     }
-  }, [operations, navigation.files, navigation.currentPath, showToast, t]);
+  }, [
+    operations,
+    navigation.files,
+    navigation.currentPath,
+    showToast,
+    translations,
+  ]);
 
   const handleBulkDelete = useCallback(async () => {
     const confirmBulkDelete = async () => {
@@ -264,17 +272,15 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
       if (result.failCount === 0) {
         showToast(
-          t("files.successfullyDeletedMultiple", {
-            count: result.successCount.toString(),
-          }),
+          translations.deleteMultipleSuccess(result.successCount.toString()),
           "info"
         );
       } else {
         showToast(
-          t("files.deletedPartialSuccess", {
-            successCount: result.successCount.toString(),
-            failCount: result.failCount.toString(),
-          }),
+          translations.deletePartialSuccess(
+            result.successCount.toString(),
+            result.failCount.toString()
+          ),
           "error"
         );
       }
@@ -285,21 +291,21 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
     const message =
       operations.selectedFiles.size === 1
-        ? t("files.deleteFileConfirmation", {
-            name: Array.from(operations.selectedFiles)[0] || "Unknown",
-          })
-        : t("files.deleteBulkConfirmation", {
-            count: operations.selectedFiles.size.toString(),
-          });
+        ? translations.deleteFileConfirmation(
+            Array.from(operations.selectedFiles)[0] || "Unknown"
+          )
+        : translations.deleteBulkConfirmation(
+            operations.selectedFiles.size.toString()
+          );
 
     setConfirmModal({
       isOpen: true,
-      title: t("files.deleteFiles"),
+      title: translations.deleteFiles(),
       message,
       variant: "danger",
       onConfirm: confirmBulkDelete,
     });
-  }, [operations, navigation, showToast, t]);
+  }, [operations, navigation, showToast, translations]);
 
   // Upload handlers
   const handleFileUpload = useCallback(
@@ -316,8 +322,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
           .join("\n");
         setAlertModal({
           isOpen: true,
-          title: t("files.securityWarning"),
-          message: t("files.blockedFilesMessage") + "\n" + blockedMessage,
+          title: translations.securityWarning(),
+          message: translations.blockedFilesMessage() + "\n" + blockedMessage,
           type: "warning",
         });
       }
@@ -326,8 +332,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         if (result.error === "No files allowed") {
           setAlertModal({
             isOpen: true,
-            title: t("files.uploadError"),
-            message: t("files.noFilesAllowed"),
+            title: translations.uploadError(),
+            message: translations.noFilesAllowed(),
             type: "error",
           });
         } else {
@@ -353,7 +359,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         }
       }
     },
-    [upload, navigation.currentPath, loadFiles, showToast, t]
+    [upload, navigation.currentPath, loadFiles, showToast, translations]
   );
 
   return (
