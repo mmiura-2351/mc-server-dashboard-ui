@@ -39,6 +39,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   // Custom hooks
   const navigation = useFileNavigation();
+  const { setIsLoading, setError, setFiles, currentPath } = navigation;
   const operations = useFileOperations(serverId);
   const upload = useFileUpload(serverId);
   const viewer = useFileViewer(serverId);
@@ -72,45 +73,39 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
 
   // Refresh files function for manual triggers
   const refreshFiles = useCallback(async () => {
-    navigation.setIsLoading(true);
-    navigation.setError(null);
+    setIsLoading(true);
+    setError(null);
 
-    const result = await fileService.listFiles(
-      serverId,
-      navigation.currentPath
-    );
+    const result = await fileService.listFiles(serverId, currentPath);
 
     if (result.isOk()) {
-      navigation.setFiles(result.value);
+      setFiles(result.value);
     } else {
-      navigation.setError(result.error.message);
+      setError(result.error.message);
     }
 
-    navigation.setIsLoading(false);
-  }, [serverId, navigation]);
+    setIsLoading(false);
+  }, [serverId, currentPath, setIsLoading, setError, setFiles]);
 
   // Load files when path changes
   useEffect(() => {
     const loadFiles = async () => {
-      navigation.setIsLoading(true);
-      navigation.setError(null);
+      setIsLoading(true);
+      setError(null);
 
-      const result = await fileService.listFiles(
-        serverId,
-        navigation.currentPath
-      );
+      const result = await fileService.listFiles(serverId, currentPath);
 
       if (result.isOk()) {
-        navigation.setFiles(result.value);
+        setFiles(result.value);
       } else {
-        navigation.setError(result.error.message);
+        setError(result.error.message);
       }
 
-      navigation.setIsLoading(false);
+      setIsLoading(false);
     };
 
     loadFiles();
-  }, [serverId, navigation]);
+  }, [serverId, currentPath, setIsLoading, setError, setFiles]);
 
   // Toast utility
   const showToast = useCallback((message: string, type: "error" | "info") => {

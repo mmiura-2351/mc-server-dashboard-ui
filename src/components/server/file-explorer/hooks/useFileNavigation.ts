@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import type { FileSystemItem } from "@/types/files";
 
 export function useFileNavigation(initialPath = "/") {
@@ -34,30 +34,18 @@ export function useFileNavigation(initialPath = "/") {
     [currentPath]
   );
 
-  return useMemo(
-    () => ({
-      currentPath,
-      files,
-      isLoading,
-      error,
-      setFiles,
-      setIsLoading,
-      setError,
-      navigateToPath,
-      navigateUp,
-      navigateToFile,
-    }),
-    [
-      currentPath,
-      files,
-      isLoading,
-      error,
-      setFiles,
-      setIsLoading,
-      setError,
-      navigateToPath,
-      navigateUp,
-      navigateToFile,
-    ]
-  );
+  // Return stable object without useMemo to prevent infinite re-creation
+  // useState setters (setFiles, setIsLoading, setError) are stable by design
+  return {
+    currentPath,
+    files,
+    isLoading,
+    error,
+    setFiles,
+    setIsLoading,
+    setError,
+    navigateToPath,
+    navigateUp,
+    navigateToFile,
+  };
 }
