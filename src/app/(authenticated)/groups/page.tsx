@@ -35,7 +35,6 @@ export default function GroupsPage() {
   const [selectedOwnerId, setSelectedOwnerId] = useState<number | "all">("all");
   const [playerCountMin, setPlayerCountMin] = useState<number | "">("");
   const [playerCountMax, setPlayerCountMax] = useState<number | "">("");
-  const [showTemplates, setShowTemplates] = useState<boolean>(true);
   const [sortBy, setSortBy] = useState<"name" | "created" | "playerCount">(
     "created"
   );
@@ -99,7 +98,6 @@ export default function GroupsPage() {
         setSelectedOwnerId(filters.selectedOwnerId || "all");
         setPlayerCountMin(filters.playerCountMin || "");
         setPlayerCountMax(filters.playerCountMax || "");
-        setShowTemplates(filters.showTemplates !== false);
         setSortBy(filters.sortBy || "created");
         setSortOrder(filters.sortOrder || "desc");
         setDateFrom(filters.dateFrom || "");
@@ -117,7 +115,6 @@ export default function GroupsPage() {
       selectedOwnerId,
       playerCountMin,
       playerCountMax,
-      showTemplates,
       sortBy,
       sortOrder,
       dateFrom,
@@ -129,7 +126,6 @@ export default function GroupsPage() {
     selectedOwnerId,
     playerCountMin,
     playerCountMax,
-    showTemplates,
     sortBy,
     sortOrder,
     dateFrom,
@@ -173,13 +169,12 @@ export default function GroupsPage() {
     });
   };
 
-  // Check if any advanced filters are active
+  // Check if any advanced filters are active (excluding basic type filters)
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
     selectedOwnerId !== "all" ||
     playerCountMin !== "" ||
     playerCountMax !== "" ||
-    !showTemplates ||
     sortBy !== "created" ||
     sortOrder !== "desc" ||
     dateFrom !== "" ||
@@ -192,7 +187,6 @@ export default function GroupsPage() {
     setSelectedOwnerId("all");
     setPlayerCountMin("");
     setPlayerCountMax("");
-    setShowTemplates(true);
     setSortBy("created");
     setSortOrder("desc");
     setDateFrom("");
@@ -229,11 +223,6 @@ export default function GroupsPage() {
         return false;
       }
       if (playerCountMax !== "" && playerCount > playerCountMax) {
-        return false;
-      }
-
-      // Template filter
-      if (!showTemplates && group.is_template) {
         return false;
       }
 
@@ -316,7 +305,7 @@ export default function GroupsPage() {
                 title={t("groups.filters.title")}
               >
                 🔍 {t("groups.filters.title")}
-                {(hasActiveFilters || filterType !== "all") && (
+                {hasActiveFilters && (
                   <span className={styles.activeIndicator}></span>
                 )}
               </button>
@@ -450,22 +439,6 @@ export default function GroupsPage() {
                           />
                         </div>
                       </div>
-
-                      {/* Template Filter */}
-                      <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>
-                          {t("groups.filters.templates.label")}
-                        </label>
-                        <label className={styles.checkboxLabel}>
-                          <input
-                            type="checkbox"
-                            checked={showTemplates}
-                            onChange={(e) => setShowTemplates(e.target.checked)}
-                            className={styles.checkbox}
-                          />
-                          {t("groups.filters.templates.show")}
-                        </label>
-                      </div>
                     </div>
                   </div>
 
@@ -528,7 +501,7 @@ export default function GroupsPage() {
                   </div>
 
                   {/* Reset Button */}
-                  {(hasActiveFilters || filterType !== "all") && (
+                  {hasActiveFilters && (
                     <div className={styles.resetSection}>
                       <button
                         onClick={resetFilters}
