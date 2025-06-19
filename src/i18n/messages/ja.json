@@ -162,6 +162,44 @@
     "noServersFound": "サーバーが見つかりません",
     "createFirstServer": "最初のMinecraftサーバーを作成して始めましょう！",
     "clickToManage": "クリックしてサーバーを管理",
+    "filters": {
+      "title": "フィルター",
+      "type": {
+        "label": "サーバータイプ",
+        "all": "すべて (サーバータイプ)",
+        "vanilla": "Vanilla",
+        "paper": "Paper",
+        "forge": "Forge"
+      },
+      "status": {
+        "label": "サーバーステータス",
+        "all": "すべて (ステータス)",
+        "running": "起動中",
+        "stopped": "停止中",
+        "error": "エラー"
+      },
+      "search": {
+        "label": "サーバー検索",
+        "placeholder": "サーバー名で検索..."
+      },
+      "version": {
+        "label": "Minecraftバージョン",
+        "all": "すべて (バージョン)"
+      },
+      "sort": {
+        "label": "並び順",
+        "name": "名前",
+        "status": "ステータス",
+        "created": "作成日",
+        "order": "並び順",
+        "ascending": "昇順",
+        "descending": "降順"
+      },
+      "filterBy": "フィルター",
+      "sortBy": "ソート",
+      "reset": "フィルターリセット",
+      "resultsCount": "{total}台中{count}台のサーバーを表示"
+    },
     "serverNotFound": "サーバーが見つかりません",
     "backToDashboard": "← ダッシュボードに戻る",
     "loadingServerDetails": "サーバー詳細を読み込み中...",

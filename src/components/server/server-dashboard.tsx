@@ -77,6 +77,113 @@ export function ServerDashboard() {
   });
   const [importFile, setImportFile] = useState<File | null>(null);
 
+  // Filter state
+  const [selectedServerType, setSelectedServerType] = useState<
+    ServerType | "all"
+  >("all");
+  const [selectedServerStatus, setSelectedServerStatus] = useState<
+    ServerStatus | "all"
+  >("all");
+  const [selectedMinecraftVersion, setSelectedMinecraftVersion] =
+    useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"name" | "status" | "created">("status");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Reset all filters to default state
+  const resetFilters = () => {
+    setSelectedServerType("all");
+    setSelectedServerStatus("all");
+    setSelectedMinecraftVersion("all");
+    setSearchQuery("");
+    setSortBy("status");
+    setSortOrder("desc");
+  };
+
+  // Check if any filters are active (not in default state)
+  const hasActiveFilters =
+    selectedServerType !== "all" ||
+    selectedServerStatus !== "all" ||
+    selectedMinecraftVersion !== "all" ||
+    searchQuery.trim() !== "" ||
+    sortBy !== "status" ||
+    sortOrder !== "desc";
+
+  // Get unique minecraft versions from existing servers
+  const availableVersions = Array.from(
+    new Set(servers.map((server) => server.minecraft_version))
+  ).sort((a, b) => {
+    // Sort versions in descending order (newest first)
+    const parseVersion = (version: string) => {
+      const parts = version.split(".").map(Number);
+      return (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
+    };
+    return parseVersion(b) - parseVersion(a);
+  });
+
+  // Filter servers based on selected type, status, version, and search query
+  const filteredServers = servers
+    .filter((server) => {
+      // Check server type filter
+      if (
+        selectedServerType !== "all" &&
+        server.server_type !== selectedServerType
+      ) {
+        return false;
+      }
+      // Check server status filter
+      if (
+        selectedServerStatus !== "all" &&
+        server.status !== selectedServerStatus
+      ) {
+        return false;
+      }
+      // Check minecraft version filter
+      if (
+        selectedMinecraftVersion !== "all" &&
+        server.minecraft_version !== selectedMinecraftVersion
+      ) {
+        return false;
+      }
+      // Check search query filter (case-insensitive)
+      if (
+        searchQuery.trim() !== "" &&
+        !server.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "status":
+          // Sort by status priority: running > stopped > error
+          const statusPriority: Record<ServerStatus, number> = {
+            [ServerStatus.RUNNING]: 3,
+            [ServerStatus.STARTING]: 2,
+            [ServerStatus.STOPPING]: 1,
+            [ServerStatus.STOPPED]: 0,
+            [ServerStatus.ERROR]: -1,
+          };
+          comparison = statusPriority[a.status] - statusPriority[b.status];
+          break;
+        case "created":
+          comparison =
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
   const resetForms = () => {
     setCreateForm({
       name: "",
@@ -331,13 +438,228 @@ export function ServerDashboard() {
     <div className={styles.container}>
       <div className={styles.containerHeader}>
         <h1 className={styles.title}>{t("servers.title")}</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className={styles.createButton}
-          disabled={isCreating}
-        >
-          {t("servers.createServer")}
-        </button>
+        <div className={styles.headerActions}>
+          {servers.length > 0 && (
+            <div className={styles.filterControls}>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={styles.filterToggleButton}
+                title={t("servers.filters.title")}
+              >
+                🔍 {t("servers.filters.title")}
+                {hasActiveFilters && (
+                  <span className={styles.activeIndicator}></span>
+                )}
+              </button>
+              {showFilters && (
+                <div className={styles.expandedFilters}>
+                  <div className={styles.filterHeader}>
+                    <h3>{t("servers.filters.title")}</h3>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className={styles.closeFiltersButton}
+                      aria-label="Close filters"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Search Section - moved to top */}
+                  <div className={styles.searchSection}>
+                    <div className={styles.filterGroup}>
+                      <label
+                        htmlFor="serverSearchInput"
+                        className={styles.filterLabel}
+                      >
+                        {t("servers.filters.search.label")}
+                      </label>
+                      <input
+                        id="serverSearchInput"
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t("servers.filters.search.placeholder")}
+                        className={styles.filterInput}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filter Section */}
+                  <div className={styles.filterSection}>
+                    <h4 className={styles.sectionTitle}>
+                      🔍 {t("servers.filters.filterBy")}
+                    </h4>
+                    <div className={styles.filterGrid}>
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverTypeFilter"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.type.label")}
+                        </label>
+                        <select
+                          id="serverTypeFilter"
+                          value={selectedServerType}
+                          onChange={(e) =>
+                            setSelectedServerType(
+                              e.target.value as ServerType | "all"
+                            )
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="all">
+                            {t("servers.filters.type.all")}
+                          </option>
+                          <option value={ServerType.VANILLA}>
+                            {t("servers.filters.type.vanilla")}
+                          </option>
+                          <option value={ServerType.PAPER}>
+                            {t("servers.filters.type.paper")}
+                          </option>
+                          <option value={ServerType.FORGE}>
+                            {t("servers.filters.type.forge")}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverStatusFilter"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.status.label")}
+                        </label>
+                        <select
+                          id="serverStatusFilter"
+                          value={selectedServerStatus}
+                          onChange={(e) =>
+                            setSelectedServerStatus(
+                              e.target.value as ServerStatus | "all"
+                            )
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="all">
+                            {t("servers.filters.status.all")}
+                          </option>
+                          <option value={ServerStatus.RUNNING}>
+                            {t("servers.filters.status.running")}
+                          </option>
+                          <option value={ServerStatus.STOPPED}>
+                            {t("servers.filters.status.stopped")}
+                          </option>
+                          <option value={ServerStatus.ERROR}>
+                            {t("servers.filters.status.error")}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverVersionFilter"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.version.label")}
+                        </label>
+                        <select
+                          id="serverVersionFilter"
+                          value={selectedMinecraftVersion}
+                          onChange={(e) =>
+                            setSelectedMinecraftVersion(e.target.value)
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="all">
+                            {t("servers.filters.version.all")}
+                          </option>
+                          {availableVersions.map((version) => (
+                            <option key={version} value={version}>
+                              {version}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sort Section */}
+                  <div className={styles.sortSection}>
+                    <h4 className={styles.sectionTitle}>
+                      📊 {t("servers.filters.sortBy")}
+                    </h4>
+                    <div className={styles.sortControls}>
+                      <div className={styles.filterGroup}>
+                        <label
+                          htmlFor="serverSortBy"
+                          className={styles.filterLabel}
+                        >
+                          {t("servers.filters.sort.label")}
+                        </label>
+                        <select
+                          id="serverSortBy"
+                          value={sortBy}
+                          onChange={(e) =>
+                            setSortBy(
+                              e.target.value as "name" | "status" | "created"
+                            )
+                          }
+                          className={styles.filterSelect}
+                        >
+                          <option value="status">
+                            {t("servers.filters.sort.status")}
+                          </option>
+                          <option value="name">
+                            {t("servers.filters.sort.name")}
+                          </option>
+                          <option value="created">
+                            {t("servers.filters.sort.created")}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>
+                          {t("servers.filters.sort.order")}
+                        </label>
+                        <button
+                          onClick={() =>
+                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                          }
+                          className={styles.sortOrderButton}
+                        >
+                          {sortOrder === "asc" ? (
+                            <>↑ {t("servers.filters.sort.ascending")}</>
+                          ) : (
+                            <>↓ {t("servers.filters.sort.descending")}</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reset Button */}
+                  {hasActiveFilters && (
+                    <div className={styles.resetSection}>
+                      <button
+                        onClick={resetFilters}
+                        className={styles.resetFiltersButtonLarge}
+                      >
+                        🔄 {t("servers.filters.reset")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className={styles.createButton}
+            disabled={isCreating}
+          >
+            {t("servers.createServer")}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -356,6 +678,14 @@ export function ServerDashboard() {
         <div className={styles.loading}>{t("servers.loadingServers")}</div>
       ) : (
         <>
+          {servers.length > 0 && (
+            <div className={styles.resultsCount}>
+              {t("servers.filters.resultsCount", {
+                count: filteredServers.length.toString(),
+                total: servers.length.toString(),
+              })}
+            </div>
+          )}
           {servers.length === 0 ? (
             <div className={styles.emptyState}>
               <h3>{t("servers.noServersFound")}</h3>
@@ -367,9 +697,14 @@ export function ServerDashboard() {
                 {t("servers.createServer")}
               </button>
             </div>
+          ) : filteredServers.length === 0 ? (
+            <div className={styles.emptyState}>
+              <h3>{t("servers.noServersFound")}</h3>
+              <p>No servers match the current filters.</p>
+            </div>
           ) : (
             <div className={styles.serverGrid}>
-              {servers.map((server) => (
+              {filteredServers.map((server) => (
                 <div
                   key={server.id}
                   className={styles.serverCard}

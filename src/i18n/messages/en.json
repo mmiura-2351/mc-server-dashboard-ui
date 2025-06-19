@@ -162,6 +162,44 @@
     "noServersFound": "No servers found",
     "createFirstServer": "Create your first Minecraft server to get started!",
     "clickToManage": "Click to manage server",
+    "filters": {
+      "title": "Filters",
+      "type": {
+        "label": "Server Type",
+        "all": "All (Server Type)",
+        "vanilla": "Vanilla",
+        "paper": "Paper",
+        "forge": "Forge"
+      },
+      "status": {
+        "label": "Server Status",
+        "all": "All (Server Status)",
+        "running": "Running",
+        "stopped": "Stopped",
+        "error": "Error"
+      },
+      "search": {
+        "label": "Search Servers",
+        "placeholder": "Search by server name..."
+      },
+      "version": {
+        "label": "Minecraft Version",
+        "all": "All (Versions)"
+      },
+      "sort": {
+        "label": "Sort By",
+        "name": "Name",
+        "status": "Status",
+        "created": "Created Date",
+        "order": "Sort Order",
+        "ascending": "A-Z",
+        "descending": "Z-A"
+      },
+      "filterBy": "Filter",
+      "sortBy": "Sort",
+      "reset": "Reset Filters",
+      "resultsCount": "Showing {count} of {total} servers"
+    },
     "serverNotFound": "Server not found",
     "backToDashboard": "← Back to Dashboard",
     "loadingServerDetails": "Loading server details...",
