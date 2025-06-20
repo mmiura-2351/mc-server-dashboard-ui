@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "@/contexts/language";
 import type { FileSystemItem } from "@/types/files";
 import { ImageViewer } from "./ImageViewer";
 import { TextEditor } from "./TextEditor";
+import { FileHistoryViewer } from "./FileHistoryViewer";
 import styles from "../../file-explorer.module.css";
 
 interface FileViewerProps {
@@ -14,12 +16,16 @@ interface FileViewerProps {
   isEditing: boolean;
   isSaving: boolean;
   editedContent: string;
+  serverId: number;
+  currentPath: string;
   onClose: () => void;
   onEdit: () => void;
   onSave: () => void;
   onCancelEdit: () => void;
   onDownload: () => void;
   onContentChange: (content: string) => void;
+  onReloadFile?: () => void;
+  isAdmin?: boolean;
 }
 
 // Helper functions
@@ -63,23 +69,78 @@ export function FileViewer({
   isEditing,
   isSaving,
   editedContent,
+  serverId,
+  currentPath,
   onClose,
   onEdit,
   onSave,
   onCancelEdit,
   onDownload,
   onContentChange,
+  onReloadFile,
+  isAdmin = false,
 }: FileViewerProps) {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<"content" | "history">("content");
+  const [isRestoring, setIsRestoring] = useState(false);
 
   if (!file) return null;
+
+  const filePath =
+    currentPath === "/" ? file.name : `${currentPath}/${file.name}`;
+
+  const handleRestore = async (version: number, description?: string) => {
+    setIsRestoring(true);
+    try {
+      const { restoreFileFromVersion } = await import(
+        "@/services/file-history"
+      );
+      const result = await restoreFileFromVersion(serverId, filePath, version, {
+        create_backup_before_restore: true,
+        description,
+      });
+
+      if (result.isOk()) {
+        // Reload the file content after restore
+        onReloadFile?.();
+        setActiveTab("content");
+      } else {
+        console.error("Failed to restore file:", result.error);
+      }
+    } catch (error) {
+      console.error("Error restoring file:", error);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+  const handleDeleteVersion = async (version: number) => {
+    if (!confirm(t("files.history.confirmDelete"))) return;
+
+    try {
+      const { deleteFileVersion } = await import("@/services/file-history");
+      const result = await deleteFileVersion(serverId, filePath, version);
+
+      if (result.isErr()) {
+        console.error("Failed to delete version:", result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting version:", error);
+    }
+  };
 
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
           <h3>
-            {isImageFile(file.name) ? "🖼️" : "📄"} {file.name}
+            {activeTab === "history"
+              ? "📜"
+              : isImageFile(file.name)
+                ? "🖼️"
+                : "📄"}{" "}
+            {file.name}
+            {activeTab === "history" && ` - ${t("files.tabs.history")}`}
           </h3>
           <button onClick={onClose} className={styles.closeButton}>
             ×
@@ -87,73 +148,107 @@ export function FileViewer({
         </div>
 
         <div className={styles.modalBody}>
-          {isLoading ? (
-            <div className={styles.fileLoading}>
-              {t("files.loadingFileContent")}
-            </div>
-          ) : isImageFile(file.name) ? (
-            <ImageViewer
-              fileName={file.name}
-              imageUrl={imageUrl}
-              onError={() => {
-                // Error handling could be passed as a prop
-                console.error(`Failed to display image: ${file.name}`);
-              }}
-            />
+          {activeTab === "content" ? (
+            <>
+              {isLoading || isRestoring ? (
+                <div className={styles.fileLoading}>
+                  {isRestoring
+                    ? t("files.history.restoring")
+                    : t("files.loadingFileContent")}
+                </div>
+              ) : isImageFile(file.name) ? (
+                <ImageViewer
+                  fileName={file.name}
+                  imageUrl={imageUrl}
+                  onError={() => {
+                    console.error(`Failed to display image: ${file.name}`);
+                  }}
+                />
+              ) : (
+                <TextEditor
+                  fileName={file.name}
+                  content={fileContent}
+                  editedContent={editedContent}
+                  isEditing={isEditing}
+                  isSaving={isSaving}
+                  onContentChange={onContentChange}
+                />
+              )}
+            </>
           ) : (
-            <TextEditor
-              fileName={file.name}
-              content={fileContent}
-              editedContent={editedContent}
-              isEditing={isEditing}
-              isSaving={isSaving}
-              onContentChange={onContentChange}
+            <FileHistoryViewer
+              serverId={serverId}
+              filePath={filePath}
+              onRestore={handleRestore}
+              onDelete={isAdmin ? handleDeleteVersion : undefined}
+              isAdmin={isAdmin}
             />
           )}
         </div>
 
         <div className={styles.modalFooter}>
-          {isTextFile(file.name) && !isImageFile(file.name) && (
-            <>
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={onSave}
-                    className={`${styles.modalButton} ${styles.primaryButton}`}
-                    disabled={isSaving || isLoading}
-                  >
-                    {isSaving ? t("files.saving") : t("files.save")}
-                  </button>
-                  <button
-                    onClick={onCancelEdit}
-                    className={styles.modalButton}
-                    disabled={isSaving}
-                  >
-                    {t("files.cancel")}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={onEdit}
-                  className={styles.modalButton}
-                  disabled={isLoading}
-                >
-                  {t("files.edit")}
-                </button>
-              )}
-            </>
+          {activeTab === "content" &&
+            isTextFile(file.name) &&
+            !isImageFile(file.name) && (
+              <>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={onSave}
+                      className={`${styles.modalButton} ${styles.primaryButton}`}
+                      disabled={isSaving || isLoading || isRestoring}
+                    >
+                      {isSaving ? t("files.saving") : t("files.save")}
+                    </button>
+                    <button
+                      onClick={onCancelEdit}
+                      className={styles.modalButton}
+                      disabled={isSaving}
+                    >
+                      {t("files.cancel")}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={onEdit}
+                      className={styles.modalButton}
+                      disabled={isLoading || isRestoring}
+                    >
+                      {t("files.edit")}
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("history")}
+                      className={styles.modalButton}
+                      disabled={isLoading || isRestoring}
+                    >
+                      {t("files.history.viewHistory")}
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          {activeTab === "content" && (
+            <button
+              onClick={onDownload}
+              className={styles.modalButton}
+              disabled={isLoading || isSaving || isRestoring}
+            >
+              {t("files.download")}
+            </button>
           )}
-          <button
-            onClick={onDownload}
-            className={styles.modalButton}
-            disabled={isLoading || isSaving}
-          >
-            {t("files.download")}
-          </button>
+          {activeTab === "history" && (
+            <button
+              onClick={() => setActiveTab("content")}
+              className={styles.modalButton}
+            >
+              {t("files.back")}
+            </button>
+          )}
           <button
             onClick={onClose}
             className={styles.modalButton}
-            disabled={isSaving}
+            disabled={isSaving || isRestoring}
           >
             {t("files.close")}
           </button>

@@ -575,6 +575,7 @@
     "edit": "✏️ Edit",
     "download": "📥 Download",
     "close": "Close",
+    "back": "← Back",
     "uploadProgress": "📤 Upload Progress",
     "uploadingFiles": "Uploading files...",
     "completed": "✅ Completed",
@@ -601,7 +602,25 @@
     "files": "files",
     "compressingFiles": "Compressing files...",
     "preparingDownload": "Preparing download...",
-    "zipDownloadComplete": "ZIP file download completed successfully!"
+    "zipDownloadComplete": "ZIP file download completed successfully!",
+    "tabs": {
+      "content": "Content",
+      "history": "History"
+    },
+    "history": {
+      "loading": "Loading file history...",
+      "noHistory": "No version history available for this file.",
+      "versions": "Version History",
+      "unknownUser": "Unknown",
+      "deleteVersion": "Delete this version",
+      "confirmDelete": "Are you sure you want to delete this version? This action cannot be undone.",
+      "versionDetails": "Version Details",
+      "loadingContent": "Loading version content...",
+      "restoreDescription": "Description for restore (optional)",
+      "restoreVersion": "Restore This Version",
+      "restoring": "Restoring file from version...",
+      "viewHistory": "📜 History"
+    }
   },
   "groups": {
     "title": "Group Management",

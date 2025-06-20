@@ -863,6 +863,205 @@
   cursor: not-allowed;
 }
 
+/* Modal Tabs Styles */
+.modalTabs {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 0;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tabButton:hover {
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+.tabButton.activeTab {
+  color: #1976d2;
+  background-color: #fff;
+}
+
+.tabButton.activeTab::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #1976d2;
+}
+
+/* File History Styles */
+.historyContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  height: 100%;
+  min-height: 400px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historyList h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.versionList {
+  overflow-y: auto;
+  max-height: 400px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.versionItem {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.versionItem:hover {
+  background-color: #f5f5f5;
+}
+
+.versionItem.selected {
+  background-color: #e3f2fd;
+}
+
+.versionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.versionNumber {
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.versionDate {
+  font-size: 12px;
+  color: #666;
+}
+
+.versionInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #666;
+}
+
+.versionEditor {
+  font-style: italic;
+}
+
+.versionSize {
+  font-family: monospace;
+}
+
+.versionDescription {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #333;
+  font-style: italic;
+}
+
+.deleteVersionButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.versionItem:hover .deleteVersionButton {
+  opacity: 0.7;
+}
+
+.deleteVersionButton:hover {
+  opacity: 1;
+}
+
+.versionDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.versionDetails h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.versionContent {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 350px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.versionContent pre {
+  margin: 0;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.restoreSection {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.restoreDescriptionInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.restoreDescriptionInput:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
 /* ZIP Progress Modal Styles */
 .progressContainer {
   padding: 20px;

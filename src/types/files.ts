@@ -47,3 +47,50 @@ export interface FileError {
   status?: number;
   code?: string;
 }
+
+// File history types
+export interface FileHistoryRecord {
+  id: number;
+  server_id: number;
+  file_path: string;
+  version_number: number;
+  backup_file_path: string;
+  file_size: number;
+  content_hash: string | null;
+  editor_user_id: number | null;
+  editor_username: string | null;
+  created_at: string;
+  description: string | null;
+}
+
+export interface FileHistoryListResponse {
+  file_path: string;
+  total_versions: number;
+  history: FileHistoryRecord[];
+}
+
+export interface FileVersionContentResponse {
+  file_path: string;
+  version_number: number;
+  content: string;
+  encoding: string;
+  created_at: string;
+  editor_username: string | null;
+  description: string | null;
+}
+
+export interface RestoreFromVersionRequest {
+  create_backup_before_restore?: boolean;
+  description?: string | null;
+}
+
+export interface RestoreResponse {
+  success: boolean;
+  message: string;
+  new_version?: FileHistoryRecord;
+}
+
+export interface DeleteVersionResponse {
+  success: boolean;
+  message: string;
+}

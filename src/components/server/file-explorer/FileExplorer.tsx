@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState } from "react";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
 import { useTranslation } from "@/contexts/language";
+import { useAuth } from "@/contexts/auth";
 import { ConfirmationModal, AlertModal } from "@/components/modal";
 
 // Components
@@ -30,6 +31,7 @@ interface FileExplorerProps {
 
 export function FileExplorer({ serverId }: FileExplorerProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const translations = useStableTranslation();
   const {
     fileInputRef,
@@ -548,6 +550,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             isEditing={viewer.isEditing}
             isSaving={viewer.isSaving}
             editedContent={viewer.editedContent}
+            serverId={serverId}
+            currentPath={navigation.currentPath}
             onClose={viewer.closeFileViewer}
             onEdit={viewer.startEdit}
             onSave={async () => {
@@ -566,6 +570,15 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
               }
             }}
             onContentChange={viewer.setEditedContent}
+            onReloadFile={() => {
+              if (viewer.selectedFile) {
+                viewer.openFileViewer(
+                  viewer.selectedFile,
+                  navigation.currentPath
+                );
+              }
+            }}
+            isAdmin={user?.role === "admin"}
           />
         )}
 
