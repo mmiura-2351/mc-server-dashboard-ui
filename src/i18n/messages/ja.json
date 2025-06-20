@@ -33,7 +33,9 @@
     "files": "ファイル",
     "account": "アカウント",
     "users": "ユーザー",
-    "management": "管理"
+    "management": "管理",
+    "resources": "リソース",
+    "docs": "ドキュメント"
   },
   "auth": {
     "login": "ログイン",
@@ -588,5 +590,15 @@
     "template": "テンプレート",
     "owner": "作成者",
     "unknownOwner": "不明"
+  },
+  "docs": {
+    "title": "ドキュメント",
+    "description": "マインクラフトサーバーダッシュボードの効果的な使用方法を学ぶためのユーザードキュメントをご覧ください。",
+    "searchPlaceholder": "ドキュメントを検索...",
+    "lastUpdated": "最終更新",
+    "noResults": "検索条件に一致するドキュメントが見つかりません。",
+    "loadError": "ドキュメントの読み込みに失敗しました",
+    "documentNotFound": "ドキュメントが見つかりません",
+    "backToList": "ドキュメント一覧に戻る"
   }
 }

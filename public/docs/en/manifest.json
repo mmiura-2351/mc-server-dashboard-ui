@@ -1,0 +1,28 @@
+{
+  "documents": [
+    {
+      "slug": "user-guide",
+      "title": "User Guide",
+      "description": "Complete guide for using the Minecraft Server Dashboard",
+      "lastUpdated": "2025-06-20",
+      "category": "Getting Started",
+      "order": 1
+    },
+    {
+      "slug": "server-setup",
+      "title": "Server Setup Guide",
+      "description": "How to configure and manage your Minecraft servers",
+      "lastUpdated": "2025-06-20",
+      "category": "Server Management",
+      "order": 1
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "Troubleshooting",
+      "description": "Common issues and their solutions",
+      "lastUpdated": "2025-06-20",
+      "category": "Support",
+      "order": 1
+    }
+  ]
+}

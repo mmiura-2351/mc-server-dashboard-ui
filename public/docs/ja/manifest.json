@@ -1,0 +1,28 @@
+{
+  "documents": [
+    {
+      "slug": "user-guide",
+      "title": "ユーザーガイド",
+      "description": "マインクラフトサーバーダッシュボードの使用方法完全ガイド",
+      "lastUpdated": "2025-06-20",
+      "category": "始めに",
+      "order": 1
+    },
+    {
+      "slug": "server-setup",
+      "title": "サーバー設定ガイド",
+      "description": "マインクラフトサーバーの設定と管理方法",
+      "lastUpdated": "2025-06-20",
+      "category": "サーバー管理",
+      "order": 1
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "トラブルシューティング",
+      "description": "よくある問題とその解決方法",
+      "lastUpdated": "2025-06-20",
+      "category": "サポート",
+      "order": 1
+    }
+  ]
+}

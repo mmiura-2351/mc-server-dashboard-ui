@@ -40,6 +40,15 @@ export function MainLayout({ children }: MainLayoutProps) {
     },
   ];
 
+  const resourceItems = [
+    {
+      label: t("navigation.docs"),
+      path: "/docs",
+      icon: "📖",
+      active: pathname.startsWith("/docs"),
+    },
+  ];
+
   const accountItems = [
     {
       label: t("navigation.account"),
@@ -81,6 +90,24 @@ export function MainLayout({ children }: MainLayoutProps) {
                     onClick={() => router.push(item.path)}
                     className={`${styles.navItem} ${item.active ? styles.navItemActive : ""}`}
                     disabled={!user.is_approved && item.path !== "/"}
+                  >
+                    <span className={styles.navIcon}>{item.icon}</span>
+                    <span className={styles.navLabel}>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.navSection}>
+              <span className={styles.navSectionTitle}>
+                {t("navigation.resources")}
+              </span>
+              <div className={styles.navItems}>
+                {resourceItems.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => router.push(item.path)}
+                    className={`${styles.navItem} ${item.active ? styles.navItemActive : ""}`}
                   >
                     <span className={styles.navIcon}>{item.icon}</span>
                     <span className={styles.navLabel}>{item.label}</span>
