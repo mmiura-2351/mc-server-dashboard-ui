@@ -147,110 +147,301 @@
 .documentContent {
   line-height: 1.7;
   color: var(--foreground);
+  font-size: 1rem;
+  max-width: none;
 }
 
+/* Headings with better hierarchy */
 .documentContent h1,
 .documentContent h2,
 .documentContent h3,
 .documentContent h4,
 .documentContent h5,
 .documentContent h6 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  line-height: 1.3;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--foreground);
 }
 
 .documentContent h1 {
-  font-size: 2rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.5rem;
+  font-size: 2.25rem;
+  border-bottom: 3px solid var(--primary);
+  padding-bottom: 0.75rem;
+  margin-bottom: 2rem;
+  font-weight: 800;
 }
 
 .documentContent h2 {
-  font-size: 1.5rem;
+  font-size: 1.875rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin-top: 3rem;
+  font-weight: 700;
 }
 
 .documentContent h3 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-top: 2rem;
+  font-weight: 650;
+}
+
+.documentContent h4 {
   font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
 }
 
+.documentContent h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+.documentContent h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Paragraphs and text */
 .documentContent p {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.75;
 }
 
-.documentContent ul,
-.documentContent ol {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
+.documentContent strong {
+  font-weight: 700;
+  color: var(--foreground);
 }
 
-.documentContent li {
-  margin-bottom: 0.5rem;
-}
-
-.documentContent blockquote {
-  border-left: 4px solid var(--primary);
-  padding-left: 1rem;
-  margin: 1.5rem 0;
+.documentContent em {
   font-style: italic;
   color: var(--muted-foreground);
 }
 
+/* Lists with better styling */
+.documentContent ul,
+.documentContent ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.documentContent ul {
+  list-style-type: disc;
+}
+
+.documentContent ol {
+  list-style-type: decimal;
+}
+
+.documentContent li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.documentContent li > ul,
+.documentContent li > ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.documentContent li > ul > li,
+.documentContent li > ol > li {
+  margin-bottom: 0.5rem;
+}
+
+/* Nested list styling */
+.documentContent ul ul {
+  list-style-type: circle;
+}
+
+.documentContent ul ul ul {
+  list-style-type: square;
+}
+
+/* Blockquotes with emphasis */
+.documentContent blockquote {
+  border-left: 4px solid var(--primary);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  background: var(--muted);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+  color: var(--muted-foreground);
+  position: relative;
+}
+
+.documentContent blockquote::before {
+  content: '"';
+  font-size: 3rem;
+  color: var(--primary);
+  position: absolute;
+  top: -0.5rem;
+  left: 1rem;
+  opacity: 0.3;
+  font-family: Georgia, serif;
+}
+
+.documentContent blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Code styling with better contrast */
 .documentContent code {
   background: var(--muted);
+  border: 1px solid var(--border);
   padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-family: "Courier New", monospace;
+  border-radius: 0.375rem;
+  font-family:
+    "SF Mono", "Monaco", "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
   font-size: 0.875rem;
+  color: var(--primary);
+  font-weight: 500;
 }
 
 .documentContent pre {
   background: var(--muted);
-  padding: 1rem;
-  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
   overflow-x: auto;
-  margin: 1.5rem 0;
+  margin: 2rem 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .documentContent pre code {
   background: none;
+  border: none;
   padding: 0;
+  color: var(--foreground);
+  font-weight: 400;
 }
 
+/* Tables with modern styling */
 .documentContent table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.5rem 0;
+  margin: 2rem 0;
+  background: var(--card);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .documentContent th,
 .documentContent td {
   border: 1px solid var(--border);
-  padding: 0.75rem;
+  padding: 1rem;
   text-align: left;
+  vertical-align: top;
 }
 
 .documentContent th {
   background: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--foreground);
+  border-bottom: 2px solid var(--border);
 }
 
+.documentContent tbody tr:nth-child(even) {
+  background: var(--muted);
+}
+
+.documentContent tbody tr:hover {
+  background: var(--accent);
+}
+
+/* Images with styling */
 .documentContent img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
-  margin: 1.5rem 0;
+  border-radius: 0.75rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
 }
 
+/* Links with better styling */
 .documentContent a {
   color: var(--primary);
-  text-decoration: underline;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .documentContent a:hover {
+  border-bottom-color: var(--primary);
   color: var(--primary);
-  text-decoration: none;
+}
+
+.documentContent a:visited {
+  color: var(--primary);
+}
+
+/* Horizontal rules */
+.documentContent hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    var(--border),
+    var(--muted-foreground),
+    var(--border)
+  );
+  margin: 3rem 0;
+  border-radius: 1px;
+}
+
+/* Keyboard shortcuts and inline elements */
+.documentContent kbd {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.375rem;
+  font-family:
+    "SF Mono", "Monaco", "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  font-size: 0.8125rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Definition lists */
+.documentContent dl {
+  margin: 1.5rem 0;
+}
+
+.documentContent dt {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.documentContent dd {
+  margin-left: 2rem;
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Mark/highlight text */
+.documentContent mark {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* Small text */
+.documentContent small {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
 }
 
 /* Navigation Styles */
@@ -503,15 +694,51 @@
   }
 
   .documentContent h1 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .documentContent h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
   .documentContent h3 {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
+  }
+
+  .documentContent h4 {
+    font-size: 1.125rem;
+  }
+
+  .documentContent h5 {
+    font-size: 1rem;
+  }
+
+  .documentContent h6 {
+    font-size: 0.875rem;
+  }
+
+  .documentContent table {
+    font-size: 0.875rem;
+  }
+
+  .documentContent th,
+  .documentContent td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .documentContent pre {
+    padding: 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .documentContent blockquote {
+    padding: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .documentContent blockquote::before {
+    font-size: 2rem;
+    top: -0.25rem;
   }
 
   .categoryToggle {
