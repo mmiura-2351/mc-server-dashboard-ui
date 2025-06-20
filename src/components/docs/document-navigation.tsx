@@ -75,7 +75,7 @@ export function DocumentNavigation({ className }: DocumentNavigationProps) {
               <span className={styles.categoryName}>{category}</span>
             </div>
 
-            <ul className={styles.documentList}>
+            <ul className={styles.navDocumentList}>
               {categoryDocs.map((doc) => {
                 const isActive = pathname === `/docs/${doc.slug}`;
                 return (
@@ -85,7 +85,9 @@ export function DocumentNavigation({ className }: DocumentNavigationProps) {
                       className={`${styles.documentLink} ${isActive ? styles.active : ""}`}
                     >
                       <span className={styles.documentIcon}>📄</span>
-                      <span className={styles.documentTitle}>{doc.title}</span>
+                      <span className={styles.navDocumentTitle}>
+                        {doc.title}
+                      </span>
                     </Link>
                   </li>
                 );
