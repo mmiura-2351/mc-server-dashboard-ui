@@ -717,6 +717,8 @@
     "noResults": "No documents found matching your search.",
     "loadError": "Failed to load documentation",
     "documentNotFound": "Document not found",
-    "backToList": "Back to Documentation"
+    "backToList": "Back to Documentation",
+    "navigation": "Documentation",
+    "allDocuments": "All Documents"
   }
 }

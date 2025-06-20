@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { docsService, DocMetadata } from "@/services/docs";
+import { DocumentNavigation } from "@/components/docs/document-navigation";
 import { useLanguage, useTranslation } from "@/contexts/language";
 import styles from "@/components/docs/docs.module.css";
 
@@ -63,78 +64,103 @@ export default function DocsPage() {
 
   if (loading) {
     return (
-      <div className={styles.documentList}>
-        <div className={styles.documentListHeader}>
-          <h1 className={styles.documentListTitle}>{t("docs.title")}</h1>
-          <p className={styles.documentListDescription}>
-            {t("docs.description")}
-          </p>
+      <div className={styles.docsLayout}>
+        <div className={styles.docsSidebar}>
+          <DocumentNavigation />
         </div>
-        <p>{t("common.loading")}</p>
+        <div className={styles.docsContent}>
+          <div className={styles.documentList}>
+            <div className={styles.documentListHeader}>
+              <h1 className={styles.documentListTitle}>{t("docs.title")}</h1>
+              <p className={styles.documentListDescription}>
+                {t("docs.description")}
+              </p>
+            </div>
+            <p>{t("common.loading")}</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.documentList}>
-        <div className={styles.documentListHeader}>
-          <h1 className={styles.documentListTitle}>{t("docs.title")}</h1>
-          <p className={styles.documentListDescription}>
-            {t("docs.description")}
-          </p>
+      <div className={styles.docsLayout}>
+        <div className={styles.docsSidebar}>
+          <DocumentNavigation />
         </div>
-        <p>
-          {t("docs.loadError")}: {error}
-        </p>
+        <div className={styles.docsContent}>
+          <div className={styles.documentList}>
+            <div className={styles.documentListHeader}>
+              <h1 className={styles.documentListTitle}>{t("docs.title")}</h1>
+              <p className={styles.documentListDescription}>
+                {t("docs.description")}
+              </p>
+            </div>
+            <p>
+              {t("docs.loadError")}: {error}
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.documentList}>
-      <div className={styles.documentListHeader}>
-        <h1 className={styles.documentListTitle}>{t("docs.title")}</h1>
-        <p className={styles.documentListDescription}>
-          {t("docs.description")}
-        </p>
+    <div className={styles.docsLayout}>
+      <div className={styles.docsSidebar}>
+        <DocumentNavigation />
       </div>
+      <div className={styles.docsContent}>
+        <div className={styles.documentList}>
+          <div className={styles.documentListHeader}>
+            <h1 className={styles.documentListTitle}>{t("docs.title")}</h1>
+            <p className={styles.documentListDescription}>
+              {t("docs.description")}
+            </p>
+          </div>
 
-      <div className={styles.searchContainer}>
-        <input
-          type="text"
-          placeholder={t("docs.searchPlaceholder")}
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-          className={styles.searchInput}
-        />
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder={t("docs.searchPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
+
+          {Object.entries(documentsByCategory).map(
+            ([category, categoryDocs]) => (
+              <section key={category} className={styles.categorySection}>
+                <h2 className={styles.categoryTitle}>{category}</h2>
+                {categoryDocs.map((doc) => (
+                  <Link
+                    key={doc.slug}
+                    href={`/docs/${doc.slug}`}
+                    className={styles.documentCard}
+                  >
+                    <h3 className={styles.documentCardTitle}>{doc.title}</h3>
+                    <p className={styles.documentCardDescription}>
+                      {doc.description}
+                    </p>
+                    <div className={styles.documentCardMeta}>
+                      <span>
+                        {t("docs.lastUpdated")}:{" "}
+                        {new Date(doc.lastUpdated).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </section>
+            )
+          )}
+
+          {documents.length === 0 && searchQuery && (
+            <p>{t("docs.noResults")}</p>
+          )}
+        </div>
       </div>
-
-      {Object.entries(documentsByCategory).map(([category, categoryDocs]) => (
-        <section key={category} className={styles.categorySection}>
-          <h2 className={styles.categoryTitle}>{category}</h2>
-          {categoryDocs.map((doc) => (
-            <Link
-              key={doc.slug}
-              href={`/docs/${doc.slug}`}
-              className={styles.documentCard}
-            >
-              <h3 className={styles.documentCardTitle}>{doc.title}</h3>
-              <p className={styles.documentCardDescription}>
-                {doc.description}
-              </p>
-              <div className={styles.documentCardMeta}>
-                <span>
-                  {t("docs.lastUpdated")}:{" "}
-                  {new Date(doc.lastUpdated).toLocaleDateString()}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </section>
-      ))}
-
-      {documents.length === 0 && searchQuery && <p>{t("docs.noResults")}</p>}
     </div>
   );
 }

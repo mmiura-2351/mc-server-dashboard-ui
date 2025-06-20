@@ -29,6 +29,13 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// Mock DocumentNavigation component to avoid conflicts with multiple loading states
+vi.mock("@/components/docs/document-navigation", () => ({
+  DocumentNavigation: () => (
+    <div data-testid="document-navigation">Navigation</div>
+  ),
+}));
+
 // Mock the translation hook
 const mockT = vi.fn((key: string) => {
   const translations: Record<string, string> = {

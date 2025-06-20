@@ -599,6 +599,8 @@
     "noResults": "検索条件に一致するドキュメントが見つかりません。",
     "loadError": "ドキュメントの読み込みに失敗しました",
     "documentNotFound": "ドキュメントが見つかりません",
-    "backToList": "ドキュメント一覧に戻る"
+    "backToList": "ドキュメント一覧に戻る",
+    "navigation": "ドキュメント",
+    "allDocuments": "すべてのドキュメント"
   }
 }
