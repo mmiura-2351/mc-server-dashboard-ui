@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DocumentNavigation } from "./document-navigation";
 import { docsService } from "@/services/docs";
@@ -90,7 +90,7 @@ describe("DocumentNavigation", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
-  it("renders documents grouped by category", async () => {
+  it("renders documents grouped by category with collapsible sections", async () => {
     vi.mocked(docsService.getAllDocuments).mockResolvedValue(ok(mockDocuments));
 
     render(<DocumentNavigation />);
@@ -99,16 +99,48 @@ describe("DocumentNavigation", () => {
       expect(
         screen.getByRole("link", { name: /All Documents/ })
       ).toBeInTheDocument();
-      expect(screen.getByText("Getting Started")).toBeInTheDocument();
-      expect(screen.getByText("Server Management")).toBeInTheDocument();
-      expect(screen.getByText("Support")).toBeInTheDocument();
-      expect(screen.getByText("User Guide")).toBeInTheDocument();
-      expect(screen.getByText("Server Setup")).toBeInTheDocument();
-      expect(screen.getByText("Troubleshooting")).toBeInTheDocument();
+
+      // Categories should be rendered as collapsible buttons
+      expect(
+        screen.getByRole("button", { name: /Getting Started/ })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Server Management/ })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Support/ })
+      ).toBeInTheDocument();
+
+      // Documents should not be visible initially (collapsed)
+      expect(screen.queryByText("User Guide")).not.toBeInTheDocument();
+      expect(screen.queryByText("Server Setup")).not.toBeInTheDocument();
+      expect(screen.queryByText("Troubleshooting")).not.toBeInTheDocument();
     });
   });
 
-  it("creates correct navigation links", async () => {
+  it("expands category when clicked", async () => {
+    vi.mocked(docsService.getAllDocuments).mockResolvedValue(ok(mockDocuments));
+
+    render(<DocumentNavigation />);
+
+    await waitFor(() => {
+      const gettingStartedButton = screen.getByRole("button", {
+        name: /Getting Started/,
+      });
+      expect(gettingStartedButton).toBeInTheDocument();
+    });
+
+    // Click to expand
+    fireEvent.click(screen.getByRole("button", { name: /Getting Started/ }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("link", { name: /User Guide/ })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("creates correct navigation links when expanded", async () => {
     vi.mocked(docsService.getAllDocuments).mockResolvedValue(ok(mockDocuments));
 
     render(<DocumentNavigation />);
@@ -116,15 +148,30 @@ describe("DocumentNavigation", () => {
     await waitFor(() => {
       const allDocsLink = screen.getByRole("link", { name: /All Documents/ });
       expect(allDocsLink).toHaveAttribute("href", "/docs");
+    });
 
+    // Expand Getting Started category
+    fireEvent.click(screen.getByRole("button", { name: /Getting Started/ }));
+
+    await waitFor(() => {
       const userGuideLink = screen.getByRole("link", { name: /User Guide/ });
       expect(userGuideLink).toHaveAttribute("href", "/docs/user-guide");
+    });
 
+    // Expand Server Management category
+    fireEvent.click(screen.getByRole("button", { name: /Server Management/ }));
+
+    await waitFor(() => {
       const serverSetupLink = screen.getByRole("link", {
         name: /Server Setup/,
       });
       expect(serverSetupLink).toHaveAttribute("href", "/docs/server-setup");
+    });
 
+    // Expand Support category
+    fireEvent.click(screen.getByRole("button", { name: /Support/ }));
+
+    await waitFor(() => {
       const troubleshootingLink = screen.getByRole("link", {
         name: /Troubleshooting/,
       });
@@ -135,7 +182,7 @@ describe("DocumentNavigation", () => {
     });
   });
 
-  it("applies active class to current page", async () => {
+  it("auto-expands category with active document and applies active class", async () => {
     const usePathname = await import("next/navigation");
     vi.mocked(usePathname.usePathname).mockReturnValue("/docs/user-guide");
 
@@ -144,13 +191,16 @@ describe("DocumentNavigation", () => {
     render(<DocumentNavigation />);
 
     await waitFor(() => {
+      // Category should be auto-expanded because it contains the active document
       const userGuideLink = screen.getByRole("link", { name: /User Guide/ });
+      expect(userGuideLink).toBeInTheDocument();
       expect(userGuideLink.className).toContain("active");
 
-      const serverSetupLink = screen.getByRole("link", {
-        name: /Server Setup/,
+      // Category button should show it has active content
+      const gettingStartedButton = screen.getByRole("button", {
+        name: /Getting Started/,
       });
-      expect(serverSetupLink.className).not.toContain("active");
+      expect(gettingStartedButton.className).toContain("hasActive");
     });
   });
 
@@ -204,25 +254,15 @@ describe("DocumentNavigation", () => {
     render(<DocumentNavigation />);
 
     await waitFor(() => {
-      const categories = screen.getAllByText(
-        /Getting Started|Server Management|Support/
-      );
-      expect(categories).toHaveLength(3);
-
-      // Check that categories are rendered
-      expect(screen.getByText("Getting Started")).toBeInTheDocument();
-      expect(screen.getByText("Server Management")).toBeInTheDocument();
-      expect(screen.getByText("Support")).toBeInTheDocument();
-
-      // Check that documents are grouped properly by verifying all documents are present
+      // Check that category buttons are rendered
       expect(
-        screen.getByRole("link", { name: /User Guide/ })
+        screen.getByRole("button", { name: /Getting Started/ })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("link", { name: /Server Setup/ })
+        screen.getByRole("button", { name: /Server Management/ })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("link", { name: /Troubleshooting/ })
+        screen.getByRole("button", { name: /Support/ })
       ).toBeInTheDocument();
     });
   });
