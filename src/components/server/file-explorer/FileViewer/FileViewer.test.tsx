@@ -38,12 +38,16 @@ const defaultProps = {
   isEditing: false,
   isSaving: false,
   editedContent: "",
+  serverId: 1,
+  currentPath: "/",
   onClose: vi.fn(),
   onEdit: vi.fn(),
   onSave: vi.fn(),
   onCancelEdit: vi.fn(),
   onDownload: vi.fn(),
   onContentChange: vi.fn(),
+  onReloadFile: vi.fn(),
+  isAdmin: false,
 };
 
 describe("FileViewer", () => {

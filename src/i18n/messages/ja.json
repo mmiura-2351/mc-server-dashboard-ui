@@ -483,7 +483,24 @@
     "files": "ファイル",
     "compressingFiles": "ファイルを圧縮中...",
     "preparingDownload": "ダウンロードを準備中...",
-    "zipDownloadComplete": "ZIPファイルのダウンロードが正常に完了しました！"
+    "zipDownloadComplete": "ZIPファイルのダウンロードが正常に完了しました！",
+    "tabs": {
+      "content": "内容",
+      "history": "履歴"
+    },
+    "history": {
+      "loading": "ファイル履歴を読み込み中...",
+      "noHistory": "このファイルのバージョン履歴はありません。",
+      "versions": "バージョン履歴",
+      "unknownUser": "不明",
+      "deleteVersion": "このバージョンを削除",
+      "confirmDelete": "このバージョンを削除してもよろしいですか？この操作は元に戻すことができません。",
+      "versionDetails": "バージョン詳細",
+      "loadingContent": "バージョン内容を読み込み中...",
+      "restoreDescription": "復元の説明（任意）",
+      "restoreVersion": "このバージョンを復元",
+      "restoring": "バージョンから復元中..."
+    }
   },
   "groups": {
     "title": "グループ管理",
