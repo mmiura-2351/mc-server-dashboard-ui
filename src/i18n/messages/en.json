@@ -617,7 +617,8 @@
       "loadingContent": "Loading version content...",
       "restoreDescription": "Description for restore (optional)",
       "restoreVersion": "Restore This Version",
-      "restoring": "Restoring file from version..."
+      "restoring": "Restoring file from version...",
+      "viewHistory": "📜 History"
     }
   },
   "groups": {

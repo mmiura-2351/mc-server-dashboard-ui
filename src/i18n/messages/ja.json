@@ -499,7 +499,8 @@
       "loadingContent": "バージョン内容を読み込み中...",
       "restoreDescription": "復元の説明（任意）",
       "restoreVersion": "このバージョンを復元",
-      "restoring": "バージョンから復元中..."
+      "restoring": "バージョンから復元中...",
+      "viewHistory": "📜 履歴"
     }
   },
   "groups": {

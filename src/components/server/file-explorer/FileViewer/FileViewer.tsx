@@ -226,13 +226,22 @@ export function FileViewer({
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={onEdit}
-                    className={styles.modalButton}
-                    disabled={isLoading || isRestoring}
-                  >
-                    {t("files.edit")}
-                  </button>
+                  <>
+                    <button
+                      onClick={onEdit}
+                      className={styles.modalButton}
+                      disabled={isLoading || isRestoring}
+                    >
+                      {t("files.edit")}
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("history")}
+                      className={styles.modalButton}
+                      disabled={isLoading || isRestoring}
+                    >
+                      {t("files.history.viewHistory")}
+                    </button>
+                  </>
                 )}
               </>
             )}
