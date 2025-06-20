@@ -129,40 +129,23 @@ export function FileViewer({
     }
   };
 
-  const showTabs = isTextFile(file.name) && !isImageFile(file.name);
-
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
           <h3>
-            {isImageFile(file.name) ? "🖼️" : "📄"} {file.name}
+            {activeTab === "history"
+              ? "📜"
+              : isImageFile(file.name)
+                ? "🖼️"
+                : "📄"}{" "}
+            {file.name}
+            {activeTab === "history" && ` - ${t("files.tabs.history")}`}
           </h3>
           <button onClick={onClose} className={styles.closeButton}>
             ×
           </button>
         </div>
-
-        {showTabs && (
-          <div className={styles.modalTabs}>
-            <button
-              className={`${styles.tabButton} ${
-                activeTab === "content" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("content")}
-            >
-              {t("files.tabs.content")}
-            </button>
-            <button
-              className={`${styles.tabButton} ${
-                activeTab === "history" ? styles.activeTab : ""
-              }`}
-              onClick={() => setActiveTab("history")}
-            >
-              {t("files.tabs.history")}
-            </button>
-          </div>
-        )}
 
         <div className={styles.modalBody}>
           {activeTab === "content" ? (
@@ -252,6 +235,14 @@ export function FileViewer({
               disabled={isLoading || isSaving || isRestoring}
             >
               {t("files.download")}
+            </button>
+          )}
+          {activeTab === "history" && (
+            <button
+              onClick={() => setActiveTab("content")}
+              className={styles.modalButton}
+            >
+              {t("files.back")}
             </button>
           )}
           <button
