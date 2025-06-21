@@ -49,8 +49,9 @@ cd /opt/mcs-dashboard/ui
 ### 3. 依存関係のインストール
 
 ```bash
-# Node.jsの依存関係をインストール
-npm ci --production
+# プロダクション環境向けの依存関係をインストール
+# huskyのprepareスクリプトをスキップするため、--ignore-scriptsを使用
+npm ci --omit=dev --ignore-scripts
 
 # プロダクションビルドの実行
 npm run build
@@ -152,7 +153,7 @@ sudo systemctl stop mc-dashboard-ui
 git pull origin main
 
 # 依存関係の更新
-npm ci --production
+npm ci --omit=dev --ignore-scripts
 
 # 新しいビルドの作成
 npm run build
@@ -198,6 +199,16 @@ sudo chown -R $USER:$USER /opt/mcs-dashboard/ui
 
 # 実行権限の確認
 ls -la /opt/mcs-dashboard/ui
+```
+
+### huskyエラー
+
+プロダクション環境でhuskyエラーが発生する場合：
+
+```bash
+# huskyはdevDependencyのため、本番環境では不要
+# --ignore-scriptsオプションを使用してprepareスクリプトをスキップ
+npm ci --omit=dev --ignore-scripts
 ```
 
 ## セキュリティ考慮事項
