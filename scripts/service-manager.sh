@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# MC Server Dashboard Service Manager
-# Unified management for both frontend and backend services
+# MC Server Dashboard Frontend Service Manager
+# Management for frontend service only
 
 set -e
 
@@ -12,9 +12,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Service names
-FRONTEND_SERVICE="mc-dashboard-ui"
-BACKEND_SERVICE="mc-dashboard-api"
+# Service name
+SERVICE_NAME="mc-dashboard-ui"
 
 # Logging functions
 log_info() {
@@ -55,30 +54,13 @@ get_service_status() {
 
 # Function to show service status
 show_status() {
-    log_info "Service Status:"
+    log_info "Frontend Service Status:"
     echo "----------------------------------------"
     
-    local backend_status=$(get_service_status "$BACKEND_SERVICE")
-    local frontend_status=$(get_service_status "$FRONTEND_SERVICE")
-    
-    printf "%-20s: " "Backend API"
-    case $backend_status in
-        "running")
-            echo -e "${GREEN}Running${NC}"
-            ;;
-        "stopped")
-            echo -e "${YELLOW}Stopped${NC}"
-            ;;
-        "disabled")
-            echo -e "${RED}Disabled${NC}"
-            ;;
-        "not_installed")
-            echo -e "${RED}Not Installed${NC}"
-            ;;
-    esac
+    local status=$(get_service_status "$SERVICE_NAME")
     
     printf "%-20s: " "Frontend UI"
-    case $frontend_status in
+    case $status in
         "running")
             echo -e "${GREEN}Running${NC}"
             ;;
@@ -95,192 +77,128 @@ show_status() {
     
     echo "----------------------------------------"
     
-    # Show URLs if services are running
-    if [ "$backend_status" = "running" ]; then
-        log_info "Backend API: http://localhost:8000"
-        log_info "API Documentation: http://localhost:8000/docs"
+    # Show URL if service is running
+    if [ "$status" = "running" ]; then
+        log_info "Frontend URL: http://localhost:3000"
     fi
     
-    if [ "$frontend_status" = "running" ]; then
-        log_info "Frontend UI: http://localhost:3000"
+    # Check backend status (informational only)
+    echo ""
+    log_info "Backend API Status (informational):"
+    if curl -s http://localhost:8000/docs >/dev/null 2>&1; then
+        echo -e "Backend API: ${GREEN}Accessible${NC} at http://localhost:8000"
+    else
+        echo -e "Backend API: ${YELLOW}Not accessible${NC} at http://localhost:8000"
+        log_warning "Make sure the backend is running separately"
     fi
 }
 
-# Function to start services
-start_services() {
-    log_info "Starting services..."
+# Function to start service
+start_service() {
+    log_info "Starting frontend service..."
     
-    # Start backend first
-    if service_exists "$BACKEND_SERVICE"; then
-        local backend_status=$(get_service_status "$BACKEND_SERVICE")
-        if [ "$backend_status" != "running" ]; then
-            log_info "Starting backend service..."
-            sudo systemctl start "$BACKEND_SERVICE"
-            log_success "Backend service started"
-        else
-            log_info "Backend service is already running"
-        fi
-    else
-        log_warning "Backend service not installed, skipping"
-    fi
-    
-    # Start frontend
-    if service_exists "$FRONTEND_SERVICE"; then
-        local frontend_status=$(get_service_status "$FRONTEND_SERVICE")
-        if [ "$frontend_status" != "running" ]; then
-            log_info "Starting frontend service..."
-            sudo systemctl start "$FRONTEND_SERVICE"
+    if service_exists "$SERVICE_NAME"; then
+        local status=$(get_service_status "$SERVICE_NAME")
+        if [ "$status" != "running" ]; then
+            log_info "Starting service..."
+            sudo systemctl start "$SERVICE_NAME"
             log_success "Frontend service started"
         else
             log_info "Frontend service is already running"
         fi
     else
         log_error "Frontend service not installed"
+        log_info "Install it with:"
+        log_info "  sudo cp /opt/mcs-dashboard/ui/deployment/mc-dashboard-ui.service /etc/systemd/system/"
+        log_info "  sudo systemctl daemon-reload"
+        log_info "  sudo systemctl enable mc-dashboard-ui"
         return 1
     fi
-    
-    log_success "All services started successfully"
 }
 
-# Function to stop services
-stop_services() {
-    log_info "Stopping services..."
+# Function to stop service
+stop_service() {
+    log_info "Stopping frontend service..."
     
-    # Stop frontend first
-    if service_exists "$FRONTEND_SERVICE"; then
-        local frontend_status=$(get_service_status "$FRONTEND_SERVICE")
-        if [ "$frontend_status" = "running" ]; then
-            log_info "Stopping frontend service..."
-            sudo systemctl stop "$FRONTEND_SERVICE"
+    if service_exists "$SERVICE_NAME"; then
+        local status=$(get_service_status "$SERVICE_NAME")
+        if [ "$status" = "running" ]; then
+            log_info "Stopping service..."
+            sudo systemctl stop "$SERVICE_NAME"
             log_success "Frontend service stopped"
         else
             log_info "Frontend service is not running"
         fi
+    else
+        log_warning "Frontend service not installed"
     fi
-    
-    # Stop backend
-    if service_exists "$BACKEND_SERVICE"; then
-        local backend_status=$(get_service_status "$BACKEND_SERVICE")
-        if [ "$backend_status" = "running" ]; then
-            log_info "Stopping backend service..."
-            sudo systemctl stop "$BACKEND_SERVICE"
-            log_success "Backend service stopped"
-        else
-            log_info "Backend service is not running"
-        fi
-    fi
-    
-    log_success "All services stopped"
 }
 
-# Function to restart services
-restart_services() {
-    log_info "Restarting services..."
-    stop_services
+# Function to restart service
+restart_service() {
+    log_info "Restarting frontend service..."
+    stop_service
     sleep 2
-    start_services
+    start_service
 }
 
 # Function to show logs
 show_logs() {
-    local service="${1:-both}"
-    
-    case $service in
-        "backend"|"api")
-            if service_exists "$BACKEND_SERVICE"; then
-                log_info "Showing backend logs (Ctrl+C to stop)..."
-                sudo journalctl -u "$BACKEND_SERVICE" -f
-            else
-                log_error "Backend service not installed"
-            fi
-            ;;
-        "frontend"|"ui")
-            if service_exists "$FRONTEND_SERVICE"; then
-                log_info "Showing frontend logs (Ctrl+C to stop)..."
-                sudo journalctl -u "$FRONTEND_SERVICE" -f
-            else
-                log_error "Frontend service not installed"
-            fi
-            ;;
-        "both"|*)
-            if service_exists "$BACKEND_SERVICE" && service_exists "$FRONTEND_SERVICE"; then
-                log_info "Showing all service logs (Ctrl+C to stop)..."
-                sudo journalctl -u "$BACKEND_SERVICE" -u "$FRONTEND_SERVICE" -f
-            elif service_exists "$FRONTEND_SERVICE"; then
-                log_info "Showing frontend logs (Ctrl+C to stop)..."
-                sudo journalctl -u "$FRONTEND_SERVICE" -f
-            else
-                log_error "No services are installed"
-            fi
-            ;;
-    esac
+    if service_exists "$SERVICE_NAME"; then
+        log_info "Showing frontend logs (Ctrl+C to stop)..."
+        sudo journalctl -u "$SERVICE_NAME" -f
+    else
+        log_error "Frontend service not installed"
+    fi
 }
 
-# Function to enable services
-enable_services() {
-    log_info "Enabling services for auto-start..."
+# Function to enable service
+enable_service() {
+    log_info "Enabling frontend service for auto-start..."
     
-    if service_exists "$BACKEND_SERVICE"; then
-        sudo systemctl enable "$BACKEND_SERVICE"
-        log_success "Backend service enabled"
-    else
-        log_warning "Backend service not installed, skipping"
-    fi
-    
-    if service_exists "$FRONTEND_SERVICE"; then
-        sudo systemctl enable "$FRONTEND_SERVICE"
-        log_success "Frontend service enabled"
+    if service_exists "$SERVICE_NAME"; then
+        sudo systemctl enable "$SERVICE_NAME"
+        log_success "Frontend service enabled for auto-start"
     else
         log_error "Frontend service not installed"
         return 1
     fi
-    
-    log_success "All services enabled for auto-start"
 }
 
-# Function to disable services
-disable_services() {
-    log_info "Disabling services auto-start..."
+# Function to disable service
+disable_service() {
+    log_info "Disabling frontend service auto-start..."
     
-    if service_exists "$FRONTEND_SERVICE"; then
-        sudo systemctl disable "$FRONTEND_SERVICE"
+    if service_exists "$SERVICE_NAME"; then
+        sudo systemctl disable "$SERVICE_NAME"
         log_success "Frontend service disabled"
+    else
+        log_warning "Frontend service not installed"
     fi
-    
-    if service_exists "$BACKEND_SERVICE"; then
-        sudo systemctl disable "$BACKEND_SERVICE"
-        log_success "Backend service disabled"
-    fi
-    
-    log_success "All services disabled"
 }
 
 # Function to show help
 show_help() {
-    echo "MC Server Dashboard Service Manager"
+    echo "MC Server Dashboard Frontend Service Manager"
     echo ""
-    echo "Usage: $0 [COMMAND] [OPTIONS]"
+    echo "Usage: $0 [COMMAND]"
     echo ""
     echo "Commands:"
-    echo "  status              Show service status"
-    echo "  start               Start all services"
-    echo "  stop                Stop all services"
-    echo "  restart             Restart all services"
-    echo "  enable              Enable auto-start for all services"
-    echo "  disable             Disable auto-start for all services"
-    echo "  logs [SERVICE]      Show service logs"
+    echo "  status              Show frontend service status"
+    echo "  start               Start frontend service"
+    echo "  stop                Stop frontend service"
+    echo "  restart             Restart frontend service"
+    echo "  enable              Enable auto-start for frontend service"
+    echo "  disable             Disable auto-start for frontend service"
+    echo "  logs                Show frontend service logs"
     echo "  help                Show this help message"
-    echo ""
-    echo "Service options for logs command:"
-    echo "  backend, api        Show only backend logs"
-    echo "  frontend, ui        Show only frontend logs"
-    echo "  both (default)      Show all service logs"
     echo ""
     echo "Examples:"
     echo "  $0 status           # Show current status"
-    echo "  $0 start            # Start all services"
-    echo "  $0 logs backend     # Show backend logs only"
-    echo "  $0 logs             # Show all logs"
+    echo "  $0 start            # Start frontend service"
+    echo "  $0 logs             # Show frontend logs"
+    echo ""
+    echo "Note: The backend API should be managed separately."
 }
 
 # Main function
@@ -292,22 +210,22 @@ main() {
             show_status
             ;;
         "start")
-            start_services
+            start_service
             ;;
         "stop")
-            stop_services
+            stop_service
             ;;
         "restart")
-            restart_services
+            restart_service
             ;;
         "enable")
-            enable_services
+            enable_service
             ;;
         "disable")
-            disable_services
+            disable_service
             ;;
         "logs")
-            show_logs "$2"
+            show_logs
             ;;
         "help"|"-h"|"--help")
             show_help

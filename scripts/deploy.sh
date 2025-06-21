@@ -1,17 +1,14 @@
 #!/bin/bash
 
-# MC Server Dashboard Unified Deployment Script
-# This script handles both frontend and backend deployment
+# MC Server Dashboard Frontend Deployment Script
+# This script handles frontend deployment only
 
 set -e
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-API_ROOT="$(dirname "$PROJECT_ROOT")/mc-server-dashboard-api"
-DEPLOY_ROOT="/opt/mcs-dashboard"
-FRONTEND_DIR="$DEPLOY_ROOT/ui"
-BACKEND_DIR="$DEPLOY_ROOT/api"
+DEPLOY_DIR="/opt/mcs-dashboard/ui"
 
 # Colors for output
 RED='\033[0;31m'
@@ -58,50 +55,22 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Check Python (for backend)
-    if ! command_exists python3; then
-        log_error "Python 3 is not installed. Please install Python 3.9+ first."
+    # Check npm
+    if ! command_exists npm; then
+        log_error "npm is not installed."
         exit 1
     fi
     
-    # Check uv (Python package manager for backend)
-    if ! command_exists uv; then
-        log_warning "uv is not installed. Backend deployment will be skipped."
-        log_warning "Install uv with: curl -LsSf https://astral.sh/uv/install.sh | sh"
-        SKIP_BACKEND=true
-    fi
-    
-    # Check if backend directory exists
-    if [ ! -d "$API_ROOT" ]; then
-        log_warning "Backend directory not found at $API_ROOT. Backend deployment will be skipped."
-        SKIP_BACKEND=true
+    # Check if backend is accessible (warning only)
+    if ! curl -s http://localhost:8000/docs >/dev/null 2>&1; then
+        log_warning "Backend API is not accessible at http://localhost:8000"
+        log_warning "Make sure the backend is running before accessing the frontend"
     fi
     
     log_success "Prerequisites check completed"
 }
 
-# Health check functions
-check_backend_health() {
-    local max_attempts=30
-    local attempt=1
-    
-    log_info "Checking backend health..."
-    
-    while [ $attempt -le $max_attempts ]; do
-        if curl -s http://localhost:8000/docs >/dev/null 2>&1; then
-            log_success "Backend is healthy"
-            return 0
-        fi
-        
-        log_info "Attempt $attempt/$max_attempts: Backend not ready, waiting..."
-        sleep 2
-        ((attempt++))
-    done
-    
-    log_error "Backend health check failed after $max_attempts attempts"
-    return 1
-}
-
+# Health check function
 check_frontend_health() {
     local max_attempts=30
     local attempt=1
@@ -124,89 +93,50 @@ check_frontend_health() {
 }
 
 # Service management functions
-stop_services() {
-    log_info "Stopping services..."
+stop_service() {
+    log_info "Stopping frontend service..."
     
-    # Stop systemd services if they exist
+    # Stop systemd service if it exists
     if systemctl is-active --quiet mc-dashboard-ui 2>/dev/null; then
         sudo systemctl stop mc-dashboard-ui
         log_info "Stopped frontend service"
     fi
     
-    if systemctl is-active --quiet mc-dashboard-api 2>/dev/null; then
-        sudo systemctl stop mc-dashboard-api
-        log_info "Stopped backend service"
-    fi
-    
-    # Kill any remaining processes
+    # Kill any remaining frontend processes
     pkill -f "next start" 2>/dev/null || true
-    pkill -f "fastapi dev" 2>/dev/null || true
-    pkill -f "uvicorn" 2>/dev/null || true
+    pkill -f "node.*next" 2>/dev/null || true
 }
 
-# Deploy backend
-deploy_backend() {
-    if [ "$SKIP_BACKEND" = true ]; then
-        log_warning "Skipping backend deployment"
-        return 0
-    fi
-    
-    log_info "Deploying backend..."
-    
-    # Create backend directory
-    sudo mkdir -p "$BACKEND_DIR"
-    sudo chown "$USER:$USER" "$BACKEND_DIR"
-    
-    # Copy backend files
-    cp -r "$API_ROOT"/* "$BACKEND_DIR/"
-    
-    # Install dependencies
-    cd "$BACKEND_DIR"
-    uv sync --frozen
-    
-    log_success "Backend deployed successfully"
-}
 
 # Deploy frontend
 deploy_frontend() {
     log_info "Deploying frontend..."
     
-    # Create frontend directory
-    sudo mkdir -p "$FRONTEND_DIR"
-    sudo chown "$USER:$USER" "$FRONTEND_DIR"
+    # Create deployment directory
+    sudo mkdir -p "$DEPLOY_DIR"
+    sudo chown "$USER:$USER" "$DEPLOY_DIR"
     
     # Copy frontend files
-    cp -r "$PROJECT_ROOT"/* "$FRONTEND_DIR/"
+    log_info "Copying application files..."
+    rsync -av --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='coverage' "$PROJECT_ROOT/" "$DEPLOY_DIR/"
     
     # Install dependencies and build
-    cd "$FRONTEND_DIR"
+    cd "$DEPLOY_DIR"
+    
+    log_info "Installing production dependencies..."
     npm ci --omit=dev --ignore-scripts
+    
+    log_info "Building application..."
     npm run build
     
     log_success "Frontend deployed successfully"
 }
 
-# Start services
-start_services() {
-    log_info "Starting services..."
+# Start service
+start_service() {
+    log_info "Starting frontend service..."
     
-    # Start backend first (if available)
-    if [ "$SKIP_BACKEND" != true ]; then
-        if systemctl list-unit-files mc-dashboard-api.service >/dev/null 2>&1; then
-            sudo systemctl start mc-dashboard-api
-            log_info "Started backend service"
-            
-            # Wait for backend to be ready
-            if ! check_backend_health; then
-                log_error "Backend failed to start properly"
-                return 1
-            fi
-        else
-            log_warning "Backend systemd service not found. Please set it up manually."
-        fi
-    fi
-    
-    # Start frontend
+    # Check if systemd service exists
     if systemctl list-unit-files mc-dashboard-ui.service >/dev/null 2>&1; then
         sudo systemctl start mc-dashboard-ui
         log_info "Started frontend service"
@@ -217,36 +147,36 @@ start_services() {
             return 1
         fi
     else
-        log_warning "Frontend systemd service not found. Please set it up manually."
+        log_warning "Frontend systemd service not found."
+        log_info "You can install it with:"
+        log_info "  sudo cp $DEPLOY_DIR/deployment/mc-dashboard-ui.service /etc/systemd/system/"
+        log_info "  sudo systemctl daemon-reload"
+        log_info "  sudo systemctl enable mc-dashboard-ui"
     fi
 }
 
 # Main deployment function
 main() {
-    log_info "Starting MC Server Dashboard deployment..."
+    log_info "Starting MC Server Dashboard Frontend deployment..."
     log_info "Project root: $PROJECT_ROOT"
-    log_info "API root: $API_ROOT"
-    log_info "Deploy root: $DEPLOY_ROOT"
+    log_info "Deploy directory: $DEPLOY_DIR"
     
     # Check prerequisites
     check_prerequisites
     
-    # Stop existing services
-    stop_services
+    # Stop existing service
+    stop_service
     
-    # Deploy components
-    deploy_backend
+    # Deploy frontend
     deploy_frontend
     
-    # Start services
-    start_services
+    # Start service
+    start_service
     
-    log_success "Deployment completed successfully!"
-    log_info "Frontend: http://localhost:3000"
-    if [ "$SKIP_BACKEND" != true ]; then
-        log_info "Backend API: http://localhost:8000"
-        log_info "API Documentation: http://localhost:8000/docs"
-    fi
+    log_success "Frontend deployment completed successfully!"
+    log_info "Frontend URL: http://localhost:3000"
+    log_info ""
+    log_info "Note: Make sure the backend API is running at http://localhost:8000"
 }
 
 # Script entry point
