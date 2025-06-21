@@ -64,7 +64,7 @@ npm run build
 cp .env.example .env.local
 
 # 必要に応じて環境変数を編集
-nano .env.local
+vim .env.local
 ```
 
 **プロダクション用環境変数例：**
