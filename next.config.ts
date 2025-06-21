@@ -4,15 +4,7 @@ import type { NextConfig } from "next";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const API_DOMAIN = new URL(API_URL).host;
 
-// Helper function for runtime environment detection
-function getEnvironmentMode() {
-  // Check for runtime environment override first
-  const runtimeEnv = process.env.NEXT_RUNTIME_ENV || process.env.NODE_ENV;
-  return {
-    isProduction: runtimeEnv === "production",
-    isDevelopment: runtimeEnv === "development",
-  };
-}
+import { getEnvironmentMode } from "./src/config/environment";
 
 const nextConfig: NextConfig = {
   /* Environment-aware security configuration */
