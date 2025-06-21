@@ -468,10 +468,26 @@ vi.mock("@/contexts/language", () => ({
    ```
 
 3. **Available Environment Variables:**
+
    - `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8000)
    - `NEXT_PUBLIC_APP_NAME`: Application name displayed in UI (default: MC Server Dashboard)
    - `NEXT_PUBLIC_DEFAULT_LANGUAGE`: Default language (en/ja, default: en)
    - `NODE_ENV`: Environment mode (development/production)
+   - `NEXT_RUNTIME_ENV`: Runtime environment override for deployment scenarios (optional)
+
+4. **Runtime Environment Override:**
+
+   For HTTP-only deployments where `npm start` forces HTTPS redirects, use `NEXT_RUNTIME_ENV` to override environment detection:
+
+   ```bash
+   # For systemd service or deployment scripts
+   Environment=NEXT_RUNTIME_ENV=development
+
+   # Or in .env.local
+   NEXT_RUNTIME_ENV=development
+   ```
+
+   This prevents HTTPS redirects and security headers that interfere with HTTP-only deployments while maintaining production build optimizations.
 
 ### Backend Environment
 

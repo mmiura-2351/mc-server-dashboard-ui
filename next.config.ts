@@ -3,14 +3,24 @@ import type { NextConfig } from "next";
 // Get API URL from environment variables with fallback
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const API_DOMAIN = new URL(API_URL).host;
-const isProduction = process.env.NODE_ENV === "production";
-const isDevelopment = process.env.NODE_ENV === "development";
+
+// Helper function for runtime environment detection
+function getEnvironmentMode() {
+  // Check for runtime environment override first
+  const runtimeEnv = process.env.NEXT_RUNTIME_ENV || process.env.NODE_ENV;
+  return {
+    isProduction: runtimeEnv === "production",
+    isDevelopment: runtimeEnv === "development",
+  };
+}
 
 const nextConfig: NextConfig = {
   /* Environment-aware security configuration */
 
   // Enable security headers (optimized for LAN access in development)
   async headers() {
+    const { isDevelopment } = getEnvironmentMode();
+
     // Minimal security headers for development that don't interfere with LAN access
     if (isDevelopment) {
       return [
@@ -110,8 +120,10 @@ const nextConfig: NextConfig = {
 
   // Configure redirects for security
   async redirects() {
+    const { isProduction } = getEnvironmentMode();
+
     return [
-      // Redirect HTTP to HTTPS in production
+      // Redirect HTTP to HTTPS in production only
       ...(isProduction
         ? [
             {
@@ -133,6 +145,8 @@ const nextConfig: NextConfig = {
 
   // Configure rewrites for API proxy if needed
   async rewrites() {
+    const { isDevelopment } = getEnvironmentMode();
+
     return [
       // Proxy API requests to backend in development
       ...(isDevelopment
