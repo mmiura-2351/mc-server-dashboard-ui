@@ -64,7 +64,7 @@ npm run build
 cp .env.example .env.local
 
 # 必要に応じて環境変数を編集
-vim .env.local
+nano .env.local
 ```
 
 **プロダクション用環境変数例：**
@@ -210,43 +210,6 @@ ls -la /opt/mcs-dashboard/ui
 # --ignore-scriptsオプションを使用してprepareスクリプトをスキップ
 npm ci --omit=dev --ignore-scripts
 ```
-
-### HTTPSへの自動リダイレクト問題
-
-HTTPでアクセスしてもHTTPSにリダイレクトされる場合：
-
-**方法1: 開発モードで起動**
-
-```bash
-# systemdサービスファイルを編集
-sudo vim /etc/systemd/system/mc-dashboard-ui.service
-
-# NODE_ENVをdevelopmentに変更
-Environment=NODE_ENV=development
-
-# サービスを再起動
-sudo systemctl daemon-reload
-sudo systemctl restart mc-dashboard-ui
-```
-
-**方法2: HTTP専用のNext.js設定を使用**
-
-```bash
-# HTTP専用の設定ファイルをコピー
-cp next.config.http.ts next.config.ts
-
-# アプリケーションを再ビルド
-npm run build
-
-# サービスを再起動
-sudo systemctl restart mc-dashboard-ui
-```
-
-**方法3: ブラウザのHSTSキャッシュをクリア**
-
-- Chrome: `chrome://net-internals/#hsts` でドメインを削除
-- Firefox: 履歴をクリア（サイトの設定を含む）
-- またはシークレット/プライベートモードで試す
 
 ## セキュリティ考慮事項
 
