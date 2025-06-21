@@ -45,10 +45,24 @@ global.XMLHttpRequest = vi.fn(
   () => mockXMLHttpRequest
 ) as unknown as typeof XMLHttpRequest;
 
+// Helper function to create valid JWT tokens for testing
+const createValidTestToken = () => {
+  const futureTime = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+  const payload = {
+    sub: "test-user",
+    exp: futureTime,
+    iat: Math.floor(Date.now() / 1000),
+  };
+  const header = { alg: "HS256", typ: "JWT" };
+  const encodedHeader = btoa(JSON.stringify(header));
+  const encodedPayload = btoa(JSON.stringify(payload));
+  return `${encodedHeader}.${encodedPayload}.test-signature`;
+};
+
 // Mock localStorage
 Object.defineProperty(window, "localStorage", {
   value: {
-    getItem: vi.fn(() => "test-token"),
+    getItem: vi.fn(() => createValidTestToken()),
     setItem: vi.fn(),
     removeItem: vi.fn(),
   },
@@ -297,7 +311,7 @@ describe("File service", () => {
       );
       expect(mockXMLHttpRequest.setRequestHeader).toHaveBeenCalledWith(
         "Authorization",
-        "Bearer test-token"
+        `Bearer ${createValidTestToken()}`
       );
     });
 

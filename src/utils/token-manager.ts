@@ -143,25 +143,35 @@ class TokenManager {
   }
 
   /**
-   * Basic token expiration check (enhanced version would parse JWT)
+   * JWT token expiration check with proper validation
    */
   private isTokenExpired(token: string): boolean {
     try {
-      // For JWT tokens, we could decode and check exp claim
-      // For now, we'll rely on the backend 401 response
-      // This is a placeholder for more sophisticated token validation
-
-      // Basic check: if token is very short or obviously invalid
       if (!token || token.length < 10) {
         return true;
       }
 
-      // Could add JWT parsing here:
-      // const payload = JSON.parse(atob(token.split('.')[1]));
-      // return Date.now() >= payload.exp * 1000;
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        return true;
+      }
+
+      const payload = JSON.parse(atob(parts[1]!));
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      // Check expiration (exp claim)
+      if (payload.exp && currentTime >= payload.exp) {
+        return true;
+      }
+
+      // Check not before (nbf claim)
+      if (payload.nbf && currentTime < payload.nbf) {
+        return true;
+      }
 
       return false;
-    } catch {
+    } catch (error) {
+      console.warn("Token validation error:", error);
       return true;
     }
   }
