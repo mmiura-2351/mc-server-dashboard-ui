@@ -5,14 +5,34 @@ Ubuntu ServerにMC Server Dashboard UIをデプロイする手順です。
 ## 前提条件
 
 - Ubuntu Server 20.04 LTS以上
-- Node.js 18以上がインストール済み
-- npm または yarn がインストール済み
 - systemdが利用可能
 - 現在のユーザーでの実行
 
 ## デプロイ手順
 
-### 1. アプリケーションの配置
+### 1. Node.jsのインストール
+
+Node.js 18以上が必要です。以下の手順でインストールします：
+
+```bash
+# NodeSourceリポジトリの追加（Node.js 20.x）
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+# Node.jsとnpmのインストール
+sudo apt-get install -y nodejs
+
+# インストールの確認
+node --version  # v20.x.x が表示されるはず
+npm --version   # 10.x.x が表示されるはず
+
+# build-essentialのインストール（ネイティブモジュールのビルドに必要）
+sudo apt-get install -y build-essential
+
+# Gitのインストール（まだインストールされていない場合）
+sudo apt-get install -y git
+```
+
+### 2. アプリケーションの配置
 
 ```bash
 # デプロイディレクトリの作成
@@ -20,13 +40,13 @@ sudo mkdir -p /opt/mcs-dashboard/ui
 sudo chown $USER:$USER /opt/mcs-dashboard/ui
 
 # GitHubからソースコードをクローン
-git clone https://github.com/mmiura-2351/mc-server-dashboard-ui.git /opt/mcs-dashboard/ui
+git clone https://github.com/your-org/mc-server-dashboard-ui.git /opt/mcs-dashboard/ui
 
 # 作業ディレクトリに移動
 cd /opt/mcs-dashboard/ui
 ```
 
-### 2. 依存関係のインストール
+### 3. 依存関係のインストール
 
 ```bash
 # Node.jsの依存関係をインストール
@@ -36,7 +56,7 @@ npm ci --production
 npm run build
 ```
 
-### 3. 環境設定
+### 4. 環境設定
 
 ```bash
 # 環境設定ファイルの作成
@@ -60,7 +80,7 @@ NEXT_PUBLIC_DEFAULT_LANGUAGE=en
 NODE_ENV=production
 ```
 
-### 4. systemdサービスの設定
+### 5. systemdサービスの設定
 
 ```bash
 # サービスファイルをシステムディレクトリにコピー
@@ -82,7 +102,7 @@ sudo systemctl enable mc-dashboard-ui
 sudo systemctl start mc-dashboard-ui
 ```
 
-### 5. 動作確認
+### 6. 動作確認
 
 ```bash
 # サービス状態の確認

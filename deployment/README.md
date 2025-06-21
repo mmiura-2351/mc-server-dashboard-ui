@@ -45,7 +45,7 @@ sudo systemctl start mc-dashboard-ui
 
 2. **パス設定**
 
-   - WorkingDirectoryは`/opt/mcs/dashboard/ui`に設定されています
+   - WorkingDirectoryは`/opt/mcs-dashboard/ui`に設定されています
    - 異なるパスにデプロイする場合は、サービスファイルを編集してください
 
 3. **ポート設定**

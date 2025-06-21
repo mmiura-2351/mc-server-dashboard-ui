@@ -8,7 +8,7 @@ Wants=network.target
 Type=simple
 User=$USER
 Group=$USER
-WorkingDirectory=/opt/mcs/dashboard/ui
+WorkingDirectory=/opt/mcs-dashboard/ui
 Environment=NODE_ENV=production
 Environment=PORT=3000
 ExecStart=/usr/bin/npm start
@@ -23,7 +23,7 @@ SyslogIdentifier=mc-dashboard-ui
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/opt/mcs/dashboard/ui
+ReadWritePaths=/opt/mcs-dashboard/ui
 PrivateTmp=true
 
 # Resource limits
