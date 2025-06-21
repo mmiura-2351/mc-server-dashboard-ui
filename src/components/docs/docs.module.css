@@ -1,0 +1,807 @@
+/* Document List Styles */
+.documentList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.documentListHeader {
+  margin-bottom: 2rem;
+}
+
+.documentListTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.documentListDescription {
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+}
+
+.searchContainer {
+  margin-bottom: 2rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.categorySection {
+  margin-bottom: 2rem;
+}
+
+.categoryTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.documentCard {
+  display: block;
+  padding: 1.5rem;
+  border: 4px solid #d1d5db;
+  border-radius: 0.75rem;
+  background: var(--card);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.documentCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.documentCard:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px);
+  background: var(--card);
+}
+
+.documentCard:hover::before {
+  opacity: 1;
+}
+
+.documentCardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.documentCardDescription {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.documentCardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+/* Document Renderer Styles */
+.documentRenderer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.documentHeader {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.documentTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.documentDescription {
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.documentMeta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.category {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-weight: 500;
+}
+
+.lastUpdated {
+  font-style: italic;
+}
+
+/* Document Content Styles */
+.documentContent {
+  line-height: 1.7;
+  color: var(--foreground);
+  font-size: 1rem;
+  max-width: none;
+}
+
+/* Headings with better hierarchy */
+.documentContent h1,
+.documentContent h2,
+.documentContent h3,
+.documentContent h4,
+.documentContent h5,
+.documentContent h6 {
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.documentContent h1 {
+  font-size: 2.25rem;
+  border-bottom: 3px solid var(--primary);
+  padding-bottom: 0.75rem;
+  margin-bottom: 2rem;
+  font-weight: 800;
+}
+
+.documentContent h2 {
+  font-size: 1.875rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin-top: 3rem;
+  font-weight: 700;
+}
+
+.documentContent h3 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-top: 2rem;
+  font-weight: 650;
+}
+
+.documentContent h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+.documentContent h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+.documentContent h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Paragraphs and text */
+.documentContent p {
+  margin-bottom: 1.25rem;
+  line-height: 1.75;
+}
+
+.documentContent strong {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.documentContent em {
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+/* Lists with better styling */
+.documentContent ul,
+.documentContent ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.documentContent ul {
+  list-style-type: disc;
+}
+
+.documentContent ol {
+  list-style-type: decimal;
+}
+
+.documentContent li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.documentContent li > ul,
+.documentContent li > ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.documentContent li > ul > li,
+.documentContent li > ol > li {
+  margin-bottom: 0.5rem;
+}
+
+/* Nested list styling */
+.documentContent ul ul {
+  list-style-type: circle;
+}
+
+.documentContent ul ul ul {
+  list-style-type: square;
+}
+
+/* Blockquotes with emphasis */
+.documentContent blockquote {
+  border-left: 4px solid var(--primary);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  background: var(--muted);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+  color: var(--muted-foreground);
+  position: relative;
+}
+
+.documentContent blockquote::before {
+  content: '"';
+  font-size: 3rem;
+  color: var(--primary);
+  position: absolute;
+  top: -0.5rem;
+  left: 1rem;
+  opacity: 0.3;
+  font-family: Georgia, serif;
+}
+
+.documentContent blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Code styling with better contrast */
+.documentContent code {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-family:
+    "SF Mono", "Monaco", "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  font-size: 0.875rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.documentContent pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  margin: 2rem 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.documentContent pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--foreground);
+  font-weight: 400;
+}
+
+/* Tables with modern styling */
+.documentContent table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  background: var(--card);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.documentContent th,
+.documentContent td {
+  border: 1px solid var(--border);
+  padding: 1rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.documentContent th {
+  background: var(--muted);
+  font-weight: 700;
+  color: var(--foreground);
+  border-bottom: 2px solid var(--border);
+}
+
+.documentContent tbody tr:nth-child(even) {
+  background: var(--muted);
+}
+
+.documentContent tbody tr:hover {
+  background: var(--accent);
+}
+
+/* Images with styling */
+.documentContent img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+}
+
+/* Links with better styling */
+.documentContent a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.documentContent a:hover {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.documentContent a:visited {
+  color: var(--primary);
+}
+
+/* Horizontal rules */
+.documentContent hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    var(--border),
+    var(--muted-foreground),
+    var(--border)
+  );
+  margin: 3rem 0;
+  border-radius: 1px;
+}
+
+/* Keyboard shortcuts and inline elements */
+.documentContent kbd {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.375rem;
+  font-family:
+    "SF Mono", "Monaco", "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  font-size: 0.8125rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Definition lists */
+.documentContent dl {
+  margin: 1.5rem 0;
+}
+
+.documentContent dt {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.documentContent dd {
+  margin-left: 2rem;
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Mark/highlight text */
+.documentContent mark {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* Small text */
+.documentContent small {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Navigation Styles */
+.documentNav {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  min-width: 280px;
+  width: 280px;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+.documentNavTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--foreground);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.navLoading {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}
+
+/* Root list styles */
+.navRootList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navRootItem {
+  margin-bottom: 0.25rem;
+}
+
+.navAllDocsLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.navAllDocsLink:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.navAllDocsLink.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.documentTree {
+  margin-top: 0;
+}
+
+/* Category item styles */
+.navCategoryItem {
+  margin-bottom: 0.25rem;
+}
+
+.categoryToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.categoryToggle:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.categoryToggle.hasActive {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.expandIcon {
+  font-size: 0.75rem;
+  width: 1rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.categoryIcon {
+  font-size: 0.875rem;
+}
+
+.categoryName {
+  flex: 1;
+}
+
+.navDocumentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-left: 1rem;
+  border-left: 1px solid var(--border);
+  padding-left: 0.75rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.documentItem {
+  margin-bottom: 0.125rem;
+  position: relative;
+}
+
+.documentItem::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--border);
+  transform: translateY(-50%);
+}
+
+.documentLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  font-size: 0.8125rem;
+  border: 1px solid transparent;
+  line-height: 1.3;
+}
+
+.documentLink:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+.documentLink.active {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  font-weight: 500;
+}
+
+.documentIcon {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.navDocumentTitle {
+  flex: 1;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Layout Styles */
+.docsLayout {
+  display: flex;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.docsContent {
+  flex: 1;
+  min-width: 0; /* Prevent flex item from overflowing */
+}
+
+.docsSidebar {
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .docsLayout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .documentNav {
+    position: static;
+    width: 100%;
+    max-height: none;
+    order: -1;
+  }
+
+  .docsSidebar {
+    width: 100%;
+  }
+
+  .docsContent {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .docsLayout {
+    padding: 1rem;
+  }
+
+  .documentNav {
+    padding: 1rem;
+    min-width: auto;
+  }
+
+  .documentRenderer {
+    padding: 1rem;
+  }
+
+  .documentCard {
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .documentCardTitle {
+    font-size: 1.125rem;
+  }
+
+  .documentCardDescription {
+    font-size: 0.875rem;
+  }
+
+  .documentCardMeta {
+    font-size: 0.75rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .documentTitle {
+    font-size: 2rem;
+  }
+
+  .documentMeta {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .documentContent h1 {
+    font-size: 1.75rem;
+  }
+
+  .documentContent h2 {
+    font-size: 1.5rem;
+  }
+
+  .documentContent h3 {
+    font-size: 1.25rem;
+  }
+
+  .documentContent h4 {
+    font-size: 1.125rem;
+  }
+
+  .documentContent h5 {
+    font-size: 1rem;
+  }
+
+  .documentContent h6 {
+    font-size: 0.875rem;
+  }
+
+  .documentContent table {
+    font-size: 0.875rem;
+  }
+
+  .documentContent th,
+  .documentContent td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .documentContent pre {
+    padding: 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .documentContent blockquote {
+    padding: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .documentContent blockquote::before {
+    font-size: 2rem;
+    top: -0.25rem;
+  }
+
+  .categoryToggle {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .documentLink {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.4rem;
+  }
+
+  .navDocumentList {
+    margin-left: 0.75rem;
+    padding-left: 0.5rem;
+  }
+
+  .expandIcon {
+    font-size: 0.65rem;
+  }
+}

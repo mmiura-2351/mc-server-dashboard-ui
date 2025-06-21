@@ -33,7 +33,9 @@
     "files": "Files",
     "account": "Account",
     "users": "Users",
-    "management": "Management"
+    "management": "Management",
+    "resources": "Resources",
+    "docs": "Documentation"
   },
   "auth": {
     "login": "Login",
@@ -706,5 +708,17 @@
     "template": "Template",
     "owner": "Owner",
     "unknownOwner": "Unknown"
+  },
+  "docs": {
+    "title": "Documentation",
+    "description": "Browse the user documentation to learn how to use the Minecraft Server Dashboard effectively.",
+    "searchPlaceholder": "Search documentation...",
+    "lastUpdated": "Last updated",
+    "noResults": "No documents found matching your search.",
+    "loadError": "Failed to load documentation",
+    "documentNotFound": "Document not found",
+    "backToList": "Back to Documentation",
+    "navigation": "Documentation",
+    "allDocuments": "All Documents"
   }
 }

@@ -1,0 +1,188 @@
+{
+  "documents": [
+    {
+      "slug": "getting-started",
+      "title": "はじめに",
+      "description": "MC サーバーダッシュボードのクイックスタートガイド",
+      "category": "はじめに",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "first-login",
+      "title": "初回ログインと初期設定",
+      "description": "初めてログインする方法と初期設定の手順",
+      "category": "はじめに",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "dashboard-overview",
+      "title": "ダッシュボードの概要",
+      "description": "メインダッシュボードのインターフェースとナビゲーションの理解",
+      "category": "はじめに",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-management",
+      "title": "サーバー管理の基本",
+      "description": "マインクラフトサーバーの管理方法を学ぶ",
+      "category": "サーバー管理",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-creation",
+      "title": "新しいサーバーの作成",
+      "description": "新しいマインクラフトサーバーを作成する手順ガイド",
+      "category": "サーバー管理",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-configuration",
+      "title": "サーバー設定",
+      "description": "サーバープロパティと設定の構成",
+      "category": "サーバー管理",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-console",
+      "title": "サーバーコンソールの使用",
+      "description": "コマンドの実行とサーバーログの監視",
+      "category": "サーバー管理",
+      "order": 4,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "player-groups",
+      "title": "プレイヤーグループ管理",
+      "description": "プレイヤーグループと権限の管理",
+      "category": "プレイヤー管理",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "whitelist-management",
+      "title": "ホワイトリスト管理",
+      "description": "サーバーホワイトリストとプレイヤーアクセスの管理",
+      "category": "プレイヤー管理",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "operator-permissions",
+      "title": "オペレーター権限",
+      "description": "サーバーオペレーターとその権限の管理",
+      "category": "プレイヤー管理",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "backups",
+      "title": "バックアップシステムの概要",
+      "description": "自動バックアップシステムの理解",
+      "category": "バックアップと復元",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "creating-backups",
+      "title": "手動バックアップの作成",
+      "description": "手動でサーバーバックアップを作成する方法",
+      "category": "バックアップと復元",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "restoring-backups",
+      "title": "バックアップからの復元",
+      "description": "バックアップからサーバーを復元する方法",
+      "category": "バックアップと復元",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "backup-scheduling",
+      "title": "自動バックアップスケジューリング",
+      "description": "自動バックアップスケジュールの設定",
+      "category": "バックアップと復元",
+      "order": 4,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "file-management",
+      "title": "ファイル管理",
+      "description": "サーバーファイルとフォルダーの管理",
+      "category": "高度な機能",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "mod-installation",
+      "title": "MODとプラグインのインストール",
+      "description": "サーバーにMODとプラグインをインストールする方法",
+      "category": "高度な機能",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-properties",
+      "title": "高度なサーバープロパティ",
+      "description": "server.properties設定の詳細ガイド",
+      "category": "高度な機能",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "performance-tuning",
+      "title": "パフォーマンスチューニング",
+      "description": "サーバーパフォーマンスとリソース使用量の最適化",
+      "category": "高度な機能",
+      "order": 4,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "user-roles",
+      "title": "ユーザーロールと権限",
+      "description": "ダッシュボードユーザーのロールと権限の理解",
+      "category": "アカウント管理",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "account-settings",
+      "title": "アカウント設定",
+      "description": "アカウントの設定とセキュリティの管理",
+      "category": "アカウント管理",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "一般的な問題と解決策",
+      "description": "よくある問題のトラブルシューティング",
+      "category": "サポート",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-errors",
+      "title": "サーバーエラーメッセージ",
+      "description": "サーバーエラーメッセージの理解と解決",
+      "category": "サポート",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "faq",
+      "title": "よくある質問",
+      "description": "よくある質問への回答",
+      "category": "サポート",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    }
+  ]
+}
