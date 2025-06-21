@@ -40,7 +40,7 @@ sudo mkdir -p /opt/mcs-dashboard/ui
 sudo chown $USER:$USER /opt/mcs-dashboard/ui
 
 # GitHubからソースコードをクローン
-git clone https://github.com/your-org/mc-server-dashboard-ui.git /opt/mcs-dashboard/ui
+git clone https://github.com/mmiura-2351/mc-server-dashboard-ui.git /opt/mcs-dashboard/ui
 
 # 作業ディレクトリに移動
 cd /opt/mcs-dashboard/ui
