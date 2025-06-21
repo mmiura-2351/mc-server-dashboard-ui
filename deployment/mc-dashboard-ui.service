@@ -1,0 +1,35 @@
+[Unit]
+Description=MC Server Dashboard UI
+Documentation=https://github.com/your-org/mc-server-dashboard-ui
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=$USER
+Group=$USER
+WorkingDirectory=/opt/mcs/dashboard/ui
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/npm start
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mc-dashboard-ui
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/mcs/dashboard/ui
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
