@@ -9,7 +9,7 @@ Type=simple
 User=$USER
 Group=$USER
 WorkingDirectory=/opt/mcs-dashboard/ui
-Environment=NODE_ENV=production
+Environment=NODE_ENV=development
 Environment=PORT=3000
 ExecStart=/usr/bin/npm start
 ExecReload=/bin/kill -USR1 $MAINPID
