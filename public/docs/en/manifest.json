@@ -1,28 +1,188 @@
 {
   "documents": [
     {
-      "slug": "user-guide",
-      "title": "User Guide",
-      "description": "Complete guide for using the Minecraft Server Dashboard",
-      "lastUpdated": "2025-06-20",
+      "slug": "getting-started",
+      "title": "Getting Started",
+      "description": "Quick start guide for MC Server Dashboard",
       "category": "Getting Started",
-      "order": 1
+      "order": 1,
+      "lastUpdated": "2025-06-20"
     },
     {
-      "slug": "server-setup",
-      "title": "Server Setup Guide",
-      "description": "How to configure and manage your Minecraft servers",
-      "lastUpdated": "2025-06-20",
+      "slug": "first-login",
+      "title": "First Login and Initial Setup",
+      "description": "How to log in for the first time and configure initial settings",
+      "category": "Getting Started",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "dashboard-overview",
+      "title": "Dashboard Overview",
+      "description": "Understanding the main dashboard interface and navigation",
+      "category": "Getting Started",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-management",
+      "title": "Server Management Basics",
+      "description": "Learn how to manage your Minecraft servers",
       "category": "Server Management",
-      "order": 1
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-creation",
+      "title": "Creating a New Server",
+      "description": "Step-by-step guide to create a new Minecraft server",
+      "category": "Server Management",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-configuration",
+      "title": "Server Configuration",
+      "description": "Configuring server properties and settings",
+      "category": "Server Management",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-console",
+      "title": "Using the Server Console",
+      "description": "Executing commands and monitoring server logs",
+      "category": "Server Management",
+      "order": 4,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "player-groups",
+      "title": "Player Groups Management",
+      "description": "Managing player groups and permissions",
+      "category": "Player Management",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "whitelist-management",
+      "title": "Whitelist Management",
+      "description": "Managing server whitelist and player access",
+      "category": "Player Management",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "operator-permissions",
+      "title": "Operator Permissions",
+      "description": "Managing server operators and their permissions",
+      "category": "Player Management",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "backups",
+      "title": "Backup System Overview",
+      "description": "Understanding the automated backup system",
+      "category": "Backup & Restore",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "creating-backups",
+      "title": "Creating Manual Backups",
+      "description": "How to create manual server backups",
+      "category": "Backup & Restore",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "restoring-backups",
+      "title": "Restoring from Backups",
+      "description": "How to restore your server from a backup",
+      "category": "Backup & Restore",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "backup-scheduling",
+      "title": "Automated Backup Scheduling",
+      "description": "Setting up automatic backup schedules",
+      "category": "Backup & Restore",
+      "order": 4,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "file-management",
+      "title": "File Management",
+      "description": "Managing server files and folders",
+      "category": "Advanced Features",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "mod-installation",
+      "title": "Installing Mods and Plugins",
+      "description": "How to install mods and plugins on your server",
+      "category": "Advanced Features",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-properties",
+      "title": "Advanced Server Properties",
+      "description": "Detailed guide to server.properties configuration",
+      "category": "Advanced Features",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "performance-tuning",
+      "title": "Performance Tuning",
+      "description": "Optimizing server performance and resource usage",
+      "category": "Advanced Features",
+      "order": 4,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "user-roles",
+      "title": "User Roles and Permissions",
+      "description": "Understanding dashboard user roles and permissions",
+      "category": "Account Management",
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "account-settings",
+      "title": "Account Settings",
+      "description": "Managing your account preferences and security",
+      "category": "Account Management",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
     },
     {
       "slug": "troubleshooting",
-      "title": "Troubleshooting",
-      "description": "Common issues and their solutions",
-      "lastUpdated": "2025-06-20",
+      "title": "Common Issues and Solutions",
+      "description": "Troubleshooting common problems",
       "category": "Support",
-      "order": 1
+      "order": 1,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "server-errors",
+      "title": "Server Error Messages",
+      "description": "Understanding and resolving server error messages",
+      "category": "Support",
+      "order": 2,
+      "lastUpdated": "2025-06-20"
+    },
+    {
+      "slug": "faq",
+      "title": "Frequently Asked Questions",
+      "description": "Answers to commonly asked questions",
+      "category": "Support",
+      "order": 3,
+      "lastUpdated": "2025-06-20"
     }
   ]
 }

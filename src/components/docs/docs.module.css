@@ -59,14 +59,14 @@
 .documentCard {
   display: block;
   padding: 1.5rem;
-  border: 2px solid var(--border);
+  border: 4px solid #d1d5db;
   border-radius: 0.75rem;
   background: var(--card);
   text-decoration: none;
   color: inherit;
   transition: all 0.2s ease;
   margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -84,8 +84,8 @@
 }
 
 .documentCard:hover {
-  border-color: var(--primary);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: #3b82f6;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   transform: translateY(-3px);
   background: var(--card);
 }
