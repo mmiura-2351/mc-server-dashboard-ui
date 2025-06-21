@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   async headers() {
     const { isDevelopment } = getEnvironmentMode();
 
+    // Check if enhanced security should be enabled
+    const enableEnhancedSecurity =
+      process.env.ENABLE_ENHANCED_SECURITY === "true";
+
     // Minimal security headers for development that don't interfere with LAN access
     if (isDevelopment) {
       return [
@@ -56,13 +60,18 @@ const nextConfig: NextConfig = {
       },
     ];
 
-    const productionHeaders = [
-      // Prevent clickjacking (strict in production)
+    // Basic production headers (always applied in production)
+    const basicProductionHeaders = [
+      // Prevent clickjacking (configurable)
       {
         key: "X-Frame-Options",
-        value: "DENY",
+        value: enableEnhancedSecurity ? "DENY" : "SAMEORIGIN",
       },
-      // Force HTTPS in production only
+    ];
+
+    // Enhanced security headers (only when explicitly enabled)
+    const enhancedSecurityHeaders = [
+      // Force HTTPS (only when enhanced security is enabled)
       {
         key: "Strict-Transport-Security",
         value: "max-age=31536000; includeSubDomains; preload",
@@ -81,15 +90,21 @@ const nextConfig: NextConfig = {
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: blob:",
           "font-src 'self'",
-          `connect-src 'self' ${API_URL} wss://${API_DOMAIN}`,
+          `connect-src 'self' ${API_URL} ws://${API_DOMAIN} wss://${API_DOMAIN}`,
           "media-src 'self'",
           "object-src 'none'",
           "base-uri 'self'",
           "form-action 'self'",
           "frame-ancestors 'none'",
-          "upgrade-insecure-requests",
+          ...(enableEnhancedSecurity ? ["upgrade-insecure-requests"] : []),
         ].join("; "),
       },
+    ];
+
+    // Determine which headers to apply
+    const productionHeaders = [
+      ...basicProductionHeaders,
+      ...(enableEnhancedSecurity ? enhancedSecurityHeaders : []),
     ];
 
     return [
@@ -114,9 +129,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     const { isProduction } = getEnvironmentMode();
 
+    // Only enable HTTPS redirect if explicitly configured
+    const enableHttpsRedirect = process.env.ENABLE_HTTPS_REDIRECT === "true";
+    const httpsHostname = process.env.HTTPS_HOSTNAME || "localhost:3000";
+
     return [
-      // Redirect HTTP to HTTPS in production only
-      ...(isProduction
+      // Redirect HTTP to HTTPS only when explicitly enabled
+      ...(isProduction && enableHttpsRedirect
         ? [
             {
               source: "/(.*)",
@@ -127,7 +146,7 @@ const nextConfig: NextConfig = {
                   value: "http",
                 },
               ],
-              destination: "https://mc-server-dashboard.example.com/$1",
+              destination: `https://${httpsHostname}/$1`,
               permanent: true,
             },
           ]

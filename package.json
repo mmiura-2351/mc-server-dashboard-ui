@@ -18,7 +18,14 @@
     "test:coverage:ui": "vitest --run --coverage && open coverage/index.html",
     "coverage:report": "vitest --run --coverage --reporter=verbose",
     "coverage:open": "open coverage/index.html || xdg-open coverage/index.html || start coverage/index.html",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy": "scripts/deploy.sh",
+    "dev:start": "scripts/dev-start.sh",
+    "service:status": "scripts/service-manager.sh status",
+    "service:start": "scripts/service-manager.sh start",
+    "service:stop": "scripts/service-manager.sh stop",
+    "service:restart": "scripts/service-manager.sh restart",
+    "service:logs": "scripts/service-manager.sh logs"
   },
   "dependencies": {
     "jszip": "^3.10.1",

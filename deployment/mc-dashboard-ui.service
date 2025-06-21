@@ -1,0 +1,44 @@
+[Unit]
+Description=MC Server Dashboard UI Frontend
+Documentation=https://github.com/your-org/mc-server-dashboard-ui
+After=network.target mc-dashboard-api.service
+Wants=network.target
+# Optionally depend on the API service (comment out if API runs separately)
+# Requires=mc-dashboard-api.service
+
+[Service]
+Type=simple
+User=$USER
+Group=$USER
+WorkingDirectory=/opt/mcs-dashboard/ui
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=NEXT_PUBLIC_API_URL=http://localhost:8000
+# Security configuration (adjust as needed)
+Environment=ENABLE_HTTPS_REDIRECT=false
+Environment=ENABLE_ENHANCED_SECURITY=false
+ExecStart=/usr/bin/npm start
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mc-dashboard-ui
+
+# Health check - wait for backend first, then check frontend
+ExecStartPost=/bin/bash -c 'echo "Waiting for backend..."; for i in {1..60}; do curl -s http://localhost:8000/docs >/dev/null && break || sleep 2; done; echo "Checking frontend..."; for i in {1..30}; do curl -s http://localhost:3000 >/dev/null && break || sleep 2; done'
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/mcs-dashboard/ui
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=180
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
