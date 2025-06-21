@@ -16,14 +16,14 @@ Ubuntu ServerにMC Server Dashboard UIをデプロイする手順です。
 
 ```bash
 # デプロイディレクトリの作成
-sudo mkdir -p /opt/mcs/dashboard/ui
-sudo chown $USER:$USER /opt/mcs/dashboard/ui
+sudo mkdir -p /opt/mcs-dashboard/ui
+sudo chown $USER:$USER /opt/mcs-dashboard/ui
 
 # GitHubからソースコードをクローン
-git clone https://github.com/your-org/mc-server-dashboard-ui.git /opt/mcs/dashboard/ui
+git clone https://github.com/mmiura-2351/mc-server-dashboard-ui.git /opt/mcs-dashboard/ui
 
 # 作業ディレクトリに移動
-cd /opt/mcs/dashboard/ui
+cd /opt/mcs-dashboard/ui
 ```
 
 ### 2. 依存関係のインストール
@@ -123,7 +123,7 @@ GitHubリポジトリの最新バージョンに更新する手順：
 
 ```bash
 # アプリケーションディレクトリに移動
-cd /opt/mcs/dashboard/ui
+cd /opt/mcs-dashboard/ui
 
 # サービスの停止
 sudo systemctl stop mc-dashboard-ui
@@ -156,7 +156,7 @@ sudo journalctl -u mc-dashboard-ui --no-pager
 sudo systemctl status mc-dashboard-ui
 
 # 手動でアプリケーションを起動して確認
-cd /opt/mcs/dashboard/ui
+cd /opt/mcs-dashboard/ui
 npm start
 ```
 
@@ -174,10 +174,10 @@ sudo ss -tlnp | grep 3000
 
 ```bash
 # ディレクトリの所有者を確認・修正
-sudo chown -R $USER:$USER /opt/mcs/dashboard/ui
+sudo chown -R $USER:$USER /opt/mcs-dashboard/ui
 
 # 実行権限の確認
-ls -la /opt/mcs/dashboard/ui
+ls -la /opt/mcs-dashboard/ui
 ```
 
 ## セキュリティ考慮事項
