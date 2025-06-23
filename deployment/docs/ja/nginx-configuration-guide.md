@@ -1,8 +1,8 @@
-# Nginx Configuration Guide
+# Nginx設定ガイド
 
-このガイドは、MC Server DashboardをNginx経由でHTTPSで提供するための設定例です。
+このガイドは、MC Server DashboardをnginxでHTTPS提供するための設定例を提供します。
 
-## 基本構成
+## 基本設定
 
 ```nginx
 # HTTPからHTTPSへのリダイレクト
@@ -26,7 +26,7 @@ server {
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
 
-    # セキュリティヘッダー（Nginx側で管理）
+    # セキュリティヘッダー（nginxがセキュリティを管理）
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options nosniff always;
     add_header X-Frame-Options DENY always;
@@ -46,7 +46,7 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    # APIプロキシ（Mixed Content回避）
+    # APIプロキシ（Mixed Content問題を解決）
     location /api/ {
         proxy_pass http://localhost:8000;  # バックエンドのアドレスに変更
         proxy_http_version 1.1;
@@ -75,7 +75,7 @@ server {
 
 ### 2. SSL証明書パス
 
-- Let's Encryptを使用する場合: `/etc/letsencrypt/live/your.domain.com/`
+- Let's Encryptの場合: `/etc/letsencrypt/live/your.domain.com/`
 - 他の証明書の場合: 適切なパスに変更
 
 ### 3. バックエンドアドレス
@@ -85,7 +85,7 @@ server {
 
 ### 4. セキュリティヘッダー
 
-必要に応じて以下のヘッダーを追加：
+必要に応じて追加のヘッダーを設定:
 
 ```nginx
 # Content Security Policy（厳格なセキュリティが必要な場合）
@@ -95,7 +95,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 ```
 
-## 設定の適用
+## 設定のデプロイ
 
 1. 設定ファイルを作成
 
@@ -115,7 +115,7 @@ add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
    sudo nginx -t
    ```
 
-4. Nginx再起動
+4. nginx再読み込み
    ```bash
    sudo systemctl reload nginx
    ```
@@ -124,15 +124,15 @@ add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 
 ### Mixed Content エラー
 
-- `.env.local` の `NEXT_PUBLIC_API_URL` が `https://your.domain.com` になっているか確認
-- APIリクエストが `/api/` 経由でプロキシされているか確認
+- `.env.local` の `NEXT_PUBLIC_API_URL` が `https://your.domain.com` に設定されているか確認
+- APIリクエストが `/api/` パス経由でプロキシされているか確認
 
 ### 502 Bad Gateway
 
-- Next.jsアプリケーションが起動しているか確認: `sudo systemctl status mc-dashboard-ui`
-- バックエンドAPIが起動しているか確認
+- Next.jsアプリケーションが動作しているか確認: `sudo systemctl status mc-dashboard-ui`
+- バックエンドAPIが動作しているか確認
 
-### WebSocketエラー
+### WebSocket エラー
 
-- `Upgrade` と `Connection` ヘッダーが正しく設定されているか確認
+- `Upgrade` と `Connection` ヘッダーが適切に設定されているか確認
 - ファイアウォールがWebSocket接続をブロックしていないか確認

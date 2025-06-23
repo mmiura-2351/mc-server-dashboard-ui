@@ -1,52 +1,40 @@
 # Deployment Files
 
-このディレクトリには、MC Server Dashboard UIのデプロイメントに関連するファイルが含まれています。
+This directory contains deployment-related files for MC Server Dashboard UI.
 
-## ファイル一覧
+**Languages**: Documentation is available in multiple languages:
 
-### 📄 設定ファイル
+- **English**: `docs/en/`
+- **日本語**: `docs/ja/`
 
-- **`nginx-configuration-guide.md`** - nginx設定ガイド（HTTPS環境用）
-- **`mc-dashboard-ui.service`** - systemdサービスファイル
+## Quick Start
 
-### 🔧 スクリプト（../scripts/）
+### Configuration Files
 
-- **`deploy.sh`** - デプロイメントスクリプト
-- **`service-manager.sh`** - サービス管理ユーティリティ
-- **`dev-start.sh`** - 開発環境起動スクリプト
+- **`mc-dashboard-ui.service`** - systemd service file
+- **`docs/`** - Deployment documentation in multiple languages
 
-## 使用方法
+### Scripts (../scripts/)
 
-### 開発環境
+- **`deploy.sh`** - Deployment script with automatic service setup
+- **`service-manager.sh`** - Service management utility
+- **`dev-start.sh`** - Development environment startup script
 
-```bash
-# 開発サーバーの起動
-npm run dev:start
-```
-
-### 本番環境デプロイ
+## Usage
 
 ```bash
-# デプロイの実行
+# Production deployment
 npm run deploy
 
-# サービス管理
-npm run service:start    # サービス開始
-npm run service:stop     # サービス停止
-npm run service:restart  # サービス再起動
-npm run service:status   # サービス状態確認
-npm run service:logs     # ログ表示
+# Service management
+npm run service:start    # Start service
+npm run service:stop     # Stop service
+npm run service:restart  # Restart service
+npm run service:status   # Check service status
+npm run service:logs     # View logs
 ```
 
-### nginx設定
+For detailed configuration guides, see:
 
-1. `nginx-configuration-guide.md` を参照
-2. 設定ファイルを作成・適用
-3. SSL証明書を設定
-4. nginxを再起動
-
-## 注意事項
-
-- 本番環境では `.env.local` で `NODE_ENV=production` に設定
-- nginx経由の場合は `NEXT_PUBLIC_API_URL` を HTTPS URL に変更
-- Mixed Content問題回避のため nginx でAPIプロキシ設定が必要
+- nginx configuration: `docs/en/nginx-configuration-guide.md` / `docs/ja/nginx-configuration-guide.md`
+- Complete documentation: `docs/en/README.md` / `docs/ja/README.md`

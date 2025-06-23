@@ -6,15 +6,12 @@ Wants=network.target
 
 [Service]
 Type=simple
-User=$USER
-Group=$USER
+User=__USER__
+Group=__USER__
 WorkingDirectory=/opt/mcs-dashboard/ui
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=NEXT_PUBLIC_API_URL=http://localhost:8000
-# Security configuration (adjust as needed)
-Environment=ENABLE_HTTPS_REDIRECT=false
-Environment=ENABLE_ENHANCED_SECURITY=false
 ExecStart=/usr/bin/npm start
 ExecReload=/bin/kill -USR1 $MAINPID
 Restart=always

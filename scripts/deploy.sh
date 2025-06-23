@@ -132,6 +132,30 @@ deploy_frontend() {
     log_success "Frontend deployed successfully"
 }
 
+# Setup systemd service
+setup_systemd_service() {
+    log_info "Setting up systemd service..."
+    
+    local service_file="$DEPLOY_DIR/deployment/mc-dashboard-ui.service"
+    local system_service_file="/etc/systemd/system/mc-dashboard-ui.service"
+    
+    if [[ ! -f "$service_file" ]]; then
+        log_error "Service file not found: $service_file"
+        return 1
+    fi
+    
+    # Replace __USER__ placeholder with current user
+    sed "s/__USER__/$USER/g" "$service_file" | sudo tee "$system_service_file" > /dev/null
+    
+    # Reload systemd daemon
+    sudo systemctl daemon-reload
+    
+    # Enable service
+    sudo systemctl enable mc-dashboard-ui
+    
+    log_success "Systemd service configured successfully"
+}
+
 # Start service
 start_service() {
     log_info "Starting frontend service..."
@@ -169,6 +193,9 @@ main() {
     
     # Deploy frontend
     deploy_frontend
+    
+    # Setup systemd service
+    setup_systemd_service
     
     # Start service
     start_service
