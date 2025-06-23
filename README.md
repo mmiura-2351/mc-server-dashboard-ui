@@ -6,12 +6,14 @@ FastAPI バックエンド（`../mc-server-dashboard-api/`）と連携し、サ�
 ## 機能
 
 ### 認証・ユーザー管理
+
 - **ユーザー登録**: 新規ユーザーアカウントの作成（管理者承認制）
 - **ログイン**: JWT トークンベース認証
 - **ユーザープロファイル**: プロファイル編集・パスワード変更
 - **管理者機能**: ユーザー承認・管理
 
 ### サーバー管理
+
 - **サーバー作成**: Vanilla/Paper/Forge サーバーの作成
 - **ライフサイクル管理**: 開始・停止・再起動
 - **リアルタイム監視**: WebSocket によるステータス・ログ監視
@@ -19,21 +21,25 @@ FastAPI バックエンド（`../mc-server-dashboard-api/`）と連携し、サ�
 - **設定管理**: サーバー設定の編集
 
 ### プレイヤー・グループ管理
+
 - **OP権限管理**: オペレーター権限の付与・削除
 - **ホワイトリスト**: プレイヤーのホワイトリスト管理
 - **グループ管理**: 複数サーバーでのグループ共有
 
 ### バックアップ・ファイル管理
+
 - **自動バックアップ**: スケジュールされたバックアップ
 - **手動バックアップ**: オンデマンドバックアップ作成
 - **復元機能**: バックアップからの復元
 - **ファイル管理**: サーバーファイルの直接編集
 
 ### 多言語サポート
+
 - **日本語・英語**: next-intl による国際化対応
 - **言語切り替え**: 動的言語変更
 
 ### 技術仕様
+
 - **フレームワーク**: Next.js 15 (App Router)
 - **言語**: TypeScript
 - **スタイリング**: CSS Modules
@@ -43,9 +49,16 @@ FastAPI バックエンド（`../mc-server-dashboard-api/`）と連携し、サ�
 - **リアルタイム通信**: WebSocket
 - **国際化**: next-intl
 
+### デプロイメント
+
+- **ローカル開発**: HTTP環境での直接開発
+- **本番環境**: nginx リバースプロキシ経由でのHTTPS提供
+- **詳細**: `deployment/` ディレクトリを参照
+
 ## セットアップ
 
 ### 前提条件
+
 - Node.js 18以上
 - Python 3.13+ (バックエンド用)
 - uv パッケージマネージャー (バックエンド用)
@@ -95,6 +108,7 @@ npm run dev
 ### 認証エンドポイント
 
 #### ログイン
+
 - **エンドポイント**: `POST /api/v1/auth/token`
 - **形式**: `application/x-www-form-urlencoded`
 - **パラメータ**:
@@ -109,6 +123,7 @@ npm run dev
   ```
 
 #### ユーザー登録
+
 - **エンドポイント**: `POST /api/v1/users/register`
 - **形式**: `application/json`
 - **パラメータ**:
@@ -134,10 +149,12 @@ npm run dev
 ### サーバー管理エンドポイント
 
 #### サーバー一覧取得
+
 - **エンドポイント**: `GET /api/v1/servers`
 - **認証**: Bearer Token 必須
 
 #### サーバー作成
+
 - **エンドポイント**: `POST /api/v1/servers`
 - **パラメータ**:
   ```json
@@ -152,6 +169,7 @@ npm run dev
   ```
 
 #### サーバー操作
+
 - `POST /api/v1/servers/{id}/start` - サーバー開始
 - `POST /api/v1/servers/{id}/stop` - サーバー停止
 - `GET /api/v1/servers/{id}/status` - ステータス取得
@@ -224,6 +242,7 @@ src/
 ### 状態管理
 
 #### AuthContext
+
 認証状態は`AuthContext`で管理され、以下の機能を提供：
 
 - `user`: 現在のユーザー情報（役割、承認状態を含む）
@@ -234,6 +253,7 @@ src/
 - `logout()`: ログアウト処理（トークン削除）
 
 #### LanguageContext
+
 言語設定は`LanguageContext`で管理：
 
 - `locale`: 現在の言語（'ja' | 'en'）
@@ -241,6 +261,7 @@ src/
 - `t()`: 翻訳関数
 
 #### データ永続化
+
 - JWT トークン: `localStorage.authToken`
 - ユーザー情報: `localStorage.currentUser`
 - 言語設定: `localStorage.language`
@@ -267,11 +288,13 @@ npm run test:watch
 ### セキュリティ仕様
 
 #### ロールベースアクセス制御（RBAC）
+
 - **admin**: 全システムアクセス、ユーザー承認権限
 - **operator**: サーバー作成・管理権限
 - **user**: 制限されたアクセス権限
 
 #### セキュリティ機能
+
 - **JWT認証**: 30分間の有効期限
 - **ユーザー承認制**: 管理者による手動承認
 - **CORS設定**: バックエンドで適切に設定済み
@@ -279,6 +302,7 @@ npm run test:watch
 - **認証状態管理**: 自動ログアウト、トークン検証
 
 #### 開発時のセキュリティ
+
 - API通信は全てHTTPS想定（本番環境）
 - 機密情報のログ出力禁止
 - 環境変数による設定管理
@@ -288,6 +312,7 @@ npm run test:watch
 ### よくある問題
 
 1. **バックエンドAPI未起動**:
+
    ```bash
    # バックエンドを起動
    cd ../mc-server-dashboard-api
@@ -305,10 +330,12 @@ npm run test:watch
 API リクエスト・レスポンスを確認してください。
 
 #### バックエンドAPIの確認
+
 - Swagger UI: http://localhost:8000/docs
 - API Health Check: http://localhost:8000/api/v1/health
 
 #### フロントエンドのデバッグ
+
 - `localStorage` の内容確認（authToken, currentUser）
 - ネットワークタブでのAPI通信確認
 - コンソールでのエラーメッセージ確認
@@ -316,10 +343,12 @@ API リクエスト・レスポンスを確認してください。
 ## 関連プロジェクト
 
 ### バックエンドAPI詳細
+
 **場所**: `../mc-server-dashboard-api/`
 **技術**: FastAPI + SQLAlchemy + SQLite + WebSocket
 
 #### 主要機能
+
 - **ユーザー管理**: 登録・認証・ロール管理・承認システム
 - **サーバー管理**: Vanilla/Paper/Forge サーバーの作成・起動・停止・監視
 - **プレイヤー管理**: OP権限・ホワイトリスト・グループ管理
@@ -329,6 +358,7 @@ API リクエスト・レスポンスを確認してください。
 - **テンプレート機能**: サーバー作成テンプレート管理
 
 #### API エンドポイント概要（46のユースケース）
+
 - **認証**: `/api/v1/auth/token`, `/api/v1/users/register`
 - **ユーザー管理**: `/api/v1/users/me`, `/api/v1/users/approve/{id}`
 - **サーバー管理**: `/api/v1/servers/*` (CRUD・操作・監視)
@@ -337,11 +367,13 @@ API リクエスト・レスポンスを確認してください。
 - **WebSocket**: `/api/v1/ws/*` (リアルタイム通信)
 
 #### 開発・テスト環境
+
 - **開発サーバー**: `uv run fastapi dev` (http://localhost:8000)
 - **テスト環境**: `./testing/scripts/test_server.sh start` (port 8001)
 - **API ドキュメント**: http://localhost:8000/docs (Swagger UI)
 
 ### プロジェクト間の連携
+
 1. **認証**: JWT トークンによる統一認証
 2. **リアルタイム**: WebSocket によるサーバー状態・ログ同期
 3. **ファイル操作**: バックエンドでのサーバーディレクトリ管理
