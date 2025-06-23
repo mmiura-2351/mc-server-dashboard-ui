@@ -25,7 +25,8 @@
     "service:start": "scripts/service-manager.sh start",
     "service:stop": "scripts/service-manager.sh stop",
     "service:restart": "scripts/service-manager.sh restart",
-    "service:logs": "scripts/service-manager.sh logs"
+    "service:logs": "scripts/service-manager.sh logs",
+    "update": "scripts/update.sh"
   },
   "dependencies": {
     "jszip": "^3.10.1",
