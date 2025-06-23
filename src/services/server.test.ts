@@ -79,7 +79,7 @@ describe("server service", () => {
     id: 1,
     name: "Test Server",
     description: "A test server",
-    minecraft_version: "1.21.5",
+    minecraft_version: "1.21.6",
     server_type: "vanilla" as ServerType,
     status: "stopped" as ServerStatus,
     directory_path: "/path/to/server",
@@ -173,7 +173,7 @@ describe("server service", () => {
       const createRequest: CreateServerRequest = {
         name: "New Server",
         description: "A new test server",
-        minecraft_version: "1.21.5",
+        minecraft_version: "1.21.6",
         server_type: "vanilla" as ServerType,
         port: 25566,
         max_memory: 1024,
@@ -522,11 +522,20 @@ describe("server service", () => {
       const mockVersionsResponse = {
         versions: [
           {
+            version: "1.21.6",
+            server_type: "vanilla",
+            download_url: "https://example.com/1.21.6.jar",
+            is_supported: true,
+            release_date: "2024-03-25T12:14:58Z",
+            is_stable: true,
+            build_number: null,
+          },
+          {
             version: "1.21.5",
             server_type: "vanilla",
             download_url: "https://example.com/1.21.5.jar",
             is_supported: true,
-            release_date: "2024-03-25T12:14:58Z",
+            release_date: "2024-12-03T10:12:57Z",
             is_stable: true,
             build_number: null,
           },
@@ -558,11 +567,14 @@ describe("server service", () => {
       const result = await getSupportedVersions();
 
       expect(fetchJson).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/servers/versions/supported"
+        "http://localhost:8000/api/v1/servers/versions/supported",
+        {
+          timeout: 30000,
+        }
       );
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
-        expect(result.value).toEqual(["1.21.5", "1.21.4", "1.21.3"]);
+        expect(result.value).toEqual(["1.21.6", "1.21.5", "1.21.4", "1.21.3"]);
       }
     });
 
@@ -597,11 +609,20 @@ describe("server service", () => {
             build_number: 100,
           },
           {
+            version: "1.21.6",
+            server_type: "vanilla",
+            download_url: "https://example.com/vanilla-1.21.6.jar",
+            is_supported: true,
+            release_date: "2024-03-25T12:14:58Z",
+            is_stable: true,
+            build_number: null,
+          },
+          {
             version: "1.21.5",
             server_type: "vanilla",
             download_url: "https://example.com/vanilla-1.21.5.jar",
             is_supported: true,
-            release_date: "2024-03-25T12:14:58Z",
+            release_date: "2024-12-03T10:12:57Z",
             is_stable: true,
             build_number: null,
           },
@@ -617,7 +638,7 @@ describe("server service", () => {
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         // Should be sorted in descending order and deduplicated
-        expect(result.value).toEqual(["1.21.5", "1.21.4", "1.21.3"]);
+        expect(result.value).toEqual(["1.21.6", "1.21.5", "1.21.4", "1.21.3"]);
       }
     });
 
@@ -1596,7 +1617,7 @@ max-players=20`;
           id: 1,
           name: "Imported Server",
           description: "Test imported server",
-          minecraft_version: "1.21.5",
+          minecraft_version: "1.21.6",
           server_type: ServerType.VANILLA,
           status: ServerStatus.STOPPED,
           directory_path: "/servers/imported",
@@ -1667,7 +1688,7 @@ max-players=20`;
           id: 1,
           name: "Test Server",
           description: null,
-          minecraft_version: "1.21.5",
+          minecraft_version: "1.21.6",
           server_type: ServerType.VANILLA,
           status: ServerStatus.STOPPED,
           directory_path: "/servers/test",

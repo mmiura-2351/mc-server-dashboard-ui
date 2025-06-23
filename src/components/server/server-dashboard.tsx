@@ -11,6 +11,7 @@ import styles from "./server-dashboard.module.css";
 
 // Fallback versions if API call fails
 const FALLBACK_VERSIONS = [
+  "1.21.6",
   "1.21.5",
   "1.21.4",
   "1.21.3",
@@ -278,8 +279,16 @@ export function ServerDashboard() {
         setSupportedVersions(result.value);
       } else {
         setSupportedVersions(FALLBACK_VERSIONS);
-        // Set a flag for error message translation later
-        setVersionError("TRANSLATION_NEEDED");
+        // Check if this is a timeout error for better user feedback
+        if (
+          result.error.status === 408 ||
+          result.error.message.includes("timeout")
+        ) {
+          setVersionError("TIMEOUT_ERROR");
+        } else {
+          // Set a flag for general error message translation later
+          setVersionError("TRANSLATION_NEEDED");
+        }
       }
       setIsLoadingVersions(false);
     };
@@ -295,6 +304,8 @@ export function ServerDashboard() {
   useEffect(() => {
     if (versionError === "TRANSLATION_NEEDED") {
       setVersionError(t("servers.create.errors.failedToLoadVersions"));
+    } else if (versionError === "TIMEOUT_ERROR") {
+      setVersionError(t("servers.create.errors.versionLoadTimeout"));
     }
   }, [versionError, t]);
 

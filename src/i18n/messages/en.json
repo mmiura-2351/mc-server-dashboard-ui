@@ -270,7 +270,8 @@
       "noVersionsAvailable": "No versions available",
       "errors": {
         "failedToLoadData": "Failed to load data",
-        "failedToLoadVersions": "Failed to load versions, using fallback list"
+        "failedToLoadVersions": "Failed to load versions, using fallback list",
+        "versionLoadTimeout": "Version loading timed out, using fallback list. This may be due to external API connectivity issues."
       }
     },
     "import": {

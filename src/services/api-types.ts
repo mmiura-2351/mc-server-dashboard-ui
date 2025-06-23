@@ -28,6 +28,7 @@ export interface ApiRequestConfig extends Omit<RequestInit, "method"> {
   method?: string;
   expectEmpty?: boolean; // Explicitly expect empty response
   expectBlob?: boolean; // Explicitly expect blob response
+  timeout?: number; // Request timeout in milliseconds
 }
 
 // Response handler interface
