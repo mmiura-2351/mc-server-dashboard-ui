@@ -155,7 +155,7 @@ describe("ServerDashboard", () => {
       id: 1,
       name: "Test Server 1",
       description: "A test server",
-      minecraft_version: "1.21.5",
+      minecraft_version: "1.21.6",
       server_type: ServerType.VANILLA,
       status: ServerStatus.RUNNING,
       directory_path: "/servers/test1",
@@ -193,7 +193,7 @@ describe("ServerDashboard", () => {
     id: 3,
     name: "New Server",
     description: "A new server",
-    minecraft_version: "1.21.5",
+    minecraft_version: "1.21.6",
     server_type: ServerType.VANILLA,
     status: ServerStatus.STOPPED,
     directory_path: "/servers/new",
@@ -230,7 +230,16 @@ describe("ServerDashboard", () => {
     vi.mocked(serverService.getServerTemplates).mockResolvedValue(ok([]));
     vi.mocked(serverService.createServer).mockResolvedValue(ok(mockNewServer));
     vi.mocked(serverService.getSupportedVersions).mockResolvedValue(
-      ok(["1.21.5", "1.21.4", "1.21.3", "1.21.2", "1.21.1", "1.21", "1.20.6"])
+      ok([
+        "1.21.6",
+        "1.21.5",
+        "1.21.4",
+        "1.21.3",
+        "1.21.2",
+        "1.21.1",
+        "1.21",
+        "1.20.6",
+      ])
     );
   });
 
@@ -319,7 +328,7 @@ describe("ServerDashboard", () => {
 
       // Check server 1 details - with filters hidden by default, text only appears in server details
       expect(screen.getByText("Running")).toBeInTheDocument();
-      expect(screen.getByText("1.21.5")).toBeInTheDocument();
+      expect(screen.getByText("1.21.6")).toBeInTheDocument();
       expect(screen.getByText("vanilla")).toBeInTheDocument();
       expect(screen.getByText("0/20")).toBeInTheDocument();
       expect(screen.getByText("2048MB")).toBeInTheDocument();
@@ -516,7 +525,7 @@ describe("ServerDashboard", () => {
 
       // Check select values using the select elements themselves
       const versionSelect = screen.getByLabelText("Minecraft Version");
-      expect((versionSelect as HTMLSelectElement).value).toBe("1.21.5");
+      expect((versionSelect as HTMLSelectElement).value).toBe("1.21.6");
 
       const typeSelect = document.getElementById(
         "createServerType"
@@ -538,7 +547,7 @@ describe("ServerDashboard", () => {
       });
 
       // Test that specific versions exist in create form select (using getAllByRole to handle duplicates)
-      const versionOptions = screen.getAllByRole("option", { name: "1.21.5" });
+      const versionOptions = screen.getAllByRole("option", { name: "1.21.6" });
       expect(versionOptions.length).toBeGreaterThanOrEqual(1); // Should appear in at least one select
 
       const versionOptions1214 = screen.getAllByRole("option", {
@@ -642,7 +651,7 @@ describe("ServerDashboard", () => {
 
       const expectedRequest = {
         name: "New Server",
-        minecraft_version: "1.21.5",
+        minecraft_version: "1.21.6",
         server_type: ServerType.VANILLA,
         max_memory: 2048,
         description: "A new server",
@@ -757,7 +766,7 @@ describe("ServerDashboard", () => {
 
       // Check select values are reset to defaults
       const versionSelect = screen.getByLabelText("Minecraft Version");
-      expect((versionSelect as HTMLSelectElement).value).toBe("1.21.5");
+      expect((versionSelect as HTMLSelectElement).value).toBe("1.21.6");
 
       const typeSelect = document.getElementById(
         "createServerType"
@@ -1145,7 +1154,7 @@ describe("ServerDashboard", () => {
       expect(versionSelect).toBeInTheDocument();
 
       // Should contain the mocked versions
-      expect(screen.getByDisplayValue("1.21.5")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("1.21.6")).toBeInTheDocument();
     });
 
     test("shows fallback versions when API fails", async () => {
@@ -1752,7 +1761,7 @@ describe("ServerDashboard", () => {
 
       expect(options).toEqual([
         { value: "all", text: "All (Versions)" },
-        { value: "1.21.5", text: "1.21.5" },
+        { value: "1.21.6", text: "1.21.6" },
         { value: "1.20.6", text: "1.20.6" },
       ]);
     });
@@ -1770,9 +1779,9 @@ describe("ServerDashboard", () => {
       const versionFilter = document.getElementById(
         "serverVersionFilter"
       ) as HTMLSelectElement;
-      await user.selectOptions(versionFilter, "1.21.5");
+      await user.selectOptions(versionFilter, "1.21.6");
 
-      // Should show only Test Server 1 (1.21.5)
+      // Should show only Test Server 1 (1.21.6)
       expect(screen.getByText("Test Server 1")).toBeInTheDocument();
       expect(screen.queryByText("Test Server 2")).not.toBeInTheDocument();
       expect(screen.getByText("Showing 1 of 2 servers")).toBeInTheDocument();
@@ -1998,7 +2007,7 @@ describe("ServerDashboard", () => {
 
       await user.selectOptions(typeFilter, "vanilla");
       await user.selectOptions(statusFilter, "running");
-      await user.selectOptions(versionFilter, "1.21.5");
+      await user.selectOptions(versionFilter, "1.21.6");
       await user.type(searchInput, "test");
       await user.selectOptions(sortSelect, "name");
 
@@ -2009,7 +2018,7 @@ describe("ServerDashboard", () => {
       // Verify filters are applied
       expect(typeFilter.value).toBe("vanilla");
       expect(statusFilter.value).toBe("running");
-      expect(versionFilter.value).toBe("1.21.5");
+      expect(versionFilter.value).toBe("1.21.6");
       expect(searchInput.value).toBe("test");
       expect(sortSelect.value).toBe("name");
       expect(screen.getByText(/↑.*A-Z/)).toBeInTheDocument(); // Sort order changed
@@ -2077,7 +2086,7 @@ describe("ServerDashboard", () => {
       const versionFilter = document.getElementById(
         "serverVersionFilter"
       ) as HTMLSelectElement;
-      await user.selectOptions(versionFilter, "1.21.5");
+      await user.selectOptions(versionFilter, "1.21.6");
       expect(screen.getByText(/Reset Filters/)).toBeInTheDocument();
 
       const resetButton4 = screen.getByText(/Reset Filters/);

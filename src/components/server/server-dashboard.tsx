@@ -11,6 +11,7 @@ import styles from "./server-dashboard.module.css";
 
 // Fallback versions if API call fails
 const FALLBACK_VERSIONS = [
+  "1.21.6",
   "1.21.5",
   "1.21.4",
   "1.21.3",
