@@ -558,7 +558,10 @@ describe("server service", () => {
       const result = await getSupportedVersions();
 
       expect(fetchJson).toHaveBeenCalledWith(
-        "http://localhost:8000/api/v1/servers/versions/supported"
+        "http://localhost:8000/api/v1/servers/versions/supported",
+        {
+          timeout: 30000,
+        }
       );
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {

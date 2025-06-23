@@ -26,6 +26,7 @@ async function fetchWithErrorHandlingInternal<T>(
     const {
       expectEmpty: _expectEmpty,
       expectBlob: _expectBlob,
+      timeout,
       ...options
     } = config;
 
@@ -43,12 +44,29 @@ async function fetchWithErrorHandlingInternal<T>(
       requestHeaders = options.headers;
     }
 
+    // Set up timeout using AbortController if timeout is specified
+    let controller: AbortController | undefined;
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    if (timeout && timeout > 0) {
+      controller = new AbortController();
+      timeoutId = setTimeout(() => {
+        controller?.abort();
+      }, timeout);
+    }
+
     const requestOptions: RequestInit = {
       ...options,
       headers: requestHeaders,
+      signal: controller?.signal,
     };
 
     const response = await fetch(url, requestOptions);
+
+    // Clear timeout if request completed successfully
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       return handleErrorResponse(response);
@@ -56,6 +74,14 @@ async function fetchWithErrorHandlingInternal<T>(
 
     return handleSuccessResponse<T>(response, config);
   } catch (error) {
+    // Handle abort/timeout errors specifically
+    if (error instanceof Error && error.name === "AbortError") {
+      return err({
+        message: "Request timeout - the operation took too long to complete",
+        status: 408, // HTTP 408 Request Timeout
+      });
+    }
+
     return err({
       message: error instanceof Error ? error.message : "Network error",
     });

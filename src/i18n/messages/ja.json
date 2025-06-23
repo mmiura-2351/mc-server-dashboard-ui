@@ -258,7 +258,8 @@
       "noVersionsAvailable": "利用可能なバージョンがありません",
       "errors": {
         "failedToLoadData": "データの読み込みに失敗しました",
-        "failedToLoadVersions": "バージョンの読み込みに失敗しました。フォールバックリストを使用します"
+        "failedToLoadVersions": "バージョンの読み込みに失敗しました。フォールバックリストを使用します",
+        "versionLoadTimeout": "バージョン読み込みがタイムアウトしました。フォールバックリストを使用しています。外部API接続の問題が原因の可能性があります。"
       }
     },
     "import": {

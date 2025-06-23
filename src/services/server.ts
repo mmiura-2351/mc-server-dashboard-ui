@@ -19,6 +19,12 @@ import { tokenManager } from "@/utils/token-manager";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// Timeout configurations for different operations
+const API_TIMEOUTS = {
+  SUPPORTED_VERSIONS: 30000, // 30 seconds for external API calls (Mojang, PaperMC)
+  DEFAULT: 10000, // 10 seconds for regular API calls
+} as const;
+
 export async function getServers(): Promise<
   Result<MinecraftServer[], AuthError>
 > {
@@ -130,7 +136,10 @@ export async function getSupportedVersions(): Promise<
   Result<string[], AuthError>
 > {
   const result = await fetchJson<{ versions: VersionObject[] }>(
-    `${API_BASE_URL}/api/v1/servers/versions/supported`
+    `${API_BASE_URL}/api/v1/servers/versions/supported`,
+    {
+      timeout: API_TIMEOUTS.SUPPORTED_VERSIONS,
+    }
   );
   if (result.isErr()) {
     return err(result.error);
