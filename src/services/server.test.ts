@@ -191,6 +191,7 @@ describe("server service", () => {
         {
           method: "POST",
           body: JSON.stringify(createRequest),
+          timeout: 120000,
         }
       );
       expect(result.isOk()).toBe(true);
@@ -215,6 +216,54 @@ describe("server service", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error).toEqual(mockAuthError);
+      }
+    });
+
+    test("should include 120-second timeout for server creation", async () => {
+      const createRequest: CreateServerRequest = {
+        name: "Test Server",
+        minecraft_version: "1.21.6",
+        server_type: "vanilla" as ServerType,
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        ok(mockServer)
+      );
+
+      await createServer(createRequest);
+
+      expect(fetchJson).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/servers",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify(createRequest),
+          timeout: 120000, // 2 minutes timeout for server creation
+        })
+      );
+    });
+
+    test("should handle timeout error correctly", async () => {
+      const createRequest: CreateServerRequest = {
+        name: "Timeout Server",
+        minecraft_version: "1.21.6",
+        server_type: "vanilla" as ServerType,
+      };
+
+      const timeoutError: AuthError = {
+        message: "Request timeout - the operation took too long to complete",
+        status: 408,
+      };
+
+      (fetchJson as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        err(timeoutError)
+      );
+
+      const result = await createServer(createRequest);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.status).toBe(408);
+        expect(result.error.message).toContain("timeout");
       }
     });
   });

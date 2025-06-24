@@ -22,6 +22,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 // Timeout configurations for different operations
 const API_TIMEOUTS = {
   SUPPORTED_VERSIONS: 30000, // 30 seconds for external API calls (Mojang, PaperMC)
+  SERVER_CREATION: 120000, // 2 minutes for server creation (jar download, initialization)
   DEFAULT: 10000, // 10 seconds for regular API calls
 } as const;
 
@@ -49,6 +50,7 @@ export async function createServer(
   return fetchJson<MinecraftServer>(`${API_BASE_URL}/api/v1/servers`, {
     method: "POST",
     body: JSON.stringify(data),
+    timeout: API_TIMEOUTS.SERVER_CREATION,
   });
 }
 
