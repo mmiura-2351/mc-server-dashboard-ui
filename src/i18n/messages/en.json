@@ -271,7 +271,8 @@
       "errors": {
         "failedToLoadData": "Failed to load data",
         "failedToLoadVersions": "Failed to load versions, using fallback list",
-        "versionLoadTimeout": "Version loading timed out, using fallback list. This may be due to external API connectivity issues."
+        "versionLoadTimeout": "Version loading timed out, using fallback list. This may be due to external API connectivity issues.",
+        "creationTimeout": "Server creation timed out. The server may still be initializing in the background. Please check the server list in a few minutes."
       }
     },
     "import": {
