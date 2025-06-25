@@ -1,12 +1,13 @@
 .form {
   max-width: 480px;
   min-width: 320px;
-  min-height: 400px;
+  height: 420px;
   margin: 0 auto;
   padding: 2rem;
   background: white;
   border-radius: 8px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .header {
@@ -30,7 +31,8 @@
 
 .field {
   margin-bottom: 1rem;
-  min-height: 4rem;
+  height: 4rem;
+  overflow: hidden;
 }
 
 .label {
@@ -100,6 +102,8 @@
   font-size: 0.875rem;
   margin-bottom: 1rem;
   line-height: 1.5;
+  height: 3rem;
+  overflow-y: auto;
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
@@ -114,6 +118,8 @@
   font-size: 0.875rem;
   margin-bottom: 1rem;
   line-height: 1.5;
+  height: 3rem;
+  overflow-y: auto;
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
@@ -128,6 +134,8 @@
   font-size: 0.875rem;
   margin-bottom: 1rem;
   line-height: 1.5;
+  height: 3rem;
+  overflow-y: auto;
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
@@ -139,7 +147,8 @@
   font-size: 0.875rem;
   color: #6b7280;
   line-height: 1.5;
-  min-height: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
