@@ -1,9 +1,11 @@
 .form {
-  max-width: 400px;
+  max-width: 480px;
+  min-width: 320px;
   margin: 0 auto;
   padding: 2rem;
   background: white;
   border-radius: 8px;
+  box-sizing: border-box;
 }
 
 .header {
@@ -12,6 +14,7 @@
   align-items: flex-start;
   margin-bottom: 1.5rem;
   gap: 1rem;
+  min-height: 2rem;
 }
 
 .title {
@@ -20,6 +23,7 @@
   color: #1f2937;
   margin: 0;
   flex-shrink: 0;
+  line-height: 2rem;
 }
 
 .field {
@@ -36,10 +40,12 @@
 
 .input {
   width: 100%;
+  min-width: 0;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   font-size: 1rem;
+  box-sizing: border-box;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
@@ -88,7 +94,10 @@
   color: #dc2626;
   font-size: 0.875rem;
   margin-bottom: 1rem;
-  line-height: 1.4;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .success {
@@ -99,7 +108,10 @@
   color: #16a34a;
   font-size: 0.875rem;
   margin-bottom: 1rem;
-  line-height: 1.4;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .warning {
@@ -110,7 +122,10 @@
   color: #ea580c;
   font-size: 0.875rem;
   margin-bottom: 1rem;
-  line-height: 1.4;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .switchText {
@@ -118,6 +133,9 @@
   margin-top: 1.5rem;
   font-size: 0.875rem;
   color: #6b7280;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .switchButton {
@@ -138,4 +156,24 @@
   color: #9ca3af;
   cursor: not-allowed;
   text-decoration: none;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 480px) {
+  .form {
+    max-width: 100%;
+    min-width: 280px;
+    padding: 1.5rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .title {
+    text-align: center;
+    line-height: 1.4;
+  }
 }

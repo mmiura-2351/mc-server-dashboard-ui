@@ -8,6 +8,7 @@
   flex-direction: row;
   align-items: center;
   gap: 1rem;
+  flex-shrink: 0;
 }
 
 .container.settings {
@@ -29,6 +30,7 @@
 .buttons {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .button {
@@ -40,6 +42,8 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: max-content;
 }
 
 .button:hover {
