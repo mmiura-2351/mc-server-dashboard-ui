@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import { LanguageSwitcher } from "@/components/language/language-switcher";
@@ -37,6 +38,29 @@ export function AccountSettings() {
     password: "",
   });
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+
+  // Password visibility states
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+
+  // Password visibility toggle functions
+  const toggleCurrentPasswordVisibility = () => {
+    setShowCurrentPassword(!showCurrentPassword);
+  };
+
+  const toggleNewPasswordVisibility = () => {
+    setShowNewPassword(!showNewPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const toggleDeletePasswordVisibility = () => {
+    setShowDeletePassword(!showDeletePassword);
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,45 +212,136 @@ export function AccountSettings() {
               <label htmlFor="current_password">
                 {t("auth.currentPassword")}
               </label>
-              <input
-                id="current_password"
-                type="password"
-                value={passwordForm.current_password}
-                onChange={(e) =>
-                  setPasswordForm({
-                    ...passwordForm,
-                    current_password: e.target.value,
-                  })
-                }
-                required
-              />
+              <div className={styles.passwordWrapper}>
+                <input
+                  id="current_password"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={passwordForm.current_password}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      current_password: e.target.value,
+                    })
+                  }
+                  className={styles.passwordInput}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.toggleButton}
+                  onClick={toggleCurrentPasswordVisibility}
+                  disabled={isLoading}
+                  aria-label={
+                    showCurrentPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
+                  title={
+                    showCurrentPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
+                >
+                  <Image
+                    src={
+                      showCurrentPassword
+                        ? "/eye-visible.svg"
+                        : "/eye-hidden.svg"
+                    }
+                    alt=""
+                    width={20}
+                    height={20}
+                    className={styles.toggleIcon}
+                  />
+                </button>
+              </div>
             </div>
             <div className={styles.field}>
               <label htmlFor="new_password">{t("auth.newPassword")}</label>
-              <input
-                id="new_password"
-                type="password"
-                value={passwordForm.new_password}
-                onChange={(e) =>
-                  setPasswordForm({
-                    ...passwordForm,
-                    new_password: e.target.value,
-                  })
-                }
-                required
-              />
+              <div className={styles.passwordWrapper}>
+                <input
+                  id="new_password"
+                  type={showNewPassword ? "text" : "password"}
+                  value={passwordForm.new_password}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      new_password: e.target.value,
+                    })
+                  }
+                  className={styles.passwordInput}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.toggleButton}
+                  onClick={toggleNewPasswordVisibility}
+                  disabled={isLoading}
+                  aria-label={
+                    showNewPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
+                  title={
+                    showNewPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
+                >
+                  <Image
+                    src={
+                      showNewPassword ? "/eye-visible.svg" : "/eye-hidden.svg"
+                    }
+                    alt=""
+                    width={20}
+                    height={20}
+                    className={styles.toggleIcon}
+                  />
+                </button>
+              </div>
             </div>
             <div className={styles.field}>
               <label htmlFor="confirm_password">
                 {t("auth.confirmNewPassword")}
               </label>
-              <input
-                id="confirm_password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <div className={styles.passwordWrapper}>
+                <input
+                  id="confirm_password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={styles.passwordInput}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.toggleButton}
+                  onClick={toggleConfirmPasswordVisibility}
+                  disabled={isLoading}
+                  aria-label={
+                    showConfirmPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
+                  title={
+                    showConfirmPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
+                >
+                  <Image
+                    src={
+                      showConfirmPassword
+                        ? "/eye-visible.svg"
+                        : "/eye-hidden.svg"
+                    }
+                    alt=""
+                    width={20}
+                    height={20}
+                    className={styles.toggleIcon}
+                  />
+                </button>
+              </div>
             </div>
             <button
               type="submit"
@@ -257,13 +372,46 @@ export function AccountSettings() {
             <form onSubmit={handleDeleteAccount} className={styles.form}>
               <div className={styles.field}>
                 <label htmlFor="delete_password">{t("auth.password")}</label>
-                <input
-                  id="delete_password"
-                  type="password"
-                  value={deleteForm.password}
-                  onChange={(e) => setDeleteForm({ password: e.target.value })}
-                  required
-                />
+                <div className={styles.passwordWrapper}>
+                  <input
+                    id="delete_password"
+                    type={showDeletePassword ? "text" : "password"}
+                    value={deleteForm.password}
+                    onChange={(e) =>
+                      setDeleteForm({ password: e.target.value })
+                    }
+                    className={styles.passwordInput}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className={styles.toggleButton}
+                    onClick={toggleDeletePasswordVisibility}
+                    disabled={isLoading}
+                    aria-label={
+                      showDeletePassword
+                        ? t("auth.hidePassword")
+                        : t("auth.showPassword")
+                    }
+                    title={
+                      showDeletePassword
+                        ? t("auth.hidePassword")
+                        : t("auth.showPassword")
+                    }
+                  >
+                    <Image
+                      src={
+                        showDeletePassword
+                          ? "/eye-visible.svg"
+                          : "/eye-hidden.svg"
+                      }
+                      alt=""
+                      width={20}
+                      height={20}
+                      className={styles.toggleIcon}
+                    />
+                  </button>
+                </div>
               </div>
               <div className={styles.field}>
                 <label htmlFor="delete_confirmation">

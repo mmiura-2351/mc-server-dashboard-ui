@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import type { UserCreate } from "@/types/auth";
@@ -27,6 +28,9 @@ export function RegisterForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,6 +164,14 @@ export function RegisterForm({
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.header}>
@@ -222,39 +234,87 @@ export function RegisterForm({
         <label htmlFor="password" className={styles.label}>
           {t("auth.password")}
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          className={styles.input}
-          disabled={isLoading}
-          required
-          minLength={8}
-          maxLength={128}
-          autoComplete="new-password"
-          title={t("auth.errors.passwordMinLength")}
-        />
+        <div className={styles.passwordWrapper}>
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleInputChange}
+            className={styles.passwordInput}
+            disabled={isLoading}
+            required
+            minLength={8}
+            maxLength={128}
+            autoComplete="new-password"
+            title={t("auth.errors.passwordMinLength")}
+          />
+          <button
+            type="button"
+            className={styles.toggleButton}
+            onClick={togglePasswordVisibility}
+            disabled={isLoading}
+            aria-label={
+              showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+            }
+            title={
+              showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+            }
+          >
+            <Image
+              src={showPassword ? "/eye-visible.svg" : "/eye-hidden.svg"}
+              alt=""
+              width={20}
+              height={20}
+              className={styles.toggleIcon}
+            />
+          </button>
+        </div>
       </div>
 
       <div className={styles.field}>
         <label htmlFor="confirmPassword" className={styles.label}>
           {t("auth.confirmPassword")}
         </label>
-        <input
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={handleInputChange}
-          className={styles.input}
-          disabled={isLoading}
-          required
-          minLength={8}
-          maxLength={128}
-          autoComplete="new-password"
-        />
+        <div className={styles.passwordWrapper}>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={handleInputChange}
+            className={styles.passwordInput}
+            disabled={isLoading}
+            required
+            minLength={8}
+            maxLength={128}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            className={styles.toggleButton}
+            onClick={toggleConfirmPasswordVisibility}
+            disabled={isLoading}
+            aria-label={
+              showConfirmPassword
+                ? t("auth.hidePassword")
+                : t("auth.showPassword")
+            }
+            title={
+              showConfirmPassword
+                ? t("auth.hidePassword")
+                : t("auth.showPassword")
+            }
+          >
+            <Image
+              src={showConfirmPassword ? "/eye-visible.svg" : "/eye-hidden.svg"}
+              alt=""
+              width={20}
+              height={20}
+              className={styles.toggleIcon}
+            />
+          </button>
+        </div>
       </div>
 
       <button
