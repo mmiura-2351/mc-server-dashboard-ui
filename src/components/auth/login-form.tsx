@@ -173,7 +173,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
               showPassword ? t("auth.hidePassword") : t("auth.showPassword")
             }
           >
-            {showPassword ? "🙈" : "👁️"}
+            {showPassword ? "✕" : "○"}
           </button>
         </div>
       </div>

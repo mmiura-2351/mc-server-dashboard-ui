@@ -260,7 +260,7 @@ export function RegisterForm({
               showPassword ? t("auth.hidePassword") : t("auth.showPassword")
             }
           >
-            {showPassword ? "🙈" : "👁️"}
+            {showPassword ? "✕" : "○"}
           </button>
         </div>
       </div>
@@ -299,7 +299,7 @@ export function RegisterForm({
                 : t("auth.showPassword")
             }
           >
-            {showConfirmPassword ? "🙈" : "👁️"}
+            {showConfirmPassword ? "✕" : "○"}
           </button>
         </div>
       </div>
