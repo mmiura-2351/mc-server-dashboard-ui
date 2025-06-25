@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import type { LoginRequest } from "@/types/auth";
@@ -173,7 +174,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
               showPassword ? t("auth.hidePassword") : t("auth.showPassword")
             }
           >
-            {showPassword ? "✕" : "○"}
+            <Image
+              src={showPassword ? "/eye-visible.svg" : "/eye-hidden.svg"}
+              alt=""
+              width={20}
+              height={20}
+              className={styles.toggleIcon}
+            />
           </button>
         </div>
       </div>
