@@ -54,6 +54,8 @@
     "registerHere": "こちらから登録",
     "loginHere": "こちらからログイン",
     "usernameTooltip": "ユーザー名には文字、数字、アンダースコア、ハイフンのみ使用できます",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを非表示",
     "errors": {
       "usernameRequired": "ユーザー名は必須です。有効な文字のみを含む必要があります",
       "passwordRequired": "パスワードは必須です",

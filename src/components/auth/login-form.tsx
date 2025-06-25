@@ -22,6 +22,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   });
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +106,10 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.header}>
@@ -142,19 +147,35 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         <label htmlFor="password" className={styles.label}>
           {t("auth.password")}
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          className={styles.input}
-          disabled={isLoading}
-          required
-          minLength={6}
-          maxLength={128}
-          autoComplete="current-password"
-        />
+        <div className={styles.passwordWrapper}>
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleInputChange}
+            className={styles.passwordInput}
+            disabled={isLoading}
+            required
+            minLength={6}
+            maxLength={128}
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            className={styles.toggleButton}
+            onClick={togglePasswordVisibility}
+            disabled={isLoading}
+            aria-label={
+              showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+            }
+            title={
+              showPassword ? t("auth.hidePassword") : t("auth.showPassword")
+            }
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
       </div>
 
       <button

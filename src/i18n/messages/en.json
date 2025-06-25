@@ -54,6 +54,8 @@
     "registerHere": "Register here",
     "loginHere": "Login here",
     "usernameTooltip": "Username must contain only letters, numbers, underscores, and hyphens",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "errors": {
       "usernameRequired": "Username is required and must contain only valid characters",
       "passwordRequired": "Password is required",
