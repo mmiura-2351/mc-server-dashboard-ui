@@ -9,6 +9,7 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  height: 2rem;
 }
 
 .container.settings {
@@ -44,6 +45,8 @@
   transition: all 0.2s ease;
   white-space: nowrap;
   min-width: max-content;
+  height: 2rem;
+  line-height: 1rem;
 }
 
 .button:hover {
