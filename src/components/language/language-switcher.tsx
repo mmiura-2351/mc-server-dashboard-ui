@@ -14,7 +14,11 @@ export function LanguageSwitcher({
   const { locale, setLocale } = useLanguage();
   const { t } = useTranslation();
 
-  const handleLanguageChange = (newLocale: Locale) => {
+  const handleLanguageChange = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    newLocale: Locale
+  ) => {
+    event.preventDefault();
     setLocale(newLocale);
   };
 
@@ -23,13 +27,15 @@ export function LanguageSwitcher({
       <label className={styles.label}>{t("language.switchLanguage")}</label>
       <div className={styles.buttons}>
         <button
-          onClick={() => handleLanguageChange("en")}
+          type="button"
+          onClick={(e) => handleLanguageChange(e, "en")}
           className={`${styles.button} ${locale === "en" ? styles.active : ""}`}
         >
           {t("language.english")}
         </button>
         <button
-          onClick={() => handleLanguageChange("ja")}
+          type="button"
+          onClick={(e) => handleLanguageChange(e, "ja")}
           className={`${styles.button} ${locale === "ja" ? styles.active : ""}`}
         >
           {t("language.japanese")}
