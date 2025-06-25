@@ -111,6 +111,80 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInput {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem;
+  padding-right: 3rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.passwordInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.toggleButton {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #6b7280;
+  font-size: 1.125rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 2px;
+  transition: color 0.2s;
+}
+
+.toggleButton:hover:not(:disabled) {
+  color: #374151;
+}
+
+.toggleButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.toggleButton:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.toggleIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  filter: none;
+  transition: filter 0.2s;
+}
+
+.toggleButton:hover:not(:disabled) .toggleIcon {
+  filter: brightness(0.7);
+}
+
+.toggleButton:disabled .toggleIcon {
+  filter: brightness(0.8) opacity(0.5);
+}
+
 .button {
   padding: 0.75rem 1.5rem;
   background-color: #3b82f6;
