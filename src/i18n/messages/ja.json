@@ -152,7 +152,9 @@
     "pendingApproval": "承認待ち",
     "accountPendingApproval": "アカウント承認待ち",
     "accountPendingApprovalDescription": "あなたのアカウントは現在管理者による承認待ちです。アカウントが承認されると、すべての機能にアクセスできるようになります。",
-    "accountPendingApprovalNote": "それまでの間、サーバー概要の表示とアカウント設定の管理が可能です。"
+    "accountPendingApprovalNote": "それまでの間、サーバー概要の表示とアカウント設定の管理が可能です。",
+    "toggleMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる"
   },
   "language": {
     "switchLanguage": "言語",

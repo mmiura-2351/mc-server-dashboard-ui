@@ -152,7 +152,9 @@
     "pendingApproval": "Pending Approval",
     "accountPendingApproval": "Account Pending Approval",
     "accountPendingApprovalDescription": "Your account is currently pending approval by an administrator. You will have full access to all features once your account is approved.",
-    "accountPendingApprovalNote": "In the meantime, you can view the server overview and manage your account settings."
+    "accountPendingApprovalNote": "In the meantime, you can view the server overview and manage your account settings.",
+    "toggleMenu": "Toggle menu",
+    "closeMenu": "Close menu"
   },
   "language": {
     "switchLanguage": "Language",
