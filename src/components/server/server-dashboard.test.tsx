@@ -294,14 +294,16 @@ describe("ServerDashboard", () => {
 
       // Check header elements
       expect(screen.getByText("Minecraft Servers")).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Create Server" })
-      ).toBeInTheDocument();
 
-      // Wait for servers to load - check in table view
+      // Wait for servers to load first - the Create Server button only appears after servers are loaded
       await waitFor(() => {
         expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
       });
+
+      // Now check for Create Server button in fixed header bar (only visible when servers.length > 0)
+      expect(
+        screen.getByRole("button", { name: "+ Create Server" })
+      ).toBeInTheDocument();
 
       expect(getServerNameElement("Test Server 2")).toBeInTheDocument();
     });
@@ -347,7 +349,8 @@ describe("ServerDashboard", () => {
       expect(
         screen.getByText("Create your first Minecraft server to get started!")
       ).toBeInTheDocument();
-      expect(screen.getAllByText("Create Server")).toHaveLength(2); // Header button + empty state button
+      // When no servers exist, only empty state button exists (no fixed header bar)
+      expect(screen.getAllByText("Create Server")).toHaveLength(1); // Only empty state button
     });
 
     test("renders nothing when no user", async () => {
@@ -519,8 +522,13 @@ describe("ServerDashboard", () => {
     test("opens create server modal when button is clicked", async () => {
       render(<ServerDashboard />);
 
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -543,12 +551,11 @@ describe("ServerDashboard", () => {
         expect(screen.getByText("No servers found")).toBeInTheDocument();
       });
 
-      const createButtons = screen.getAllByText("Create Server");
-      const emptyStateButton = createButtons[1]; // Empty state button
-      if (!emptyStateButton) {
-        throw new Error("Empty state button not found");
-      }
-      await user.click(emptyStateButton);
+      // When no servers exist, there's only one Create Server button (in empty state)
+      const createButton = screen.getByRole("button", {
+        name: "Create Server",
+      });
+      await user.click(createButton);
 
       expect(screen.getAllByText("Create New Server")).toHaveLength(2); // Header and tab
     });
@@ -556,8 +563,13 @@ describe("ServerDashboard", () => {
     test("closes modal when close button is clicked", async () => {
       render(<ServerDashboard />);
 
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -572,8 +584,13 @@ describe("ServerDashboard", () => {
     test("closes modal when cancel button is clicked", async () => {
       render(<ServerDashboard />);
 
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -587,8 +604,14 @@ describe("ServerDashboard", () => {
   describe("Create Server Form", () => {
     beforeEach(async () => {
       render(<ServerDashboard />);
+
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
     });
@@ -703,8 +726,14 @@ describe("ServerDashboard", () => {
   describe("Server Creation", () => {
     beforeEach(async () => {
       render(<ServerDashboard />);
+
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
     });
@@ -824,9 +853,14 @@ describe("ServerDashboard", () => {
         expect(screen.queryByText("Create New Server")).not.toBeInTheDocument();
       });
 
+      // Wait for updated server list to load to ensure fixed header bar is visible
+      await waitFor(() => {
+        expect(getServerNameElement("New Server")).toBeInTheDocument();
+      });
+
       // Open modal again to check form reset
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -886,7 +920,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -935,7 +969,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -975,7 +1009,7 @@ describe("ServerDashboard", () => {
 
       // First, open the modal
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -1154,7 +1188,7 @@ describe("ServerDashboard", () => {
       });
 
       const headerCreateButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       expect(headerCreateButton).not.toBeDisabled();
 
@@ -1173,7 +1207,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
 
       // Rapidly open and close modal
@@ -1192,8 +1226,13 @@ describe("ServerDashboard", () => {
     test("prevents form submission with empty required fields", async () => {
       render(<ServerDashboard />);
 
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -1216,9 +1255,14 @@ describe("ServerDashboard", () => {
         expect(serverService.getSupportedVersions).toHaveBeenCalled();
       });
 
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -1243,9 +1287,14 @@ describe("ServerDashboard", () => {
         expect(serverService.getSupportedVersions).toHaveBeenCalled();
       });
 
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
@@ -1267,9 +1316,14 @@ describe("ServerDashboard", () => {
 
       render(<ServerDashboard />);
 
-      // Open create modal immediately
+      // Wait for servers to load first so the fixed header bar with Create Server button appears
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
+      // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "Create Server",
+        name: "+ Create Server",
       });
       await user.click(createButton);
 
