@@ -911,3 +911,14 @@ textarea {
     }
   }
 }
+
+/* Scroll lock improvements for mobile menu */
+body[data-scroll-locked] {
+  /* When scroll is locked, prevent background scrolling */
+  touch-action: none;
+}
+
+body[data-scroll-locked] [data-mobile-menu] {
+  /* Allow touch scrolling within mobile menu */
+  touch-action: pan-y;
+}

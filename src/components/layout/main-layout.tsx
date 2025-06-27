@@ -40,19 +40,26 @@ export function MainLayout({ children }: MainLayoutProps) {
       // Save current scroll position
       const scrollY = window.scrollY;
 
-      // Apply styles to prevent scroll
+      // Add data attribute for scroll lock
+      document.body.setAttribute("data-scroll-locked", "true");
+
+      // Apply styles to prevent scroll - more targeted approach
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
+      document.body.style.overflowY = "hidden";
+      // Don't set overflow: hidden as it affects child elements
 
       return () => {
+        // Remove data attribute
+        document.body.removeAttribute("data-scroll-locked");
+
         // Restore styles and scroll position
         const bodyTop = document.body.style.top;
         document.body.style.position = "";
         document.body.style.top = "";
         document.body.style.width = "";
-        document.body.style.overflow = "";
+        document.body.style.overflowY = "";
 
         // Restore scroll position
         if (bodyTop) {
@@ -228,6 +235,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Mobile navigation overlay */}
       <div
         className={`${styles.mobileNav} ${isMenuOpen ? styles.mobileNavOpen : ""}`}
+        data-mobile-menu
       >
         <div className={styles.mobileNavContent}>
           <div className={styles.mobileNavHeader}>

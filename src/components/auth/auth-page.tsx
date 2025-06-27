@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "@/contexts/language";
 import { LoginForm } from "./login-form";
 import { RegisterForm } from "./register-form";
 import styles from "./auth-page.module.css";
@@ -15,6 +16,7 @@ interface AuthPageProps {
 export function AuthPage({ initialMode = "login" }: AuthPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
 
   // Get initial mode from URL params or fallback to initialMode prop
   const getInitialMode = (): AuthMode => {
@@ -68,11 +70,11 @@ export function AuthPage({ initialMode = "login" }: AuthPageProps) {
     <div className={styles.container}>
       <div className={styles.content}>
         <div className={styles.header}>
-          <h1 className={styles.appTitle}>MC Server Dashboard</h1>
+          <h1 className={styles.appTitle}>{t("auth.appTitle")}</h1>
           <p className={styles.subtitle}>
             {mode === "login"
-              ? "Sign in to your account"
-              : "Create a new account"}
+              ? t("auth.signInSubtitle")
+              : t("auth.createAccountSubtitle")}
           </p>
         </div>
 

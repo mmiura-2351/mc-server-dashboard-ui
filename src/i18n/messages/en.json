@@ -38,6 +38,9 @@
     "docs": "Documentation"
   },
   "auth": {
+    "appTitle": "MC Server Dashboard",
+    "signInSubtitle": "Sign in to your account",
+    "createAccountSubtitle": "Create a new account",
     "login": "Login",
     "register": "Register",
     "username": "Username",

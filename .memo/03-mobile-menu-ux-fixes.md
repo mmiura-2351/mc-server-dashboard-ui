@@ -118,6 +118,67 @@ useEffect(() => {
 4. **overflow: hidden**: スクロールバーを非表示に
 5. **クリーンアップ**: メニューを閉じた時に元のスクロール位置に戻す
 
+## 追加修正2: モバイルメニュー内スクロール改善
+
+### 問題
+
+- モバイルメニューを開いている際、メニュー内でのスクロールができない
+- body scroll lockがメニュー内のスクロールにも影響を与えている
+
+### 解決策
+
+1. **より効果的なbody scroll lock実装**:
+
+   ```javascript
+   // overflowをoverflowYに変更してより限定的に
+   document.body.style.overflowY = "hidden";
+   // data属性を追加してCSS制御を可能に
+   document.body.setAttribute("data-scroll-locked", "true");
+   ```
+
+2. **モバイルメニューのスクロール改善**:
+
+   ```css
+   .mobileNav {
+     /* 動的ビューポート高さ対応 */
+     height: 100dvh;
+     /* スムーススクロール有効化 */
+     -webkit-overflow-scrolling: touch;
+     overscroll-behavior: contain;
+   }
+   ```
+
+3. **タッチ操作の最適化**:
+
+   ```css
+   /* グローバルCSS */
+   body[data-scroll-locked] {
+     touch-action: none; /* 背景スクロール防止 */
+   }
+   body[data-scroll-locked] [data-mobile-menu] {
+     touch-action: pan-y; /* メニュー内スクロール許可 */
+   }
+   ```
+
+4. **メニューコンテンツレイアウト改善**:
+   ```css
+   .mobileNavContent {
+     min-height: 100%; /* height: 100%からmin-height: 100%に変更 */
+     flex: 1;
+   }
+   .mobileNavItems {
+     flex: 1;
+     overflow-y: auto; /* 独立したスクロール */
+   }
+   ```
+
+### 技術的な改善点
+
+- **動的ビューポート高さ**: `100dvh`でモバイルブラウザのアドレスバー問題を解決
+- **タッチアクション制御**: 背景とメニューで異なるタッチ動作を定義
+- **オーバースクロール制御**: `overscroll-behavior: contain`でスクロールの境界を制御
+- **フレックスボックス最適化**: メニューコンテンツの高さ管理を改善
+
 ## 今後の改善点
 
 - メニュー項目クリック時のフィードバック改善

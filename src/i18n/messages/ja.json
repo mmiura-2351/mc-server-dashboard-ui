@@ -38,6 +38,9 @@
     "docs": "ドキュメント"
   },
   "auth": {
+    "appTitle": "MCサーバーダッシュボード",
+    "signInSubtitle": "アカウントにサインイン",
+    "createAccountSubtitle": "新しいアカウントを作成",
     "login": "ログイン",
     "register": "登録",
     "username": "ユーザー名",
