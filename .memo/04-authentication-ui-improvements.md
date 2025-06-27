@@ -358,11 +358,97 @@
 2. **モバイルUX**: レスポンシブ対応でモバイルでも使いやすい
 3. **シンプリティ**: 複雑なCSS変数依存を削除
 
+## 追加修正5: ドロップダウン言語選択の実装
+
+### 問題
+
+- 対応言語が増える可能性がある
+- 言語変更してもUIレイアウトが変わらないようにしたい
+- ドロップダウンで文字が見切れる問題
+
+### 解決策
+
+**新しいLanguageDropdownコンポーネントの作成**:
+
+```typescript
+// 言語を簡単に追加できる配列構造
+const LANGUAGES: Language[] = [
+  { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
+  { code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵" },
+  // 新しい言語を追加するだけ:
+  // { code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷" },
+];
+```
+
+**文字切れ修正**:
+
+```css
+.menu {
+  position: absolute;
+  top: 100%;
+  right: 0; /* 右端基準で画面外に出ないよう調整 */
+  min-width: 160px;
+  width: max-content; /* コンテンツに応じて幅自動調整 */
+  overflow: visible; /* 切り取り防止 */
+}
+```
+
+### 改善された点
+
+1. **スケーラビリティ**: 言語数に制限なし
+2. **UIの一貫性**: 言語数に関係なく固定レイアウト
+3. **レスポンシブ対応**: PC・モバイル両対応
+4. **アクセシビリティ**: キーボードナビゲーション、ARIA属性
+5. **文字表示**: すべての言語名が完全に表示
+
+## スクリーンショット分析時のルール
+
+**重要**: 画像を分析する際は以下のルールを厳守すること
+
+### 1. **端末サイズの確認**
+
+- **モバイル分析時**: 必ず幅375px以下で表示を確認
+- **PC分析時**: 必ず幅1280px以上で表示を確認
+- スクリーンショット取得前に正しい端末サイズか確認
+
+### 2. **スクリーンショット取得手順**
+
+```bash
+# モバイル端末での分析手順
+1. ブラウザを375px x 667pxで起動
+2. スクリーンショットで端末サイズを確認
+3. 対象の操作（クリック等）を実行
+4. 再度スクリーンショット取得・分析
+
+# PC端末での分析手順
+1. ブラウザを1280px x 720pxで起動
+2. スクリーンショットで端末サイズを確認
+3. 対象の操作（クリック等）を実行
+4. 再度スクリーンショット取得・分析
+```
+
+### 3. **分析時の注意点**
+
+- **文字切れ**: 単語の最後の文字まで表示されているか確認
+- **レイアウト崩れ**: 要素が重なったり、はみ出していないか確認
+- **タッチ領域**: モバイルでボタンが十分な大きさか確認（最低44px x 44px）
+- **視認性**: 文字が読みやすい色・サイズか確認
+
+### 4. **問題発見時の対応**
+
+- 問題を発見したら、必ず対象端末で修正前後の比較を行う
+- 修正後は両端末（PC・モバイル）で動作確認を実施
+- スクリーンショットで修正内容を視覚的に検証・記録
+
 ## ファイル変更一覧
 
 - `src/components/auth/auth-page.module.css` - 元デザインに復元+レスポンシブ追加
 - `src/components/auth/auth-form.module.css` - 元デザインに復元+モバイル最適化
 - `src/components/auth/auth-page.tsx` - i18n削除、元のハードコードテキストに復元
+- `src/components/language/language-dropdown.tsx` - 新規作成：スケーラブルなドロップダウン
+- `src/components/language/language-dropdown.module.css` - 新規作成：レスポンシブCSS
+- `src/components/auth/login-form.tsx` - LanguageDropdown使用に変更
+- `src/components/auth/register-form.tsx` - LanguageDropdown使用に変更
 - `src/i18n/messages/en.json` - 翻訳キー追加（残存）
 - `src/i18n/messages/ja.json` - 翻訳キー追加（残存）
 - `src/app/globals.css` - スペーシング変数維持
