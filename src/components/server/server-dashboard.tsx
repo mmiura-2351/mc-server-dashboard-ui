@@ -443,6 +443,52 @@ export function ServerDashboard() {
     }
   };
 
+  const getStatusIcon = (status: ServerStatus) => {
+    switch (status) {
+      case ServerStatus.RUNNING:
+        return "🟢";
+      case ServerStatus.STOPPED:
+        return "🔴";
+      case ServerStatus.STARTING:
+        return "🟡";
+      case ServerStatus.STOPPING:
+        return "🟠";
+      case ServerStatus.ERROR:
+        return "❌";
+      default:
+        return "⚪";
+    }
+  };
+
+  const handleSort = (column: "name" | "status" | "created") => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  const handleServerAction = async (
+    e: React.MouseEvent,
+    serverId: number,
+    action: "start" | "stop"
+  ) => {
+    e.stopPropagation();
+    // TODO: Implement server start/stop functionality
+    console.log(`${action} server ${serverId}`);
+  };
+
+  const handleServerSettings = (e: React.MouseEvent, serverId: number) => {
+    e.stopPropagation();
+    router.push(`/servers/${serverId}/settings`);
+  };
+
+  const handleServerDetails = (e: React.MouseEvent, serverId: number) => {
+    e.stopPropagation();
+    router.push(`/servers/${serverId}`);
+  };
+
   if (!user) return null;
 
   return (
@@ -714,72 +760,214 @@ export function ServerDashboard() {
               <p>No servers match the current filters.</p>
             </div>
           ) : (
-            <div className={styles.serverGrid}>
-              {filteredServers.map((server) => (
-                <div
-                  key={server.id}
-                  className={styles.serverCard}
-                  onClick={() => handleServerClick(server.id)}
-                >
-                  <div className={styles.serverHeader}>
-                    <h3 className={styles.serverName}>{server.name}</h3>
-                    <span
-                      className={`${styles.status} ${getStatusColor(server.status)}`}
-                    >
-                      {getStatusText(server.status)}
-                    </span>
-                  </div>
+            <>
+              {/* Table view for desktop */}
+              <div className={styles.tableContainer}>
+                <table className={styles.serverTable}>
+                  <thead>
+                    <tr>
+                      <th
+                        className={styles.sortableHeader}
+                        onClick={() => handleSort("name")}
+                      >
+                        <div className={styles.headerContent}>
+                          <span>{t("servers.fields.name")}</span>
+                          {sortBy === "name" && (
+                            <span className={styles.sortIndicator}>
+                              {sortOrder === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        className={styles.sortableHeader}
+                        onClick={() => handleSort("status")}
+                      >
+                        <div className={styles.headerContent}>
+                          <span>{t("servers.fields.status")}</span>
+                          {sortBy === "status" && (
+                            <span className={styles.sortIndicator}>
+                              {sortOrder === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                      <th>{t("servers.fields.version")}</th>
+                      <th>{t("servers.fields.type")}</th>
+                      <th>{t("servers.fields.players")}</th>
+                      <th>{t("servers.fields.memory")}</th>
+                      <th>{t("servers.fields.port")}</th>
+                      <th className={styles.actionsHeader}>
+                        {t("servers.fields.actions")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredServers.map((server) => (
+                      <tr key={server.id} className={styles.serverRow}>
+                        <td className={styles.nameCell}>
+                          <div className={styles.nameContent}>
+                            <span className={styles.serverNameText}>
+                              {server.name}
+                            </span>
+                            {server.description && (
+                              <span className={styles.serverDescriptionText}>
+                                {server.description}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <span
+                            className={`${styles.statusBadge} ${getStatusColor(server.status)}`}
+                          >
+                            {getStatusIcon(server.status)}{" "}
+                            {getStatusText(server.status)}
+                          </span>
+                        </td>
+                        <td>{server.minecraft_version}</td>
+                        <td>
+                          <span className={styles.serverTypeLabel}>
+                            {server.server_type}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={styles.playersInfo}>
+                            {server.status === ServerStatus.RUNNING ? "0" : "-"}
+                            /{server.max_players}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={styles.memoryInfo}>
+                            {server.status === ServerStatus.RUNNING
+                              ? `${Math.floor(server.max_memory * 0.5)}/${server.max_memory}MB`
+                              : `${server.max_memory}MB`}
+                          </span>
+                        </td>
+                        <td>{server.port}</td>
+                        <td className={styles.actionsCell}>
+                          <div className={styles.actionButtons}>
+                            {server.status === ServerStatus.STOPPED ? (
+                              <button
+                                className={styles.startButton}
+                                onClick={(e) =>
+                                  handleServerAction(e, server.id, "start")
+                                }
+                                title={t("servers.actions.start")}
+                              >
+                                ▶
+                              </button>
+                            ) : server.status === ServerStatus.RUNNING ? (
+                              <button
+                                className={styles.stopButton}
+                                onClick={(e) =>
+                                  handleServerAction(e, server.id, "stop")
+                                }
+                                title={t("servers.actions.stop")}
+                              >
+                                ■
+                              </button>
+                            ) : (
+                              <button
+                                className={styles.actionButtonDisabled}
+                                disabled
+                                title={getStatusText(server.status)}
+                              >
+                                ⏳
+                              </button>
+                            )}
+                            <button
+                              className={styles.settingsButton}
+                              onClick={(e) =>
+                                handleServerSettings(e, server.id)
+                              }
+                              title={t("servers.actions.settings")}
+                            >
+                              ⚙
+                            </button>
+                            <button
+                              className={styles.detailsButton}
+                              onClick={(e) => handleServerDetails(e, server.id)}
+                              title={t("servers.actions.details")}
+                            >
+                              →
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                  <div className={styles.serverInfo}>
-                    <div className={styles.infoRow}>
-                      <span className={styles.label}>
-                        {t("servers.fields.version")}:
+              {/* Card view for mobile */}
+              <div className={styles.serverGrid}>
+                {filteredServers.map((server) => (
+                  <div
+                    key={server.id}
+                    className={styles.serverCard}
+                    onClick={() => handleServerClick(server.id)}
+                  >
+                    <div className={styles.serverHeader}>
+                      <h3 className={styles.serverName}>{server.name}</h3>
+                      <span
+                        className={`${styles.status} ${getStatusColor(server.status)}`}
+                      >
+                        {getStatusText(server.status)}
                       </span>
-                      <span>{server.minecraft_version}</span>
                     </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.label}>
-                        {t("servers.fields.type")}:
-                      </span>
-                      <span className={styles.serverType}>
-                        {server.server_type}
-                      </span>
+
+                    <div className={styles.serverInfo}>
+                      <div className={styles.infoRow}>
+                        <span className={styles.label}>
+                          {t("servers.fields.version")}:
+                        </span>
+                        <span>{server.minecraft_version}</span>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <span className={styles.label}>
+                          {t("servers.fields.type")}:
+                        </span>
+                        <span className={styles.serverType}>
+                          {server.server_type}
+                        </span>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <span className={styles.label}>
+                          {t("servers.fields.players")}:
+                        </span>
+                        <span>0/{server.max_players}</span>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <span className={styles.label}>
+                          {t("servers.fields.memory")}:
+                        </span>
+                        <span>{server.max_memory}MB</span>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <span className={styles.label}>
+                          {t("servers.fields.port")}:
+                        </span>
+                        <span>{server.port}</span>
+                      </div>
                     </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.label}>
-                        {t("servers.fields.players")}:
+
+                    {server.description && (
+                      <p className={styles.serverDescription}>
+                        {server.description}
+                      </p>
+                    )}
+
+                    <div className={styles.serverCardFooter}>
+                      <span className={styles.clickHint}>
+                        {t("servers.clickToManage")}
                       </span>
-                      <span>0/{server.max_players}</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.label}>
-                        {t("servers.fields.memory")}:
-                      </span>
-                      <span>{server.max_memory}MB</span>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span className={styles.label}>
-                        {t("servers.fields.port")}:
-                      </span>
-                      <span>{server.port}</span>
+                      <span className={styles.arrow}>→</span>
                     </div>
                   </div>
-
-                  {server.description && (
-                    <p className={styles.serverDescription}>
-                      {server.description}
-                    </p>
-                  )}
-
-                  <div className={styles.serverCardFooter}>
-                    <span className={styles.clickHint}>
-                      {t("servers.clickToManage")}
-                    </span>
-                    <span className={styles.arrow}>→</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}

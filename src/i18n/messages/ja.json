@@ -238,9 +238,13 @@
       "stopping": "停止中...",
       "restarting": "再起動中...",
       "exporting": "エクスポート中...",
-      "deleting": "削除中..."
+      "deleting": "削除中...",
+      "settings": "設定",
+      "details": "詳細を見る"
     },
     "fields": {
+      "name": "名前",
+      "status": "ステータス",
       "version": "Minecraftバージョン",
       "type": "サーバータイプ",
       "players": "プレイヤー",
@@ -248,7 +252,8 @@
       "memory": "メモリ",
       "memoryLimit": "メモリ制限",
       "port": "ポート",
-      "created": "作成日"
+      "created": "作成日",
+      "actions": "アクション"
     },
     "create": {
       "title": "新規サーバー作成",

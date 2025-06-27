@@ -238,9 +238,13 @@
       "stopping": "Stopping...",
       "restarting": "Restarting...",
       "exporting": "Exporting...",
-      "deleting": "Deleting..."
+      "deleting": "Deleting...",
+      "settings": "Settings",
+      "details": "View Details"
     },
     "fields": {
+      "name": "Name",
+      "status": "Status",
       "version": "Minecraft Version",
       "type": "Server Type",
       "players": "Players",
@@ -248,7 +252,8 @@
       "memory": "Memory",
       "memoryLimit": "Memory Limit",
       "port": "Port",
-      "created": "Created"
+      "created": "Created",
+      "actions": "Actions"
     },
     "create": {
       "title": "Create New Server",
