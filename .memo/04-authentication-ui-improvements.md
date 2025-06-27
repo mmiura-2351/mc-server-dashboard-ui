@@ -295,11 +295,74 @@
 4. **ソーシャルログイン**: 外部認証プロバイダー対応の準備
 5. **カスタムテーマ**: 必要に応じてアプリ内でのテーマ切り替え機能
 
+## 追加修正4: 元デザイン復元 + モバイルレスポンシブ対応
+
+### 問題
+
+- ユーザーから元のCSSデザインに戻してほしいとの要求
+- モバイル端末での使いやすさは維持したい
+- ブランチ作成前の見た目を保ったままレスポンシブ対応が必要
+
+### 解決策
+
+**元デザインの完全復元**:
+
+```css
+/* mainブランチの元のスタイルに復元 */
+.form {
+  background: white;
+  border-radius: 8px; /* 元の値 */
+}
+
+.toggleButton {
+  width: 1.5rem; /* 元のサイズ */
+  height: 1.5rem;
+  background: none; /* 元のスタイル */
+  border: none;
+}
+
+.submitButton {
+  background-color: #3b82f6; /* 元のBlue色 */
+}
+```
+
+**レスポンシブ対応の追加**:
+
+```css
+@media (max-width: 480px) {
+  .input,
+  .passwordInput {
+    padding: 0.875rem;
+    min-height: 3rem;
+  }
+
+  .toggleButton {
+    width: 2.25rem; /* モバイルのみ拡大 */
+    height: 2.25rem;
+  }
+}
+```
+
+### 復元された要素
+
+1. **グラデーション背景**: 元の紫からピンクのグラデーション
+2. **フォームスタイル**: 元の白い背景、8px角丸
+3. **ボタンカラー**: 元の青色(#3b82f6)系統
+4. **トグルボタン**: 元のシンプルなスタイル（デスクトップ）
+5. **フォントサイズ**: 元の1.5remタイトルサイズ
+6. **i18n削除**: 翻訳機能を削除し、ハードコードテキストに復元
+
+### 改善された点
+
+1. **デザイン一貫性**: ブランチ作成前と同じ見た目
+2. **モバイルUX**: レスポンシブ対応でモバイルでも使いやすい
+3. **シンプリティ**: 複雑なCSS変数依存を削除
+
 ## ファイル変更一覧
 
-- `src/components/auth/auth-page.module.css` - 全面更新
-- `src/components/auth/auth-form.module.css` - 全面更新（最終修正でシンプル化）
-- `src/components/auth/auth-page.tsx` - i18n対応
-- `src/i18n/messages/en.json` - 翻訳キー追加
-- `src/i18n/messages/ja.json` - 翻訳キー追加
-- `src/app/globals.css` - スペーシング変数追加
+- `src/components/auth/auth-page.module.css` - 元デザインに復元+レスポンシブ追加
+- `src/components/auth/auth-form.module.css` - 元デザインに復元+モバイル最適化
+- `src/components/auth/auth-page.tsx` - i18n削除、元のハードコードテキストに復元
+- `src/i18n/messages/en.json` - 翻訳キー追加（残存）
+- `src/i18n/messages/ja.json` - 翻訳キー追加（残存）
+- `src/app/globals.css` - スペーシング変数維持

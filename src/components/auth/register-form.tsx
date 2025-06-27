@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import type { UserCreate } from "@/types/auth";
 import { InputSanitizer } from "@/utils/input-sanitizer";
-import { LanguageSwitcher } from "@/components/language/language-switcher";
+import { LanguageDropdown } from "@/components/language/language-dropdown";
 import styles from "./auth-form.module.css";
 
 interface RegisterFormProps {
@@ -176,7 +176,7 @@ export function RegisterForm({
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.header}>
         <h2 className={styles.title}>{t("auth.register")}</h2>
-        <LanguageSwitcher variant="header" />
+        <LanguageDropdown variant="header" compact />
       </div>
 
       {error && (
