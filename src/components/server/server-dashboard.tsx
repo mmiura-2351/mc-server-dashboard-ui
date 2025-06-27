@@ -53,6 +53,14 @@ export function ServerDashboard() {
   const [isCreating, setIsCreating] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
+  // Server action state
+  const [actioningServers, setActioningServers] = useState<Set<number>>(
+    new Set()
+  );
+  const [actioningButtons, setActioningButtons] = useState<Map<number, string>>(
+    new Map()
+  );
+
   // Create server form
   const [createForm, setCreateForm] = useState<{
     name: string;
@@ -475,8 +483,51 @@ export function ServerDashboard() {
     action: "start" | "stop"
   ) => {
     e.stopPropagation();
-    // TODO: Implement server start/stop functionality
-    console.log(`${action} server ${serverId}`);
+
+    // Add server to actioning set
+    setActioningServers((prev) => new Set(prev).add(serverId));
+    setActioningButtons((prev) => new Map(prev).set(serverId, action));
+    setError(null);
+
+    try {
+      let result;
+      switch (action) {
+        case "start":
+          result = await serverService.startServer(serverId);
+          break;
+        case "stop":
+          result = await serverService.stopServer(serverId);
+          break;
+      }
+
+      if (result.isOk()) {
+        // Reload server data to get updated status
+        const refreshResult = await serverService.getServers();
+        if (refreshResult.isOk()) {
+          setServers(refreshResult.value);
+        }
+      } else {
+        if (result.error.status === 401) {
+          logout();
+          return;
+        }
+        setError(result.error.message);
+      }
+    } catch {
+      setError(t("errors.operationFailed", { action }));
+    } finally {
+      // Remove server from actioning set
+      setActioningServers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(serverId);
+        return newSet;
+      });
+      setActioningButtons((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(serverId);
+        return newMap;
+      });
+    }
   };
 
   const handleServerSettings = (e: React.MouseEvent, serverId: number) => {
@@ -847,40 +898,60 @@ export function ServerDashboard() {
                         <td>{server.port}</td>
                         <td className={styles.actionsCell}>
                           <div className={styles.actionButtons}>
-                            {server.status === ServerStatus.STOPPED ? (
+                            {(server.status === ServerStatus.STOPPED ||
+                              server.status === ServerStatus.ERROR) && (
                               <button
                                 className={styles.startButton}
                                 onClick={(e) =>
                                   handleServerAction(e, server.id, "start")
                                 }
-                                title={t("servers.actions.start")}
+                                disabled={actioningServers.has(server.id)}
+                                title={
+                                  actioningButtons.get(server.id) === "start"
+                                    ? t("servers.actions.starting")
+                                    : t("servers.actions.start")
+                                }
                               >
-                                ▶
+                                {actioningButtons.get(server.id) === "start"
+                                  ? "⏳"
+                                  : "▶"}
                               </button>
-                            ) : server.status === ServerStatus.RUNNING ? (
+                            )}
+                            {server.status === ServerStatus.RUNNING && (
                               <button
                                 className={styles.stopButton}
                                 onClick={(e) =>
                                   handleServerAction(e, server.id, "stop")
                                 }
-                                title={t("servers.actions.stop")}
+                                disabled={actioningServers.has(server.id)}
+                                title={
+                                  actioningButtons.get(server.id) === "stop"
+                                    ? t("servers.actions.stopping")
+                                    : t("servers.actions.stop")
+                                }
                               >
-                                ■
-                              </button>
-                            ) : (
-                              <button
-                                className={styles.actionButtonDisabled}
-                                disabled
-                                title={getStatusText(server.status)}
-                              >
-                                ⏳
+                                {actioningButtons.get(server.id) === "stop"
+                                  ? "⏳"
+                                  : "■"}
                               </button>
                             )}
+                            {(server.status === ServerStatus.STARTING ||
+                              server.status === ServerStatus.STOPPING) &&
+                              !actioningServers.has(server.id) && (
+                                <button
+                                  className={styles.actionButtonDisabled}
+                                  disabled
+                                  title={getStatusText(server.status)}
+                                >
+                                  ⏳
+                                </button>
+                              )}
                             <button
                               className={styles.settingsButton}
                               onClick={(e) =>
                                 handleServerSettings(e, server.id)
                               }
+                              disabled={actioningServers.has(server.id)}
                               title={t("servers.actions.settings")}
                             >
                               ⚙
@@ -888,6 +959,7 @@ export function ServerDashboard() {
                             <button
                               className={styles.detailsButton}
                               onClick={(e) => handleServerDetails(e, server.id)}
+                              disabled={actioningServers.has(server.id)}
                               title={t("servers.actions.details")}
                             >
                               →
