@@ -34,6 +34,39 @@ export function MainLayout({ children }: MainLayoutProps) {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+
+      // Apply styles to prevent scroll
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        // Restore styles and scroll position
+        const bodyTop = document.body.style.top;
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+
+        // Restore scroll position
+        if (bodyTop) {
+          const scrollY = parseInt(
+            bodyTop.replace("-", "").replace("px", ""),
+            10
+          );
+          window.scrollTo(0, scrollY);
+        }
+      };
+    }
+    return undefined;
+  }, [isMenuOpen]);
+
   if (!user) return null;
 
   const handleLogout = () => {

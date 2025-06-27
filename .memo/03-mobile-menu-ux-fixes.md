@@ -67,6 +67,57 @@
 - ESCキーでのメニュー閉じる: ✅
 - 各画面サイズでの適切な表示: ✅
 
+## 追加修正: 背景スクロール防止機能
+
+### 問題
+
+- モバイルメニューを開いている際、メニュー内でスクロールしようとすると背景画面もスクロールされてしまう
+
+### 解決策
+
+`useEffect`フックを使用してメニューの開閉状態を監視し、開いている時にbodyのスクロールをロック：
+
+```javascript
+useEffect(() => {
+  if (isMenuOpen) {
+    // 現在のスクロール位置を保存
+    const scrollY = window.scrollY;
+
+    // スクロール防止のスタイルを適用
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      // スタイルとスクロール位置を復元
+      const bodyTop = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+
+      // スクロール位置を復元
+      if (bodyTop) {
+        const scrollY = parseInt(
+          bodyTop.replace("-", "").replace("px", ""),
+          10
+        );
+        window.scrollTo(0, scrollY);
+      }
+    };
+  }
+}, [isMenuOpen]);
+```
+
+### 技術的な詳細
+
+1. **position: fixed**: bodyを固定位置にして、スクロールを無効化
+2. **top: -${scrollY}px**: 現在のスクロール位置を負の値として設定し、視覚的な位置を維持
+3. **width: 100%**: fixedポジションによる幅の変化を防止
+4. **overflow: hidden**: スクロールバーを非表示に
+5. **クリーンアップ**: メニューを閉じた時に元のスクロール位置に戻す
+
 ## 今後の改善点
 
 - メニュー項目クリック時のフィードバック改善
