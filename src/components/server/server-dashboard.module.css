@@ -728,7 +728,7 @@
 /* Keep existing card styles for mobile fallback */
 .serverGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 }
 
@@ -814,11 +814,13 @@
   align-items: flex-end;
   gap: 0.25rem;
   flex-shrink: 0;
+  min-width: 80px;
 }
 
 .statusIcon {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   line-height: 1;
+  margin-bottom: 0.125rem;
 }
 
 .statusText {
@@ -827,6 +829,8 @@
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   white-space: nowrap;
+  text-align: center;
+  min-width: 60px;
 }
 
 .status {
@@ -1339,10 +1343,11 @@
     margin-bottom: 1rem;
   }
 
-  /* Server grid improvements */
+  /* Server grid improvements - use flexbox for better mobile control */
   .serverGrid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
   }
 
   /* Server card improvements for mobile */
@@ -1350,6 +1355,9 @@
     padding: 0.875rem;
     border-radius: 8px;
     min-height: auto;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
   }
 
   .serverHeader {
@@ -1369,12 +1377,20 @@
   }
 
   .statusText {
-    font-size: 0.625rem;
-    padding: 0.125rem 0.375rem;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    font-weight: 700;
+    min-width: 50px;
   }
 
   .statusIcon {
-    font-size: 1rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .statusSection {
+    min-width: 70px;
+    gap: 0.2rem;
   }
 
   .serverInfo {
