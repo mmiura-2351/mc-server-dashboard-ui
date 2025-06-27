@@ -127,18 +127,4 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .container {
-    background: linear-gradient(
-      135deg,
-      var(--primary-dark) 0%,
-      var(--secondary-dark) 100%
-    );
-  }
-
-  .formContainer {
-    background: var(--surface-dark, var(--white));
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-}
+/* Dark mode removed - using consistent light mode styles only */
