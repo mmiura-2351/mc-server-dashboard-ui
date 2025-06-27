@@ -201,6 +201,7 @@
         "name": "Name",
         "status": "Status",
         "created": "Created Date",
+        "version": "Version",
         "order": "Sort Order",
         "ascending": "A-Z",
         "descending": "Z-A"

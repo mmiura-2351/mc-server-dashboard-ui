@@ -87,6 +87,7 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.sort.name": "Name",
   "servers.filters.sort.status": "Status",
   "servers.filters.sort.created": "Created Date",
+  "servers.filters.sort.version": "Version",
   "servers.filters.sort.order": "Sort Order",
   "servers.filters.sort.ascending": "A-Z",
   "servers.filters.sort.descending": "Z-A",
@@ -97,7 +98,6 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.sortBy": "Sort",
   "servers.actions.start": "Start Server",
   "servers.actions.stop": "Stop Server",
-  "servers.actions.settings": "Server Settings",
   "servers.actions.details": "View Details",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
@@ -2024,6 +2024,29 @@ describe("ServerDashboard", () => {
         "serverSortBy"
       ) as HTMLSelectElement;
       expect(sortSelect.value).toBe("status"); // Default sort
+    });
+
+    test("sorts servers by version", async () => {
+      render(<ServerDashboard />);
+
+      await waitFor(() => {
+        expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+      await openFilters(user);
+
+      const sortSelect = document.getElementById(
+        "serverSortBy"
+      ) as HTMLSelectElement;
+      await user.selectOptions(sortSelect, "version");
+
+      // Verify version sorting option is selected
+      expect(sortSelect.value).toBe("version");
+
+      // Both servers should still be visible
+      expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
+      expect(getServerNameElement("Test Server 2")).toBeInTheDocument();
     });
   });
 

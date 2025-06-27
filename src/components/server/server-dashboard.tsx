@@ -96,7 +96,9 @@ export function ServerDashboard() {
   const [selectedMinecraftVersion, setSelectedMinecraftVersion] =
     useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"name" | "status" | "created">("status");
+  const [sortBy, setSortBy] = useState<
+    "name" | "status" | "created" | "version"
+  >("status");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -185,6 +187,9 @@ export function ServerDashboard() {
         case "created":
           comparison =
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case "version":
+          comparison = a.minecraft_version.localeCompare(b.minecraft_version);
           break;
         default:
           return 0;
@@ -468,7 +473,7 @@ export function ServerDashboard() {
     }
   };
 
-  const handleSort = (column: "name" | "status" | "created") => {
+  const handleSort = (column: "name" | "status" | "created" | "version") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -528,11 +533,6 @@ export function ServerDashboard() {
         return newMap;
       });
     }
-  };
-
-  const handleServerSettings = (e: React.MouseEvent, serverId: number) => {
-    e.stopPropagation();
-    router.push(`/servers/${serverId}/settings`);
   };
 
   const handleServerDetails = (e: React.MouseEvent, serverId: number) => {
@@ -708,7 +708,11 @@ export function ServerDashboard() {
                           value={sortBy}
                           onChange={(e) =>
                             setSortBy(
-                              e.target.value as "name" | "status" | "created"
+                              e.target.value as
+                                | "name"
+                                | "status"
+                                | "created"
+                                | "version"
                             )
                           }
                           className={styles.filterSelect}
@@ -721,6 +725,9 @@ export function ServerDashboard() {
                           </option>
                           <option value="created">
                             {t("servers.filters.sort.created")}
+                          </option>
+                          <option value="version">
+                            {t("servers.filters.sort.version")}
                           </option>
                         </select>
                       </div>
@@ -843,7 +850,19 @@ export function ServerDashboard() {
                           )}
                         </div>
                       </th>
-                      <th>{t("servers.fields.version")}</th>
+                      <th
+                        className={styles.sortableHeader}
+                        onClick={() => handleSort("version")}
+                      >
+                        <div className={styles.headerContent}>
+                          <span>{t("servers.fields.version")}</span>
+                          {sortBy === "version" && (
+                            <span className={styles.sortIndicator}>
+                              {sortOrder === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </div>
+                      </th>
                       <th>{t("servers.fields.type")}</th>
                       <th>{t("servers.fields.players")}</th>
                       <th>{t("servers.fields.memory")}</th>
@@ -946,16 +965,6 @@ export function ServerDashboard() {
                                   ⏳
                                 </button>
                               )}
-                            <button
-                              className={styles.settingsButton}
-                              onClick={(e) =>
-                                handleServerSettings(e, server.id)
-                              }
-                              disabled={actioningServers.has(server.id)}
-                              title={t("servers.actions.settings")}
-                            >
-                              ⚙
-                            </button>
                             <button
                               className={styles.detailsButton}
                               onClick={(e) => handleServerDetails(e, server.id)}

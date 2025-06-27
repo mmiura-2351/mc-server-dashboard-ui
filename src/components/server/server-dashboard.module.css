@@ -669,7 +669,6 @@
 
 .startButton,
 .stopButton,
-.settingsButton,
 .detailsButton,
 .actionButtonDisabled {
   padding: 0.5rem 0.75rem;
@@ -702,15 +701,6 @@
 
 .stopButton:hover {
   background-color: #fecaca;
-}
-
-.settingsButton {
-  background-color: #e5e7eb;
-  color: #374151;
-}
-
-.settingsButton:hover {
-  background-color: #d1d5db;
 }
 
 .detailsButton {
@@ -1136,7 +1126,6 @@
 
   .startButton,
   .stopButton,
-  .settingsButton,
   .detailsButton {
     min-width: 32px;
     height: 32px;

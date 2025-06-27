@@ -201,6 +201,7 @@
         "name": "名前",
         "status": "ステータス",
         "created": "作成日",
+        "version": "バージョン",
         "order": "並び順",
         "ascending": "昇順",
         "descending": "降順"
