@@ -989,61 +989,29 @@ export function ServerDashboard() {
                     className={styles.serverCard}
                     onClick={() => handleServerClick(server.id)}
                   >
-                    <div className={styles.serverHeader}>
-                      <h3 className={styles.serverName}>{server.name}</h3>
-                      <span
-                        className={`${styles.status} ${getStatusColor(server.status)}`}
-                      >
-                        {getStatusText(server.status)}
-                      </span>
-                    </div>
-
-                    <div className={styles.serverInfo}>
-                      <div className={styles.infoRow}>
-                        <span className={styles.label}>
-                          {t("servers.fields.version")}:
-                        </span>
-                        <span>{server.minecraft_version}</span>
+                    <div className={styles.compactHeader}>
+                      <div className={styles.serverInfo}>
+                        <h3 className={styles.serverName}>{server.name}</h3>
+                        <div className={styles.serverMeta}>
+                          <span className={styles.versionBadge}>
+                            {server.minecraft_version}
+                          </span>
+                          <span className={styles.separator}>•</span>
+                          <span className={styles.typeBadge}>
+                            {server.server_type}
+                          </span>
+                        </div>
                       </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.label}>
-                          {t("servers.fields.type")}:
+                      <div className={styles.statusSection}>
+                        <span className={styles.statusIcon}>
+                          {getStatusIcon(server.status)}
                         </span>
-                        <span className={styles.serverType}>
-                          {server.server_type}
+                        <span
+                          className={`${styles.statusText} ${getStatusColor(server.status)}`}
+                        >
+                          {getStatusText(server.status)}
                         </span>
                       </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.label}>
-                          {t("servers.fields.players")}:
-                        </span>
-                        <span>0/{server.max_players}</span>
-                      </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.label}>
-                          {t("servers.fields.memory")}:
-                        </span>
-                        <span>{server.max_memory}MB</span>
-                      </div>
-                      <div className={styles.infoRow}>
-                        <span className={styles.label}>
-                          {t("servers.fields.port")}:
-                        </span>
-                        <span>{server.port}</span>
-                      </div>
-                    </div>
-
-                    {server.description && (
-                      <p className={styles.serverDescription}>
-                        {server.description}
-                      </p>
-                    )}
-
-                    <div className={styles.serverCardFooter}>
-                      <span className={styles.clickHint}>
-                        {t("servers.clickToManage")}
-                      </span>
-                      <span className={styles.arrow}>→</span>
                     </div>
                   </div>
                 ))}

@@ -590,6 +590,7 @@
 
 .nameCell {
   min-width: 200px;
+  max-width: 300px;
 }
 
 .nameContent {
@@ -601,12 +602,18 @@
 .serverNameText {
   font-weight: 600;
   color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .serverDescriptionText {
   font-size: 0.75rem;
   color: #6b7280;
   line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .statusBadge {
@@ -732,6 +739,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   transition: box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .serverCard:hover {
@@ -750,6 +758,75 @@
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Compact mobile layout styles */
+.compactHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.serverInfo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.serverMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.versionBadge {
+  background-color: #ede9fe;
+  color: #7c3aed;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.typeBadge {
+  background-color: #ecfdf5;
+  color: #065f46;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.separator {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.statusSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.statusIcon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.statusText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 .status {
@@ -1265,13 +1342,14 @@
   /* Server grid improvements */
   .serverGrid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   /* Server card improvements for mobile */
   .serverCard {
-    padding: 1.25rem;
-    border-radius: 12px;
+    padding: 0.875rem;
+    border-radius: 8px;
+    min-height: auto;
   }
 
   .serverHeader {
@@ -1280,14 +1358,23 @@
   }
 
   .serverName {
-    font-size: 1.125rem;
+    font-size: 1rem;
+    font-weight: 600;
     line-height: 1.3;
+    margin: 0;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .status {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
+  .statusText {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+
+  .statusIcon {
+    font-size: 1rem;
   }
 
   .serverInfo {
@@ -1406,27 +1493,34 @@
   }
 
   .serverCard {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .serverName {
-    font-size: 1rem;
-  }
-
-  .serverInfo {
-    margin-bottom: 0.75rem;
-  }
-
-  .infoRow {
-    padding: 0.25rem 0;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .label {
+    font-size: 0.875rem;
     font-weight: 600;
-    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .versionBadge,
+  .typeBadge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+
+  .statusText {
+    font-size: 0.5rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .statusIcon {
+    font-size: 0.875rem;
+  }
+
+  .serverMeta {
+    gap: 0.375rem;
   }
 
   .serverDescription {

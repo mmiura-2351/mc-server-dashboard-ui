@@ -371,24 +371,27 @@ describe("ServerDashboard", () => {
         expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
       });
 
-      // Check server 1 details - some text appears multiple times (table + card)
+      // Check server 1 details - compact mobile layout shows minimal info
       expect(screen.getAllByText("Running")).toHaveLength(1); // Status badge
-      expect(screen.getAllByText("1.21.6")).toHaveLength(2); // Table + card
-      expect(screen.getAllByText("vanilla")).toHaveLength(2); // Table + card
-      expect(screen.getAllByText("0/20")).toHaveLength(2); // Table + card (running server shows 0)
-      expect(screen.getAllByText("2048MB")).toHaveLength(1); // Only in card view
-      expect(screen.getAllByText("25565")).toHaveLength(2); // Table + card
-      expect(screen.getAllByText("A test server")).toHaveLength(2); // Table + card
+      expect(screen.getAllByText("1.21.6")).toHaveLength(2); // Table + mobile card badge
+      expect(screen.getAllByText("vanilla")).toHaveLength(2); // Table + mobile card badge
+
+      // Table-only data (not shown in compact mobile cards)
+      expect(screen.getByText("0/20")).toBeInTheDocument(); // Only in table view
+      expect(screen.getByText("1024/2048MB")).toBeInTheDocument(); // Running server shows used/max
+      expect(screen.getByText("25565")).toBeInTheDocument(); // Only in table view
+      expect(screen.getByText("A test server")).toBeInTheDocument(); // Only in table view
 
       // Check server 2 details
       expect(getServerNameElement("Test Server 2")).toBeInTheDocument();
       expect(screen.getAllByText("Stopped")).toHaveLength(1); // Status badge
-      expect(screen.getAllByText("1.20.6")).toHaveLength(2); // Table + card
-      expect(screen.getAllByText("paper")).toHaveLength(2); // Table + card
+      expect(screen.getAllByText("1.20.6")).toHaveLength(2); // Table + mobile card badge
+      expect(screen.getAllByText("paper")).toHaveLength(2); // Table + mobile card badge
+
+      // Table-only data for server 2
       expect(screen.getByText("-/50")).toBeInTheDocument(); // Table view for stopped server
-      expect(screen.getByText("0/50")).toBeInTheDocument(); // Card view for stopped server
-      expect(screen.getAllByText("4096MB")).toHaveLength(2); // Table shows max memory, card shows max memory
-      expect(screen.getAllByText("25566")).toHaveLength(2); // Table + card
+      expect(screen.getByText("4096MB")).toBeInTheDocument(); // Stopped server shows max only
+      expect(screen.getByText("25566")).toBeInTheDocument(); // Only in table view
     });
 
     test("applies correct status styles", async () => {
