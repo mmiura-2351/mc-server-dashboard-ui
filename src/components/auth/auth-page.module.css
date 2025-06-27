@@ -3,128 +3,109 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    var(--primary-color) 0%,
-    var(--secondary-color) 100%
-  );
-  padding: var(--space-4);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
 }
 
 .content {
   width: 100%;
   max-width: 600px;
-  margin: 0 auto;
 }
 
 .header {
   text-align: center;
-  margin-bottom: var(--space-8);
+  margin-bottom: 2rem;
 }
 
 .appTitle {
-  font-size: var(--text-3xl);
-  font-weight: var(--font-bold);
-  color: var(--white);
-  margin-bottom: var(--space-2);
-  text-shadow: var(--shadow-md);
-  line-height: 1.2;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .subtitle {
-  font-size: var(--text-lg);
+  font-size: 1.125rem;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
-  line-height: 1.4;
 }
 
 .formContainer {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  background: white;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Mobile optimizations */
 @media (max-width: 640px) {
   .container {
-    padding: var(--space-2);
-    min-height: 100vh;
+    padding: 0.5rem;
     min-height: 100dvh;
   }
 
-  .content {
-    width: 100%;
+  .header {
+    margin-bottom: 1.5rem;
   }
 
   .appTitle {
-    font-size: var(--text-2xl);
+    font-size: 2rem;
   }
 
   .subtitle {
-    font-size: var(--text-base);
+    font-size: 1rem;
+  }
+
+  .content {
+    max-width: 100%;
   }
 
   .formContainer {
-    border-radius: var(--radius-md);
-    margin: var(--space-2) 0;
+    border-radius: 8px;
+    margin: 0 0.5rem;
   }
 }
 
-/* Small mobile screens */
 @media (max-width: 375px) {
   .container {
-    padding: var(--space-1);
-  }
-
-  .appTitle {
-    font-size: var(--text-xl);
-  }
-
-  .subtitle {
-    font-size: var(--text-sm);
-  }
-}
-
-/* Landscape orientation for mobile */
-@media (max-height: 600px) and (orientation: landscape) {
-  .container {
-    align-items: flex-start;
-    padding-top: var(--space-4);
-    padding-bottom: var(--space-4);
+    padding: 0.25rem;
   }
 
   .header {
-    margin-bottom: var(--space-4);
+    margin-bottom: 1rem;
   }
 
   .appTitle {
-    font-size: var(--text-xl);
+    font-size: 1.75rem;
   }
 
   .subtitle {
-    font-size: var(--text-sm);
-  }
-}
-
-/* High DPI screens */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .appTitle {
-    text-shadow: var(--shadow-lg);
-  }
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .container {
-    background: var(--primary-color);
+    font-size: 0.875rem;
   }
 
   .formContainer {
-    backdrop-filter: none;
+    border-radius: 6px;
+    margin: 0 0.25rem;
   }
 }
 
-/* Dark mode removed - using consistent light mode styles only */
+@media (max-height: 600px) and (orientation: landscape) {
+  .container {
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .appTitle {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+}

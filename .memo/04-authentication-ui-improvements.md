@@ -246,6 +246,47 @@
 3. **メンテナンス性**: ダークモード用コードが不要になり管理が簡単
 4. **ユーザビリティ**: 予期しないデザイン変更がない
 
+## 追加修正4: モバイルレスポンシブ対応の最終調整
+
+### 問題
+
+- モバイル端末で各入力フィールドが狭く使いにくい
+- パスワード表示切替ボタンが小さく、タップしにくい
+- CSS変数の複雑な依存関係により保守性に問題
+
+### 解決策
+
+**シンプルなCSS実装への変更**:
+
+```css
+/* 直接的なCSS値の使用 */
+.input,
+.passwordInput {
+  padding: 0.875rem;
+  min-height: 3rem;
+  font-size: 1rem;
+}
+
+.toggleButton {
+  width: 2.25rem;
+  height: 2.25rem;
+  right: 0.625rem;
+}
+```
+
+**モバイル専用の最適化**:
+
+- 入力フィールド: 最小高さ3rem、パディング0.875rem
+- パスワードボタン: 2.25rem x 2.25rem (タップしやすいサイズ)
+- 超小画面(375px以下): さらに大きなボタン 2.5rem x 2.5rem
+
+### 改善された点
+
+1. **モバイルUX**: タッチ対応の適切なサイズ
+2. **保守性**: CSS変数依存を削減し、シンプルな実装
+3. **レスポンシブ**: 複数のブレークポイントに対応
+4. **アクセシビリティ**: 高コントラストモードと動作軽減対応を維持
+
 ## 今後の改善点
 
 1. **アニメーション強化**: マイクロインタラクションの追加
@@ -257,7 +298,8 @@
 ## ファイル変更一覧
 
 - `src/components/auth/auth-page.module.css` - 全面更新
-- `src/components/auth/auth-form.module.css` - 全面更新
+- `src/components/auth/auth-form.module.css` - 全面更新（最終修正でシンプル化）
 - `src/components/auth/auth-page.tsx` - i18n対応
 - `src/i18n/messages/en.json` - 翻訳キー追加
 - `src/i18n/messages/ja.json` - 翻訳キー追加
+- `src/app/globals.css` - スペーシング変数追加
