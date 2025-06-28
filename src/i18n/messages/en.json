@@ -218,6 +218,7 @@
     "settings": "Settings",
     "properties": "Properties",
     "serverInformation": "Server Information",
+    "serverDetails": "Server Details",
     "serverActions": "Server Actions",
     "description": "Description",
     "deleteConfirmation": "Are you sure you want to delete this server? This action cannot be undone.",
@@ -241,7 +242,8 @@
       "exporting": "Exporting...",
       "deleting": "Deleting...",
       "settings": "Settings",
-      "details": "View Details"
+      "details": "View Details",
+      "exportConfirm": "Export this server?"
     },
     "fields": {
       "name": "Name",

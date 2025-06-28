@@ -388,46 +388,78 @@ export default function ServerDetailPage() {
       <div className={styles.content}>
         {activeTab === "info" ? (
           <div className={styles.infoTabContent}>
+            {/* Primary Server Information Card */}
+            <div className={styles.primaryInfoCard}>
+              <h2 className={styles.cardTitle}>
+                <span className={styles.cardIcon}>📊</span>
+                {t("servers.serverInformation")}
+              </h2>
+              <div className={styles.primaryInfoGrid}>
+                <div className={styles.primaryInfoItem}>
+                  <span className={styles.value}>
+                    {server.minecraft_version}
+                  </span>
+                  <span className={styles.label}>
+                    {t("servers.fields.version")}
+                  </span>
+                </div>
+                <div className={styles.primaryInfoItem}>
+                  <span className={styles.value}>
+                    <span className={styles.serverType}>
+                      {server.server_type}
+                    </span>
+                  </span>
+                  <span className={styles.label}>
+                    {t("servers.fields.type")}
+                  </span>
+                </div>
+                <div className={styles.primaryInfoItem}>
+                  <span className={styles.value}>{server.max_memory}MB</span>
+                  <span className={styles.label}>
+                    {t("servers.fields.memoryLimit")}
+                  </span>
+                </div>
+                <div className={styles.primaryInfoItem}>
+                  <span className={styles.value}>
+                    <span
+                      className={`${styles.status} ${getStatusColor(server.status)}`}
+                    >
+                      {getStatusText(server.status)}
+                    </span>
+                  </span>
+                  <span className={styles.label}>
+                    {t("servers.fields.status")}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Server Details Card */}
             <div className={styles.infoSection}>
-              <h2>{t("servers.serverInformation")}</h2>
+              <h2 className={styles.cardTitle}>
+                <span className={styles.cardIcon}>⚙️</span>
+                {t("servers.serverDetails")}
+              </h2>
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>
-                    {t("servers.fields.version")}:
+                    {t("servers.fields.port")}
                   </span>
-                  <span>{server.minecraft_version}</span>
+                  <span className={styles.value}>{server.port}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>
-                    {t("servers.fields.type")}:
+                    {t("servers.fields.maxPlayers")}
                   </span>
-                  <span className={styles.serverType}>
-                    {server.server_type}
-                  </span>
+                  <span className={styles.value}>{server.max_players}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>
-                    {t("servers.fields.maxPlayers")}:
+                    {t("servers.fields.created")}
                   </span>
-                  <span>{server.max_players}</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <span className={styles.label}>
-                    {t("servers.fields.memoryLimit")}:
+                  <span className={styles.value}>
+                    {formatDate(server.created_at)}
                   </span>
-                  <span>{server.max_memory}MB</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <span className={styles.label}>
-                    {t("servers.fields.port")}:
-                  </span>
-                  <span>{server.port}</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <span className={styles.label}>
-                    {t("servers.fields.created")}:
-                  </span>
-                  <span>{formatDate(server.created_at)}</span>
                 </div>
               </div>
               {server.description && (
@@ -440,62 +472,75 @@ export default function ServerDetailPage() {
               )}
             </div>
 
+            {/* Actions Section - Desktop Only */}
             <div className={styles.actionsSection}>
-              <h2>{t("servers.serverActions")}</h2>
+              <h2 className={styles.cardTitle}>
+                <span className={styles.cardIcon}>🎮</span>
+                {t("servers.serverActions")}
+              </h2>
               <div className={styles.actionButtons}>
-                {(server.status === ServerStatus.STOPPED ||
-                  server.status === ServerStatus.ERROR) && (
-                  <button
-                    onClick={() => handleServerAction("start")}
-                    className={`${styles.actionButton} ${styles.startButton}`}
-                    disabled={isActioning}
-                  >
-                    {actioningButton === "start"
-                      ? t("servers.actions.starting")
-                      : t("servers.actions.start")}
-                  </button>
-                )}
-                {(server.status === ServerStatus.RUNNING ||
-                  server.status === ServerStatus.STARTING) && (
-                  <button
-                    onClick={() => handleServerAction("stop")}
-                    className={`${styles.actionButton} ${styles.stopButton}`}
-                    disabled={isActioning}
-                  >
-                    {actioningButton === "stop"
-                      ? t("servers.actions.stopping")
-                      : t("servers.actions.stop")}
-                  </button>
-                )}
-                {server.status === ServerStatus.RUNNING && (
-                  <button
-                    onClick={() => handleServerAction("restart")}
-                    className={`${styles.actionButton} ${styles.restartButton}`}
-                    disabled={isActioning}
-                  >
-                    {actioningButton === "restart"
-                      ? t("servers.actions.restarting")
-                      : t("servers.actions.restart")}
-                  </button>
-                )}
+                <div className={styles.actionGroup}>
+                  {(server.status === ServerStatus.STOPPED ||
+                    server.status === ServerStatus.ERROR) && (
+                    <button
+                      onClick={() => handleServerAction("start")}
+                      className={`${styles.actionButton} ${styles.startButton}`}
+                      disabled={isActioning}
+                    >
+                      <span>▶</span>
+                      {actioningButton === "start"
+                        ? t("servers.actions.starting")
+                        : t("servers.actions.start")}
+                    </button>
+                  )}
+                  {(server.status === ServerStatus.RUNNING ||
+                    server.status === ServerStatus.STARTING) && (
+                    <button
+                      onClick={() => handleServerAction("stop")}
+                      className={`${styles.actionButton} ${styles.stopButton}`}
+                      disabled={isActioning}
+                    >
+                      <span>■</span>
+                      {actioningButton === "stop"
+                        ? t("servers.actions.stopping")
+                        : t("servers.actions.stop")}
+                    </button>
+                  )}
+                  {server.status === ServerStatus.RUNNING && (
+                    <button
+                      onClick={() => handleServerAction("restart")}
+                      className={`${styles.actionButton} ${styles.restartButton}`}
+                      disabled={isActioning}
+                    >
+                      <span>🔄</span>
+                      {actioningButton === "restart"
+                        ? t("servers.actions.restarting")
+                        : t("servers.actions.restart")}
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={handleExportServer}
                   className={`${styles.actionButton} ${styles.exportButton}`}
                   disabled={isActioning}
                 >
+                  <span>📦</span>
                   {actioningButton === "export"
                     ? t("servers.actions.exporting")
                     : t("servers.actions.export")}
                 </button>
-                <button
-                  onClick={handleDeleteServer}
-                  className={`${styles.actionButton} ${styles.deleteButton}`}
-                  disabled={isActioning}
-                >
-                  {actioningButton === "delete"
-                    ? t("servers.actions.deleting")
-                    : t("servers.actions.delete")}
-                </button>
+                <div className={styles.dangerZone}>
+                  <button
+                    onClick={handleDeleteServer}
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                    disabled={isActioning}
+                  >
+                    <span>🗑️</span>
+                    {actioningButton === "delete"
+                      ? t("servers.actions.deleting")
+                      : t("servers.actions.delete")}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -520,6 +565,58 @@ export default function ServerDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Sticky Action Bar */}
+      {activeTab === "info" && (
+        <div className={styles.mobileActionBar}>
+          <div className={styles.primaryActions}>
+            {(server.status === ServerStatus.STOPPED ||
+              server.status === ServerStatus.ERROR) && (
+              <button
+                onClick={() => handleServerAction("start")}
+                className={`${styles.actionButton} ${styles.startButton}`}
+                disabled={isActioning}
+              >
+                {actioningButton === "start" ? "⏳" : "▶"}
+              </button>
+            )}
+            {(server.status === ServerStatus.RUNNING ||
+              server.status === ServerStatus.STARTING) && (
+              <button
+                onClick={() => handleServerAction("stop")}
+                className={`${styles.actionButton} ${styles.stopButton}`}
+                disabled={isActioning}
+              >
+                {actioningButton === "stop" ? "⏳" : "■"}
+              </button>
+            )}
+            {server.status === ServerStatus.RUNNING && (
+              <button
+                onClick={() => handleServerAction("restart")}
+                className={`${styles.actionButton} ${styles.restartButton}`}
+                disabled={isActioning}
+              >
+                {actioningButton === "restart" ? "⏳" : "🔄"}
+              </button>
+            )}
+          </div>
+          <div className={styles.secondaryActions}>
+            <button
+              className={styles.moreButton}
+              onClick={() => {
+                // Show action sheet with export and delete options
+                const shouldExport = window.confirm(
+                  t("servers.actions.exportConfirm")
+                );
+                if (shouldExport) handleExportServer();
+              }}
+              disabled={isActioning}
+            >
+              ⋯
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Delete Server Confirmation Modal */}
       <ConfirmationModal

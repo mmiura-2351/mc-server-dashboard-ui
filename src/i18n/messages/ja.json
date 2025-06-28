@@ -218,6 +218,7 @@
     "settings": "設定",
     "properties": "プロパティ",
     "serverInformation": "サーバー情報",
+    "serverDetails": "サーバー詳細",
     "serverActions": "サーバー操作",
     "description": "説明",
     "deleteConfirmation": "このサーバーを削除してもよろしいですか？この操作は元に戻せません。",
@@ -241,7 +242,8 @@
       "exporting": "エクスポート中...",
       "deleting": "削除中...",
       "settings": "設定",
-      "details": "詳細を見る"
+      "details": "詳細を見る",
+      "exportConfirm": "このサーバーをエクスポートしますか？"
     },
     "fields": {
       "name": "名前",
