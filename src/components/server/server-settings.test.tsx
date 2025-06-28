@@ -88,14 +88,7 @@ describe("ServerSettings", () => {
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
   });
 
-  test("should render read-only fields correctly", () => {
-    render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
-
-    expect(screen.getByText("1.21.5")).toBeInTheDocument();
-    expect(screen.getByText("vanilla")).toBeInTheDocument();
-    expect(screen.getByText("25565")).toBeInTheDocument();
-    expect(screen.getByText("2025/01/01")).toBeInTheDocument();
-  });
+  // Read-only information section was removed as per requirements
 
   test("should handle input changes", async () => {
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
