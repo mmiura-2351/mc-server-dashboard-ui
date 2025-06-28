@@ -252,6 +252,23 @@ export default function ServerDetailPage() {
     }
   };
 
+  const getStatusIcon = (status: ServerStatus) => {
+    switch (status) {
+      case ServerStatus.RUNNING:
+        return "🟢";
+      case ServerStatus.STOPPED:
+        return "⚪";
+      case ServerStatus.STARTING:
+        return "🟡";
+      case ServerStatus.STOPPING:
+        return "🟠";
+      case ServerStatus.ERROR:
+        return "🔴";
+      default:
+        return "⚫";
+    }
+  };
+
   const getStatusText = (status: ServerStatus) => {
     switch (status) {
       case ServerStatus.RUNNING:
@@ -335,6 +352,9 @@ export default function ServerDetailPage() {
         <div className={styles.titleSection}>
           <h1 className={styles.title}>{server.name}</h1>
           <span className={`${styles.status} ${getStatusColor(server.status)}`}>
+            <span className={styles.statusIcon}>
+              {getStatusIcon(server.status)}
+            </span>
             {getStatusText(server.status)}
           </span>
         </div>
@@ -424,6 +444,9 @@ export default function ServerDetailPage() {
                     <span
                       className={`${styles.status} ${getStatusColor(server.status)}`}
                     >
+                      <span className={styles.statusIcon}>
+                        {getStatusIcon(server.status)}
+                      </span>
                       {getStatusText(server.status)}
                     </span>
                   </span>
