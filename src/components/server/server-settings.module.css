@@ -473,11 +473,87 @@
   }
 }
 
-/* Mobile responsiveness improvements */
+/* Enhanced Mobile UI Improvements */
 @media (max-width: 767px) {
   .container {
     gap: 1rem;
-    padding: 0.5rem;
+    padding: 0;
+  }
+
+  /* Show mobile form actions on mobile, hide desktop */
+  .mobileFormActions {
+    display: flex;
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg, #ffffff);
+    padding: 1rem;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border-light, #f3f4f6);
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    margin-top: 2rem;
+  }
+
+  .mobileFormActions .saveButton {
+    flex: 2;
+    min-height: 48px;
+  }
+
+  .mobileFormActions .resetButton {
+    flex: 1;
+    min-height: 48px;
+  }
+
+  .formActions {
+    display: none; /* Hide desktop actions on mobile */
+  }
+
+  /* Sticky action buttons for mobile */
+  .stickyActions {
+    position: sticky;
+    top: 0;
+    background: var(--card-bg, #ffffff);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light, #f3f4f6);
+    z-index: 10;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .stickyButtonGroup {
+    display: flex;
+    gap: 0.75rem;
+    flex-direction: row;
+  }
+
+  .stickyActions .saveButton {
+    flex: 2;
+    background: var(--success-color, #10b981);
+    color: var(--success-color-contrast, #ffffff);
+    min-height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .stickyActions .resetButton {
+    flex: 1;
+    background: var(--secondary-color, #6b7280);
+    color: var(--secondary-color-contrast, #ffffff);
+    min-height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
   .settingsSection,
@@ -550,6 +626,27 @@
     border-radius: var(--radius-md, 8px);
   }
 
+  /* Enhanced touch feedback */
+  .input:active,
+  .textarea:active,
+  .select:active {
+    transform: translateY(0);
+    transition: transform 0.1s ease;
+  }
+
+  /* Improved section headers */
+  .sectionHeader h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+
   /* Form Actions */
   .formActions {
     flex-direction: column;
@@ -598,6 +695,15 @@
     padding: 1.25rem;
     border-radius: var(--radius-lg, 12px);
     border: 2px solid var(--border-light, #f3f4f6);
+    background: var(--bg-secondary, #f9fafb);
+    transition: all 0.2s ease;
+  }
+
+  .groupItem:hover {
+    border-color: var(--border-color, #e5e7eb);
+    background: var(--card-bg, #ffffff);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .groupInfo {
@@ -1253,4 +1359,9 @@
   .saveButton {
     transition: none;
   }
+}
+
+/* Mobile form actions - hidden by default on desktop */
+.mobileFormActions {
+  display: none;
 }

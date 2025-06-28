@@ -209,25 +209,49 @@ function ServerSettingsForm({ server, onUpdate }: ServerSettingsFormProps) {
         )}
 
         {hasChanges && (
-          <div className={styles.formActions}>
-            <button
-              type="button"
-              onClick={handleReset}
-              disabled={isSaving}
-              className={styles.resetButton}
-            >
-              {t("servers.settings.resetChanges")}
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className={styles.saveButton}
-            >
-              {isSaving
-                ? t("servers.settings.saving")
-                : t("servers.settings.saveSettings")}
-            </button>
-          </div>
+          <>
+            {/* Mobile sticky actions */}
+            <div className={styles.mobileFormActions}>
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={isSaving}
+                className={styles.resetButton}
+              >
+                {t("servers.settings.resetChanges")}
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className={styles.saveButton}
+              >
+                {isSaving
+                  ? t("servers.settings.saving")
+                  : t("servers.settings.saveSettings")}
+              </button>
+            </div>
+
+            {/* Desktop actions */}
+            <div className={styles.formActions}>
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={isSaving}
+                className={styles.resetButton}
+              >
+                {t("servers.settings.resetChanges")}
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className={styles.saveButton}
+              >
+                {isSaving
+                  ? t("servers.settings.saving")
+                  : t("servers.settings.saveSettings")}
+              </button>
+            </div>
+          </>
         )}
       </form>
     </div>
