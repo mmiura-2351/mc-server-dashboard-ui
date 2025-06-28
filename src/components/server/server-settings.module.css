@@ -353,13 +353,16 @@
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: var(--z-modal, 1000);
   padding: 1rem;
   backdrop-filter: blur(4px);
+  box-sizing: border-box;
 }
 
 .modalContent {
@@ -371,6 +374,11 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg, 0 10px 15px rgba(0, 0, 0, 0.1));
+  position: relative;
+  margin: auto;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .modalHeader {
@@ -494,9 +502,11 @@
   }
 
   .modalContent {
-    margin: 1rem;
+    margin: 0.5rem;
     padding: 1rem;
     max-width: none;
+    width: calc(100% - 1rem);
+    max-height: 95vh;
   }
 }
 
@@ -875,12 +885,16 @@
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal, 1000);
   animation: fadeIn var(--animation-fast, 0.2s) ease-out;
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
 }
 
 .modal {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation, useLanguage } from "@/contexts/language";
 import { formatDate } from "@/utils/format";
@@ -476,7 +477,8 @@ function AttachGroupModal({
     }
   };
 
-  return (
+  // Use React Portal to render modal at body level
+  const modalElement = (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
@@ -551,6 +553,13 @@ function AttachGroupModal({
       </div>
     </div>
   );
+
+  // Only render via portal in the browser
+  if (typeof document !== "undefined") {
+    return createPortal(modalElement, document.body);
+  }
+
+  return null;
 }
 
 // Main ServerSettings Component
