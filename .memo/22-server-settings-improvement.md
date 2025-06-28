@@ -132,14 +132,18 @@
 **実装完了**:
 
 - [x] Read-Only Information削除（344-368行）
-- [x] Player Groups セクション削除（371-448行）
-- [x] AttachGroupModal削除
-- [x] 不要なstate・effects・imports削除
-- [x] CSS変数統一とテーマ対応
+- [x] Player Groups セクション削除→復元（371-448行）
+- [x] AttachGroupModal削除→復元
+- [x] 不要なstate・effects・imports削除→必要機能復元
+- [x] CSS変数統一とテーマ対応（fallback値追加）
 - [x] レスポンシブレイアウト改善
 - [x] Better touch targets（44px minimum）
 - [x] アクセシビリティ改善
 - [x] テスト・検証完了
+- [x] ユーザー指摘問題の修正完了：
+  - ✅ Saveボタン表示問題解決
+  - ✅ グループ管理機能復元
+  - ✅ 不要な空白・横線削除
 
 ### 改善前後の比較
 
