@@ -37,16 +37,20 @@
 .button {
   padding: 0.5rem 1rem;
   border: 1px solid var(--border-color);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-md, 0.375rem);
   background: var(--background-secondary);
   color: var(--text-primary);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--animation-fast, 0.2s) ease;
   white-space: nowrap;
   min-width: max-content;
   height: 2rem;
   line-height: 1rem;
+  min-height: 44px; /* Better touch target for mobile */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button:hover {
@@ -63,4 +67,50 @@
 .button.active:hover {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
+}
+
+.button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-color-alpha);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .container.header {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .container.header .label {
+    font-size: 0.75rem;
+  }
+
+  .buttons {
+    gap: 0.375rem;
+  }
+
+  .button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container.header .label {
+    display: none; /* Hide label on very small screens */
+  }
+
+  .button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
 }
