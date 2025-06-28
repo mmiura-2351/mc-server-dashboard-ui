@@ -154,7 +154,17 @@
   width: 100%;
 }
 
-@media (max-width: 768px) {
+/* Mobile responsiveness improvements */
+@media (max-width: 767px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
   .infoTabContent {
     grid-template-columns: 1fr;
   }
@@ -165,8 +175,98 @@
     gap: 1rem;
   }
 
+  .title {
+    font-size: 1.5rem;
+  }
+
   .tabContainer {
     overflow-x: auto;
+    padding: 0 1rem 0.5rem 1rem;
+    margin: 0 -0.5rem 1rem -0.5rem;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Add scroll indicator */
+    position: relative;
+    border-bottom: 1px solid var(--border-light, #f3f4f6);
+  }
+
+  .tabContainer::after {
+    content: "→ Scroll";
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #6b7280);
+    font-size: 0.75rem;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--card-bg, #ffffff) 30%
+    );
+    padding-left: 1rem;
+  }
+
+  .tabContainer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    min-width: 100px;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+    border-radius: var(--radius-md, 8px);
+    /* Better touch target */
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color, #e5e7eb);
+    transition: all var(--animation-fast, 0.2s) ease;
+  }
+
+  .tab:hover {
+    background-color: var(--bg-secondary, #f9fafb);
+    border-color: var(--border-color-hover, #d1d5db);
+  }
+
+  .activeTab {
+    background: var(--primary-color, #2563eb);
+    color: var(--primary-color-contrast, #ffffff);
+    border-color: var(--primary-color, #2563eb);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  }
+
+  .content {
+    padding: 0.5rem;
+  }
+
+  .fullWidthTabContent {
+    padding: 1rem;
+    background: var(--card-bg, #ffffff);
+    border-radius: var(--radius-lg, 12px);
+    margin: 0.5rem 0;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
+  }
+
+  .infoSection,
+  .actionsSection {
+    margin-bottom: 1rem;
+  }
+
+  .actionButtons {
+    gap: 1rem;
+  }
+
+  .actionButton {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
   }
 }
 
