@@ -160,6 +160,23 @@
   --warning-background: #fffbeb;
   --warning-border: #fed7aa;
   --warning-text: #ea580c;
+
+  /* Server detail specific colors and variables */
+  --success-color: #10b981;
+  --success-hover: #059669;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --text-tertiary: #9ca3af;
+  --bg-tertiary: #f3f4f6;
+  --border-light: #f3f4f6;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --animation-fast: 0.2s;
+  --animation-normal: 0.3s;
 }
 
 /* Dark mode disabled - using light mode styles only */
