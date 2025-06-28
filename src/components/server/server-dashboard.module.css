@@ -1607,6 +1607,10 @@
   z-index: 100;
 }
 
+.filterButtonContainer {
+  position: relative;
+}
+
 .filterButton {
   display: flex;
   align-items: center;
