@@ -1,217 +1,95 @@
-# サーバー設定関連画面の改善 - Server Settings Improvement
+# Server Settings Improvement Documentation
 
-## 対象コンポーネント
+## Overview
 
-### メインコンポーネント
+This document tracks the improvements made to the Server Settings tab UI, focusing on mobile responsiveness and user experience enhancements.
 
-- `/src/app/(authenticated)/servers/[id]/page.tsx` - サーバー詳細画面（タブ管理）
+## Changes Implemented
 
-### 各タブコンポーネント
+### 1. Component Structure Refactoring (Completed)
 
-1. **Settings タブ**
+- **Split server-settings.tsx into three components:**
+  - `ServerSettingsForm`: Handles server configuration (name, memory, players)
+  - `ServerGroupsSection`: Manages group associations
+  - `ServerSettings`: Main container component
 
-   - `/src/components/server/server-settings.tsx`
-   - `/src/components/server/server-settings.module.css`
+### 2. Removed Read-Only Information Section (Completed)
 
-2. **Properties タブ**
+- Removed server ID, creation date, and other non-editable fields
+- Kept focus on editable settings only
 
-   - `/src/components/server/server-properties.tsx`
-   - `/src/components/server/server-properties.module.css`
+### 3. Mobile UI Improvements (Completed)
 
-3. **Backups タブ**
-   - `/src/components/server/server-backups.tsx`
-   - `/src/components/server/server-backups.module.css`
+#### Sticky Save/Reset Buttons (Mobile Only)
 
-## 現状分析
+- Added `mobileFormActions` div that displays only on mobile devices
+- Positioned at bottom of viewport with sticky positioning
+- Desktop UI remains unchanged with buttons at form bottom
+- Enhanced touch targets (48px minimum height)
 
-### タブ切り替えシステム
+#### Enhanced Form Spacing
 
-- URLパラメータ（`?tab=settings`）でタブ状態管理
-- ブラウザ履歴に対応
-- Next.js App Routerの`useSearchParams`を活用
+- Increased form field spacing for better touch interaction
+- Added proper padding and margins for mobile devices
+- Improved visual hierarchy with better typography
 
-### 各タブの主要機能
+#### CSS Improvements
 
-#### Settings タブ
+```css
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  .mobileFormActions {
+    display: flex;
+    position: sticky;
+    bottom: 0;
+    background: var(--card-bg);
+    padding: 1rem;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border-light);
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
 
-- **機能**: サーバー基本情報編集、プレイヤーグループ管理
-- **UIエレメント**: フォーム、グループタグ、インラインモーダル
-- **特徴**: AttachGroupModalでグループ選択とプライオリティ設定
+  .formActions {
+    display: none; /* Hide desktop actions on mobile */
+  }
+}
+```
 
-#### Properties タブ
+### 4. Test Updates (Completed)
 
-- **機能**: `server.properties`ファイル編集
-- **UIエレメント**: 動的フィールド、プロパティグリッド
-- **特徴**: 型に応じた入力コントロール（text/number/boolean）
+- Updated all tests to handle duplicate buttons (mobile and desktop versions)
+- Used `getAllByRole` instead of `getByRole` for button selections
+- Added TypeScript non-null assertions after length checks
 
-#### Backups タブ
+## Technical Details
 
-- **機能**: バックアップ作成・管理・復元
-- **UIエレメント**: ドロップダウンメニュー、アクションボタン
-- **特徴**: ファイルダウンロード、復元確認フロー
+### File Changes
 
-## 改善検討項目
+1. **server-settings.tsx**
 
-### 1. タブ切り替えUI
+   - Added duplicate button sets (mobile and desktop)
+   - Mobile buttons in `mobileFormActions` div
+   - Desktop buttons remain in `formActions` div
 
-**現状の課題**:
+2. **server-settings.module.css**
 
-- タブボタンのモバイル対応が不十分
-- アクティブタブの視覚的強調が弱い
-- タブが多い場合の横スクロール対応が必要
+   - Added mobile-specific sticky button styles
+   - Enhanced touch feedback and spacing
+   - Improved section headers and visual hierarchy
 
-**改善案**:
+3. **server-settings.test.tsx**
+   - Updated to handle multiple buttons with same role
+   - Added length checks before accessing array elements
+   - Fixed TypeScript errors with non-null assertions
 
-- モバイルでのタブスクロール対応
-- アクティブインジケーターの強化
-- タブアイコンの追加検討
+## Testing
 
-### 2. Settings タブ
+- All unit tests passing
+- TypeScript compilation successful
+- Pre-commit hooks validated
 
-**現状の課題**:
+## Next Steps
 
-- フォームレイアウトがPC/モバイルで最適化不足
-- グループ管理UIの視認性
-- バリデーション表示の改善余地
-
-**改善案**:
-
-- 2カラム→1カラムのレスポンシブ対応
-- グループタグの表示改善
-- インラインバリデーション強化
-
-### 3. Properties タブ
-
-**現状の課題**:
-
-- プロパティグリッドのモバイル表示
-- 大量プロパティでの検索性
-- 高度な設定項目の分類
-
-**改善案**:
-
-- カテゴリー別グループ化
-- 検索・フィルター機能
-- モバイル向けアコーディオン形式
-
-### 4. Backups タブ
-
-**現状の課題**:
-
-- ドロップダウンメニューのモバイル対応
-- バックアップリストの表示密度
-- 大容量ファイルのダウンロード体験
-
-**改善案**:
-
-- カード型レイアウトへの変更
-- プログレス表示の改善
-- バックアップサイズでの並び替え
-
-## 作業計画
-
-### Phase 1: 現状スクリーンショット取得 ✅
-
-- [x] Settings タブ（デスクトップ・モバイル）
-- [x] Properties タブ（デスクトップ・モバイル）
-- [x] Backups タブ（デスクトップ・モバイル）
-- [x] タブ切り替え動作確認
-
-### Phase 2: Settings タブ改善 🚧
-
-**スクリーンショット分析完了**:
-
-- **デスクトップ版問題**: 左右カラムの比率不適切、グループ管理セクションの視認性低下
-- **モバイル版問題**: アクションボタンが小さい、Read-Only Informationの圧迫
-
-**ユーザー要望反映**:
-
-- ✅ グループ管理とサーバー設定の分離
-- ✅ Read-Only Informationの削除
-
-**実装完了**:
-
-- [x] Read-Only Information削除（344-368行）
-- [x] Player Groups セクション削除→復元（371-448行）
-- [x] AttachGroupModal削除→復元
-- [x] 不要なstate・effects・imports削除→必要機能復元
-- [x] CSS変数統一とテーマ対応（fallback値追加）
-- [x] レスポンシブレイアウト改善
-- [x] Better touch targets（44px minimum）
-- [x] アクセシビリティ改善
-- [x] テスト・検証完了
-- [x] ユーザー指摘問題の修正完了：
-  - ✅ Saveボタン表示問題解決
-  - ✅ グループ管理機能復元
-  - ✅ 不要な空白・横線削除
-
-### 改善前後の比較
-
-#### デスクトップ版
-
-- **改善前**: 複雑な2カラムレイアウト、Read-Only情報の圧迫、グループ管理の視認性低下
-- **改善後**: 簡潔な1カラムレイアウト、サーバー設定に集中、余白の改善
-
-#### モバイル版
-
-- **改善前**: 画面スペースの圧迫、小さなアクションボタン、スクロール量過多
-- **改善後**: 効率的な画面利用、タッチフレンドリーな要素、スクロール削減
-
-### 技術的改善
-
-- CSS変数による統一されたテーマシステム
-- Better touch targetsの実装（44px以上）
-- レスポンシブブレークポイントの最適化
-- アニメーション設定の改善（prefers-reduced-motion対応）
-
-### Phase 3: Properties タブ改善
-
-- [ ] UI改善案の詳細検討
-- [ ] カテゴリー分類システム実装
-- [ ] モバイル対応改善
-- [ ] テスト・検証
-
-### Phase 4: Backups タブ改善
-
-- [ ] UI改善案の詳細検討
-- [ ] カード型レイアウト実装
-- [ ] モバイル対応改善
-- [ ] テスト・検証
-
-### Phase 5: 全体統合とテスト
-
-- [ ] 3つのタブの統一性確認
-- [ ] タブ切り替えUI改善
-- [ ] 総合テスト
-- [ ] ドキュメント更新
-
-## Settings タブ具体的改善内容
-
-### 構造変更
-
-1. **Read-Only Information削除**
-
-   - 344-368行の`readOnlySection`を完全削除
-   - バージョン、タイプ、ポート、作成日の表示を除去
-
-2. **グループ管理の分離**
-
-   - Player Groupsセクション（371-448行）を別コンポーネント化
-   - 独立したUI構造とスタイリング
-
-3. **レイアウト簡素化**
-   - 基本情報とサーバーリソースのみに焦点
-   - 2カラムレイアウトから1カラムへの最適化
-
-### UI改善
-
-1. **フォーム要素統一**
-
-   - 全入力フィールドのmin-height: 44px
-   - 一貫したパディングとマージン
-   - CSS変数によるテーマ対応
-
-2. **レスポンシブ対応強化**
-   - モバイル対応のタッチターゲット
-   - 適切な余白とスペーシング
-   - フレクシブルレイアウト
+- Screenshot verification of mobile implementation
+- Continue with remaining TODOs (#8-#11)
