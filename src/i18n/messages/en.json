@@ -326,6 +326,9 @@
       "attachedAt": "Attached {date}",
       "attaching": "Attaching...",
       "attachGroup": "Attach Group",
+      "associatedGroups": "Associated Groups",
+      "groupsDescription": "Manage player groups attached to this server",
+      "loadingGroups": "Loading groups...",
       "validation": {
         "nameRequired": "Server name is required",
         "memoryMinimum": "Memory must be at least 512MB",
@@ -656,6 +659,10 @@
     "type": "Group Type",
     "op": "OP",
     "whitelist": "Whitelist",
+    "types": {
+      "op": "OP",
+      "whitelist": "Whitelist"
+    },
     "playerCount": "{count} players",
     "createdAt": "Created {date}",
     "viewDetails": "View Details",
@@ -676,8 +683,17 @@
     "servers": {
       "title": "Attached Servers",
       "attachServer": "Attach to Server",
+      "attachToServer": "Attach to Server",
       "detachServer": "Detach Server",
+      "detach": "Detach",
       "priority": "Priority",
+      "priorityHint": "Higher priority groups are processed first (0-100)",
+      "selectGroup": "Select Group",
+      "chooseGroup": "Choose a group...",
+      "attach": "Attach",
+      "attachedGroups": "attached groups",
+      "attachedOn": "Attached on",
+      "noGroupsAttached": "No groups attached to this server",
       "noServers": "This group is not attached to any servers.",
       "confirmDetach": "Are you sure you want to detach this group from {server}?"
     },

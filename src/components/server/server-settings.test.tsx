@@ -1,8 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ServerSettings } from "./server-settings";
-import * as serverService from "@/services/server";
 import { ok, err } from "neverthrow";
 import { ServerType, ServerStatus } from "@/types/server";
 
@@ -48,9 +46,37 @@ vi.mock("@/contexts/language", () => ({
 }));
 
 // Mock the server service
-vi.mock("@/services/server", () => ({
-  updateServer: vi.fn(),
+vi.mock("@/services/server");
+
+// Mock the groups service
+vi.mock("@/services/groups");
+
+// Mock the modal component
+vi.mock("@/components/modal", () => ({
+  ConfirmationModal: ({
+    title,
+    message,
+    onConfirm,
+    onCancel,
+  }: {
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  }) => (
+    <div data-testid="confirmation-modal">
+      <h3>{title}</h3>
+      <p>{message}</p>
+      <button onClick={onConfirm}>Confirm</button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  ),
 }));
+
+// Import the component after mocks
+import { ServerSettings } from "./server-settings";
+import * as serverService from "@/services/server";
+import * as groupService from "@/services/groups";
 
 describe("ServerSettings", () => {
   const user = userEvent.setup();
@@ -76,6 +102,9 @@ describe("ServerSettings", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Setup default mock returns
+    vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+    vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
   });
 
   test("should render server settings form with current values", () => {
@@ -120,22 +149,36 @@ describe("ServerSettings", () => {
     expect(saveButton).not.toBeDisabled();
   });
 
-  test("should enable save button when changes are made", async () => {
+  test("should show save button when changes are made", async () => {
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
 
     const nameInput = screen.getByDisplayValue("Test Server");
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
 
-    // Initially buttons should be disabled
-    expect(saveButton).toBeDisabled();
-    expect(resetButton).toBeDisabled();
+    // Initially no save/reset buttons should be visible (no changes)
+    expect(
+      screen.queryByRole("button", { name: /Save Settings/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Reset Changes/i })
+    ).not.toBeInTheDocument();
 
     // Make a change
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    // Buttons should be enabled
+    // Now buttons should appear and be enabled
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Save Settings/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Reset Changes/i })
+      ).toBeInTheDocument();
+    });
+
+    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
+    const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
+
     expect(saveButton).not.toBeDisabled();
     expect(resetButton).not.toBeDisabled();
   });
@@ -212,6 +255,13 @@ describe("ServerSettings", () => {
     await user.clear(memoryInput);
     await user.type(memoryInput, "4096");
 
+    // Wait for buttons to appear
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Reset Changes/i })
+      ).toBeInTheDocument();
+    });
+
     // Reset
     const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
     await user.click(resetButton);
@@ -219,11 +269,15 @@ describe("ServerSettings", () => {
     expect(nameInput).toHaveValue("Test Server");
     expect(memoryInput).toHaveValue(2048);
 
-    // Buttons should be disabled again
-    expect(resetButton).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: /Save Settings/i })
-    ).toBeDisabled();
+    // Buttons should be hidden again (no changes)
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: /Reset Changes/i })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Save Settings/i })
+      ).not.toBeInTheDocument();
+    });
   });
 
   test("should disable form during save operation", async () => {

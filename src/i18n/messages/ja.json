@@ -314,6 +314,9 @@
       "attachedAt": "{date}に関連付け",
       "attaching": "関連付け中...",
       "attachGroup": "グループを関連付け",
+      "associatedGroups": "関連グループ",
+      "groupsDescription": "このサーバーに関連付けられたプレイヤーグループを管理します",
+      "loadingGroups": "グループを読み込み中...",
       "validation": {
         "nameRequired": "サーバー名は必須です",
         "memoryMinimum": "メモリは512MB以上である必要があります",
@@ -538,6 +541,10 @@
     "type": "グループタイプ",
     "op": "OP",
     "whitelist": "ホワイトリスト",
+    "types": {
+      "op": "OP",
+      "whitelist": "ホワイトリスト"
+    },
     "playerCount": "{count}人のプレイヤー",
     "createdAt": "{date}に作成",
     "viewDetails": "詳細を表示",
@@ -558,8 +565,17 @@
     "servers": {
       "title": "関連付けられたサーバー",
       "attachServer": "サーバーに関連付け",
+      "attachToServer": "サーバーに関連付け",
       "detachServer": "サーバーとの関連付けを解除",
+      "detach": "切り離し",
       "priority": "優先度",
+      "priorityHint": "優先度の高いグループから先に処理されます（0-100）",
+      "selectGroup": "グループを選択",
+      "chooseGroup": "グループを選択してください...",
+      "attach": "関連付け",
+      "attachedGroups": "個のグループが関連付けられています",
+      "attachedOn": "関連付け日",
+      "noGroupsAttached": "このサーバーに関連付けられたグループはありません",
       "noServers": "このグループはどのサーバーにも関連付けられていません。",
       "confirmDetach": "このグループを{server}から切り離してもよろしいですか？"
     },
