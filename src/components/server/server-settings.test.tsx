@@ -1,8 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ServerSettings } from "./server-settings";
-import * as serverService from "@/services/server";
 import { ok, err } from "neverthrow";
 import { ServerType, ServerStatus } from "@/types/server";
 
@@ -48,9 +46,37 @@ vi.mock("@/contexts/language", () => ({
 }));
 
 // Mock the server service
-vi.mock("@/services/server", () => ({
-  updateServer: vi.fn(),
+vi.mock("@/services/server");
+
+// Mock the groups service
+vi.mock("@/services/groups");
+
+// Mock the modal component
+vi.mock("@/components/modal", () => ({
+  ConfirmationModal: ({
+    title,
+    message,
+    onConfirm,
+    onCancel,
+  }: {
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  }) => (
+    <div data-testid="confirmation-modal">
+      <h3>{title}</h3>
+      <p>{message}</p>
+      <button onClick={onConfirm}>Confirm</button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  ),
 }));
+
+// Import the component after mocks
+import { ServerSettings } from "./server-settings";
+import * as serverService from "@/services/server";
+import * as groupService from "@/services/groups";
 
 describe("ServerSettings", () => {
   const user = userEvent.setup();
@@ -76,6 +102,9 @@ describe("ServerSettings", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Setup default mock returns
+    vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+    vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
   });
 
   test("should render server settings form with current values", () => {
@@ -88,14 +117,7 @@ describe("ServerSettings", () => {
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
   });
 
-  test("should render read-only fields correctly", () => {
-    render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
-
-    expect(screen.getByText("1.21.5")).toBeInTheDocument();
-    expect(screen.getByText("vanilla")).toBeInTheDocument();
-    expect(screen.getByText("25565")).toBeInTheDocument();
-    expect(screen.getByText("2025/01/01")).toBeInTheDocument();
-  });
+  // Read-only information section was removed as per requirements
 
   test("should handle input changes", async () => {
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -123,28 +145,48 @@ describe("ServerSettings", () => {
     expect(playersInput).toHaveValue(50);
 
     // Save button should be enabled
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    expect(saveButton).not.toBeDisabled();
+    const saveButtons = screen.getAllByRole("button", {
+      name: /Save Settings/i,
+    });
+    expect(saveButtons[0]).not.toBeDisabled();
   });
 
-  test("should enable save button when changes are made", async () => {
+  test("should show save button when changes are made", async () => {
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
 
     const nameInput = screen.getByDisplayValue("Test Server");
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
 
-    // Initially buttons should be disabled
-    expect(saveButton).toBeDisabled();
-    expect(resetButton).toBeDisabled();
+    // Initially no save/reset buttons should be visible (no changes)
+    expect(
+      screen.queryByRole("button", { name: /Save Settings/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Reset Changes/i })
+    ).not.toBeInTheDocument();
 
     // Make a change
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    // Buttons should be enabled
-    expect(saveButton).not.toBeDisabled();
-    expect(resetButton).not.toBeDisabled();
+    // Now buttons should appear and be enabled
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole("button", { name: /Save Settings/i })[0]
+      ).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("button", { name: /Reset Changes/i })[0]
+      ).toBeInTheDocument();
+    });
+
+    const saveButtons = screen.getAllByRole("button", {
+      name: /Save Settings/i,
+    });
+    const resetButtons = screen.getAllByRole("button", {
+      name: /Reset Changes/i,
+    });
+
+    expect(saveButtons[0]).not.toBeDisabled();
+    expect(resetButtons[0]).not.toBeDisabled();
   });
 
   test("should save settings successfully", async () => {
@@ -167,8 +209,11 @@ describe("ServerSettings", () => {
     await user.clear(memoryInput);
     await user.type(memoryInput, "4096");
 
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    await user.click(saveButton);
+    const saveButtons = screen.getAllByRole("button", {
+      name: /Save Settings/i,
+    });
+    expect(saveButtons.length).toBeGreaterThan(0);
+    await user.click(saveButtons[0]!);
 
     await waitFor(() => {
       expect(
@@ -197,8 +242,11 @@ describe("ServerSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    await user.click(saveButton);
+    const saveButtons = screen.getAllByRole("button", {
+      name: /Save Settings/i,
+    });
+    expect(saveButtons.length).toBeGreaterThan(0);
+    await user.click(saveButtons[0]!);
 
     await waitFor(() => {
       expect(screen.getByText("Failed to update server")).toBeInTheDocument();
@@ -219,18 +267,32 @@ describe("ServerSettings", () => {
     await user.clear(memoryInput);
     await user.type(memoryInput, "4096");
 
+    // Wait for buttons to appear
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole("button", { name: /Reset Changes/i })[0]
+      ).toBeInTheDocument();
+    });
+
     // Reset
-    const resetButton = screen.getByRole("button", { name: /Reset Changes/i });
-    await user.click(resetButton);
+    const resetButtons = screen.getAllByRole("button", {
+      name: /Reset Changes/i,
+    });
+    expect(resetButtons.length).toBeGreaterThan(0);
+    await user.click(resetButtons[0]!);
 
     expect(nameInput).toHaveValue("Test Server");
     expect(memoryInput).toHaveValue(2048);
 
-    // Buttons should be disabled again
-    expect(resetButton).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: /Save Settings/i })
-    ).toBeDisabled();
+    // Buttons should be hidden again (no changes)
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: /Reset Changes/i })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Save Settings/i })
+      ).not.toBeInTheDocument();
+    });
   });
 
   test("should disable form during save operation", async () => {
@@ -245,11 +307,16 @@ describe("ServerSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    await user.click(saveButton);
+    const saveButtons = screen.getAllByRole("button", {
+      name: /Save Settings/i,
+    });
+    expect(saveButtons.length).toBeGreaterThan(0);
+    await user.click(saveButtons[0]!);
 
     // Form should be disabled during save
-    expect(screen.getByRole("button", { name: /Saving/i })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: /Saving/i })[0]
+    ).toBeInTheDocument();
     expect(nameInput).toBeDisabled();
   });
 
@@ -264,8 +331,11 @@ describe("ServerSettings", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "Updated Server");
 
-    const saveButton = screen.getByRole("button", { name: /Save Settings/i });
-    await user.click(saveButton);
+    const saveButtons = screen.getAllByRole("button", {
+      name: /Save Settings/i,
+    });
+    expect(saveButtons.length).toBeGreaterThan(0);
+    await user.click(saveButtons[0]!);
 
     await waitFor(() => {
       expect(mockLogout).toHaveBeenCalled();

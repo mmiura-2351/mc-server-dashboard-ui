@@ -43,6 +43,11 @@
 @media (max-width: 640px) {
   .container {
     padding: 0.5rem;
+    min-height: 100dvh;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
   }
 
   .appTitle {
@@ -51,5 +56,56 @@
 
   .subtitle {
     font-size: 1rem;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .formContainer {
+    border-radius: 8px;
+    margin: 0 0.5rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 0.25rem;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .appTitle {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .formContainer {
+    border-radius: 6px;
+    margin: 0 0.25rem;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .container {
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .appTitle {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
   }
 }

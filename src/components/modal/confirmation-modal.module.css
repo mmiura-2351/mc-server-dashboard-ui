@@ -9,17 +9,21 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn var(--animation-fast, 0.2s) ease-out;
+  padding: var(--modal-padding, 1rem);
 }
 
 .modal {
   background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: var(--shadow-xl, 0 10px 25px rgba(0, 0, 0, 0.2));
   width: 90%;
   max-width: 450px;
-  animation: slideIn 0.2s ease-out;
+  animation: slideIn var(--animation-fast, 0.2s) ease-out;
   border: 1px solid var(--border-color);
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
 }
 
 .header {
@@ -157,27 +161,50 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
+  .overlay {
+    padding: 0.75rem;
+  }
+
   .modal {
-    width: 95%;
+    width: 100%;
     max-width: none;
-    margin: 20px;
+    max-height: calc(100vh - 3rem);
   }
 
-  .header,
-  .body,
-  .footer {
-    padding-left: 16px;
-    padding-right: 16px;
+  .header {
+    padding: 16px;
+  }
+
+  .body {
+    padding: 16px;
   }
 
   .footer {
+    padding: 12px 16px 16px;
     flex-direction: column;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 16px;
   }
 
   .cancelButton,
   .confirmButton {
     width: 100%;
     justify-content: center;
+    padding: 10px 16px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 375px) {
+  .overlay {
+    padding: 0.5rem;
+  }
+
+  .modal {
+    max-height: calc(100vh - 2rem);
   }
 }
 

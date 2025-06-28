@@ -38,6 +38,9 @@
     "docs": "Documentation"
   },
   "auth": {
+    "appTitle": "MC Server Dashboard",
+    "signInSubtitle": "Sign in to your account",
+    "createAccountSubtitle": "Create a new account",
     "login": "Login",
     "register": "Register",
     "username": "Username",
@@ -152,7 +155,9 @@
     "pendingApproval": "Pending Approval",
     "accountPendingApproval": "Account Pending Approval",
     "accountPendingApprovalDescription": "Your account is currently pending approval by an administrator. You will have full access to all features once your account is approved.",
-    "accountPendingApprovalNote": "In the meantime, you can view the server overview and manage your account settings."
+    "accountPendingApprovalNote": "In the meantime, you can view the server overview and manage your account settings.",
+    "toggleMenu": "Toggle menu",
+    "closeMenu": "Close menu"
   },
   "language": {
     "switchLanguage": "Language",
@@ -196,6 +201,7 @@
         "name": "Name",
         "status": "Status",
         "created": "Created Date",
+        "version": "Version",
         "order": "Sort Order",
         "ascending": "A-Z",
         "descending": "Z-A"
@@ -212,6 +218,7 @@
     "settings": "Settings",
     "properties": "Properties",
     "serverInformation": "Server Information",
+    "serverDetails": "Server Details",
     "serverActions": "Server Actions",
     "description": "Description",
     "deleteConfirmation": "Are you sure you want to delete this server? This action cannot be undone.",
@@ -233,9 +240,14 @@
       "stopping": "Stopping...",
       "restarting": "Restarting...",
       "exporting": "Exporting...",
-      "deleting": "Deleting..."
+      "deleting": "Deleting...",
+      "settings": "Settings",
+      "details": "View Details",
+      "exportConfirm": "Export this server?"
     },
     "fields": {
+      "name": "Name",
+      "status": "Status",
       "version": "Minecraft Version",
       "type": "Server Type",
       "players": "Players",
@@ -243,7 +255,8 @@
       "memory": "Memory",
       "memoryLimit": "Memory Limit",
       "port": "Port",
-      "created": "Created"
+      "created": "Created",
+      "actions": "Actions"
     },
     "create": {
       "title": "Create New Server",
@@ -315,6 +328,9 @@
       "attachedAt": "Attached {date}",
       "attaching": "Attaching...",
       "attachGroup": "Attach Group",
+      "associatedGroups": "Associated Groups",
+      "groupsDescription": "Manage player groups attached to this server",
+      "loadingGroups": "Loading groups...",
       "validation": {
         "nameRequired": "Server name is required",
         "memoryMinimum": "Memory must be at least 512MB",
@@ -645,6 +661,10 @@
     "type": "Group Type",
     "op": "OP",
     "whitelist": "Whitelist",
+    "types": {
+      "op": "OP",
+      "whitelist": "Whitelist"
+    },
     "playerCount": "{count} players",
     "createdAt": "Created {date}",
     "viewDetails": "View Details",
@@ -665,8 +685,17 @@
     "servers": {
       "title": "Attached Servers",
       "attachServer": "Attach to Server",
+      "attachToServer": "Attach to Server",
       "detachServer": "Detach Server",
+      "detach": "Detach",
       "priority": "Priority",
+      "priorityHint": "Higher priority groups are processed first (0-100)",
+      "selectGroup": "Select Group",
+      "chooseGroup": "Choose a group...",
+      "attach": "Attach",
+      "attachedGroups": "attached groups",
+      "attachedOn": "Attached on",
+      "noGroupsAttached": "No groups attached to this server",
       "noServers": "This group is not attached to any servers.",
       "confirmDetach": "Are you sure you want to detach this group from {server}?"
     },

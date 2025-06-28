@@ -6,14 +6,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem; /* Reduced from 2rem */
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 1.75rem; /* Slightly reduced from 2rem */
   font-weight: bold;
   color: #1f2937;
   margin: 0;
+  line-height: 1.2; /* Tighter line height */
 }
 
 .headerActions {
@@ -64,6 +65,7 @@
   right: 6px;
 }
 
+/* Desktop filters - small dropdown */
 .expandedFilters {
   position: absolute;
   top: 100%;
@@ -77,6 +79,13 @@
   margin-top: 0.5rem;
   z-index: 10;
   min-width: 400px;
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* Ensure no overlay on desktop */
+.filterOverlay {
+  display: none;
 }
 
 .filterHeader {
@@ -517,9 +526,218 @@
   font-weight: 500;
 }
 
+/* Table styles */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.serverTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.serverTable thead {
+  background-color: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.serverTable th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: #f3f4f6;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sortIndicator {
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.actionsHeader {
+  text-align: center;
+  width: 150px;
+}
+
+.serverTable tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+}
+
+.serverTable tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.serverRow td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.nameCell {
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.nameContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.serverNameText {
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.serverDescriptionText {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusRunning {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.statusStopped {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.statusStarting {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.statusStopping {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.statusError {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.serverTypeLabel {
+  text-transform: capitalize;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.playersInfo,
+.memoryInfo {
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.actionsCell {
+  text-align: center;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.startButton,
+.stopButton,
+.detailsButton,
+.actionButtonDisabled {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  min-width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.startButton {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.startButton:hover {
+  background-color: #a7f3d0;
+}
+
+.stopButton {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.stopButton:hover {
+  background-color: #fecaca;
+}
+
+.detailsButton {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.detailsButton:hover {
+  background-color: #bfdbfe;
+}
+
+.actionButtonDisabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Keep existing card styles for mobile fallback */
 .serverGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 }
 
@@ -529,11 +747,19 @@
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
-  transition: box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .serverCard:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+  transform: translateY(-2px);
+  border-color: var(--border-color-hover, #d1d5db);
+}
+
+.serverCard:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
 }
 
 .serverHeader {
@@ -548,6 +774,79 @@
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Compact mobile layout styles */
+.compactHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.serverInfo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.serverMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.versionBadge {
+  background-color: #ede9fe;
+  color: #7c3aed;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.typeBadge {
+  background-color: #ecfdf5;
+  color: #065f46;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.separator {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.statusSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.statusIcon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 0.125rem;
+}
+
+.statusText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  text-align: center;
+  min-width: 60px;
 }
 
 .status {
@@ -895,21 +1194,57 @@
   color: #6b7280;
 }
 
-/* Responsive design */
+/* Responsive table design - hide on small screens */
 @media (max-width: 768px) {
-  .header {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+  .tableContainer {
+    display: none;
   }
 
-  .headerActions {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
+  /* Show card grid on mobile */
+  .serverGrid {
+    display: grid !important;
+  }
+}
+
+/* Tablet view - horizontal scroll for table */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .serverTable {
+    font-size: 0.875rem;
   }
 
+  .serverTable th,
+  .serverTable td {
+    padding: 0.75rem;
+  }
+
+  .actionButtons {
+    gap: 0.25rem;
+  }
+
+  .startButton,
+  .stopButton,
+  .detailsButton {
+    min-width: 32px;
+    height: 32px;
+    padding: 0.375rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Desktop view - show table */
+@media (min-width: 769px) {
+  .serverGrid {
+    display: none;
+  }
+}
+
+/* Desktop filter overlay should not exist */
+.filterOverlay {
+  display: none;
+}
+
+/* Original responsive design for other elements */
+@media (max-width: 768px) {
   .container {
     padding: 1rem;
   }
@@ -918,40 +1253,80 @@
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 0;
   }
 
   .headerActions {
     flex-direction: column;
     gap: 0.75rem;
     align-items: stretch;
+    order: 2;
   }
 
-  .compactFilters {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: stretch;
+  /* Create button should be prominent and full-width on mobile */
+  .createButton {
+    order: 1;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    min-height: 44px; /* Touch-friendly size */
   }
 
-  .compactFilterSelect,
-  .compactFilterInput {
-    min-width: auto;
+  /* Filter controls below create button */
+  .filterControls {
+    order: 2;
     width: 100%;
   }
 
-  .expandedFilters {
+  .filterToggleButton {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    min-height: 44px; /* Touch-friendly size */
+    justify-content: center;
+  }
+
+  /* Filter overlay background - only on mobile */
+  .filterOverlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: white;
-    padding: 1rem;
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    min-width: auto;
-    z-index: 1000;
-    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  /* Mobile-only compact filter modal */
+  .expandedFilters {
+    position: fixed !important;
+    top: 15% !important;
+    left: 5% !important;
+    right: 5% !important;
+    bottom: auto !important;
+    max-height: 70vh !important;
+    background: white !important;
+    padding: 1.5rem !important;
+    margin: 0 !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    min-width: auto !important;
+    z-index: 1000 !important;
+    overflow-y: auto !important;
+  }
+
+  /* Enable overlay on mobile */
+  .filterOverlay {
+    display: block !important;
   }
 
   .filterHeader {
@@ -959,12 +1334,14 @@
     top: 0;
     background: white;
     z-index: 1001;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
   }
 
-  .filterRow {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
+  .closeFiltersButton {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
   }
 
   .filterGrid {
@@ -977,26 +1354,366 @@
     gap: 1rem;
   }
 
-  .title {
-    font-size: 1.5rem;
+  /* Improve filter inputs for mobile */
+  .filterSelect,
+  .filterInput {
+    padding: 0.875rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  .sortOrderButton {
+    padding: 0.875rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  .resetFiltersButtonLarge {
+    padding: 0.875rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  /* Results count improvements */
+  .resultsCount {
+    font-size: 1rem;
     text-align: center;
+    padding: 0.5rem;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 1rem;
   }
 
+  /* Server grid improvements - use flexbox for better mobile control */
   .serverGrid {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
   }
 
+  /* Server card improvements for mobile */
+  .serverCard {
+    padding: 0.875rem;
+    border-radius: 8px;
+    min-height: auto;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .serverHeader {
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+  }
+
+  .serverName {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .statusText {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    font-weight: 700;
+    min-width: 50px;
+  }
+
+  .statusIcon {
+    font-size: 1.2rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .statusSection {
+    min-width: 70px;
+    gap: 0.2rem;
+  }
+
+  .serverInfo {
+    margin-bottom: 1rem;
+  }
+
+  .infoRow {
+    padding: 0.375rem 0;
+    gap: 0.5rem;
+  }
+
+  .label {
+    font-size: 0.875rem;
+    min-width: 4rem;
+  }
+
+  .serverDescription {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+
+  .serverCardFooter {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .clickHint {
+    font-size: 0.875rem;
+  }
+
+  .arrow {
+    font-size: 1.125rem;
+  }
+
+  /* Modal improvements for mobile */
   .modalContent {
     width: 95%;
     margin: 1rem;
+    max-height: 85vh;
   }
 
-  .serverActions {
+  .modalHeader {
+    padding: 1rem;
+  }
+
+  .modalHeader h2 {
+    font-size: 1.125rem;
+  }
+
+  .form {
+    padding: 1rem;
+  }
+
+  .field {
+    margin-bottom: 1.25rem;
+  }
+
+  .field label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    padding: 0.875rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  .modalActions {
+    padding: 1rem;
+    gap: 0.75rem;
+    flex-direction: column-reverse;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  /* Empty state improvements */
+  .emptyState {
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+
+  .emptyState h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .emptyState p {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Additional mobile optimizations for very small screens */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .containerHeader {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.375rem;
+  }
+
+  .serverCard {
+    padding: 0.75rem;
+  }
+
+  .serverName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .versionBadge,
+  .typeBadge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+
+  .statusText {
+    font-size: 0.5rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .statusIcon {
+    font-size: 0.875rem;
+  }
+
+  .serverMeta {
+    gap: 0.375rem;
+  }
+
+  .serverDescription {
+    font-size: 0.8125rem;
+  }
+
+  .modalContent {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .expandedFilters {
+    padding: 0.75rem;
+  }
+
+  .filterHeader {
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Fixed Header Bar Styles */
+.fixedHeaderBar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.375rem 0; /* Reduced from 0.75rem */
+  margin-bottom: 0.5rem; /* Reduced from 1rem */
+  border-bottom: 1px solid #e5e7eb;
+  /* Removed background: white; */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.filterButtonContainer {
+  position: relative;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterButton:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.filterStatus {
+  padding: 0.25rem 0.5rem;
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-right: auto; /* Push to the left side */
+}
+
+.createButtonHeader {
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.createButtonHeader:hover {
+  background: #059669;
+}
+
+.createButtonHeader:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive adjustments for fixed header */
+@media (max-width: 768px) {
+  .fixedHeaderBar {
+    padding: 0.25rem 0; /* Reduced to match desktop proportions */
+    margin-bottom: 0.375rem; /* Reduced to match desktop proportions */
+    flex-direction: row; /* Ensure horizontal layout */
+    flex-wrap: nowrap; /* Prevent wrapping */
+  }
+
+  .headerActions {
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: row; /* Ensure horizontal layout */
+    align-items: center;
+  }
+
+  .filterButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Touch-friendly target */
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
 
-  .actionButton {
-    flex: 1;
-    min-width: 0;
+  .createButtonHeader {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Touch-friendly target */
+    white-space: nowrap; /* Prevent text wrapping */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .filterStatus {
+    font-size: 0.625rem;
+    padding: 0.25rem 0.375rem;
   }
 }

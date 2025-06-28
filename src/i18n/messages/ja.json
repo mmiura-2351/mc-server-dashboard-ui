@@ -38,6 +38,9 @@
     "docs": "ドキュメント"
   },
   "auth": {
+    "appTitle": "MCサーバーダッシュボード",
+    "signInSubtitle": "アカウントにサインイン",
+    "createAccountSubtitle": "新しいアカウントを作成",
     "login": "ログイン",
     "register": "登録",
     "username": "ユーザー名",
@@ -152,7 +155,9 @@
     "pendingApproval": "承認待ち",
     "accountPendingApproval": "アカウント承認待ち",
     "accountPendingApprovalDescription": "あなたのアカウントは現在管理者による承認待ちです。アカウントが承認されると、すべての機能にアクセスできるようになります。",
-    "accountPendingApprovalNote": "それまでの間、サーバー概要の表示とアカウント設定の管理が可能です。"
+    "accountPendingApprovalNote": "それまでの間、サーバー概要の表示とアカウント設定の管理が可能です。",
+    "toggleMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる"
   },
   "language": {
     "switchLanguage": "言語",
@@ -196,6 +201,7 @@
         "name": "名前",
         "status": "ステータス",
         "created": "作成日",
+        "version": "バージョン",
         "order": "並び順",
         "ascending": "昇順",
         "descending": "降順"
@@ -212,6 +218,7 @@
     "settings": "設定",
     "properties": "プロパティ",
     "serverInformation": "サーバー情報",
+    "serverDetails": "サーバー詳細",
     "serverActions": "サーバー操作",
     "description": "説明",
     "deleteConfirmation": "このサーバーを削除してもよろしいですか？この操作は元に戻せません。",
@@ -233,9 +240,14 @@
       "stopping": "停止中...",
       "restarting": "再起動中...",
       "exporting": "エクスポート中...",
-      "deleting": "削除中..."
+      "deleting": "削除中...",
+      "settings": "設定",
+      "details": "詳細を見る",
+      "exportConfirm": "このサーバーをエクスポートしますか？"
     },
     "fields": {
+      "name": "名前",
+      "status": "ステータス",
       "version": "Minecraftバージョン",
       "type": "サーバータイプ",
       "players": "プレイヤー",
@@ -243,7 +255,8 @@
       "memory": "メモリ",
       "memoryLimit": "メモリ制限",
       "port": "ポート",
-      "created": "作成日"
+      "created": "作成日",
+      "actions": "アクション"
     },
     "create": {
       "title": "新規サーバー作成",
@@ -303,6 +316,9 @@
       "attachedAt": "{date}に関連付け",
       "attaching": "関連付け中...",
       "attachGroup": "グループを関連付け",
+      "associatedGroups": "関連グループ",
+      "groupsDescription": "このサーバーに関連付けられたプレイヤーグループを管理します",
+      "loadingGroups": "グループを読み込み中...",
       "validation": {
         "nameRequired": "サーバー名は必須です",
         "memoryMinimum": "メモリは512MB以上である必要があります",
@@ -527,6 +543,10 @@
     "type": "グループタイプ",
     "op": "OP",
     "whitelist": "ホワイトリスト",
+    "types": {
+      "op": "OP",
+      "whitelist": "ホワイトリスト"
+    },
     "playerCount": "{count}人のプレイヤー",
     "createdAt": "{date}に作成",
     "viewDetails": "詳細を表示",
@@ -547,8 +567,17 @@
     "servers": {
       "title": "関連付けられたサーバー",
       "attachServer": "サーバーに関連付け",
+      "attachToServer": "サーバーに関連付け",
       "detachServer": "サーバーとの関連付けを解除",
+      "detach": "切り離し",
       "priority": "優先度",
+      "priorityHint": "優先度の高いグループから先に処理されます（0-100）",
+      "selectGroup": "グループを選択",
+      "chooseGroup": "グループを選択してください...",
+      "attach": "関連付け",
+      "attachedGroups": "個のグループが関連付けられています",
+      "attachedOn": "関連付け日",
+      "noGroupsAttached": "このサーバーに関連付けられたグループはありません",
       "noServers": "このグループはどのサーバーにも関連付けられていません。",
       "confirmDetach": "このグループを{server}から切り離してもよろしいですか？"
     },

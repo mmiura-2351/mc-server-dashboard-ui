@@ -308,10 +308,10 @@ describe("ServerDetailPage", () => {
       });
 
       expect(
-        screen.getByRole("button", { name: "Start Server" })
+        screen.getByRole("button", { name: "▶ Start Server" })
       ).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: "Stop Server" })
+        screen.queryByRole("button", { name: "■ Stop Server" })
       ).not.toBeInTheDocument();
     });
 
@@ -326,13 +326,13 @@ describe("ServerDetailPage", () => {
       });
 
       expect(
-        screen.getByRole("button", { name: "Stop Server" })
+        screen.getByRole("button", { name: "■ Stop Server" })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Restart Server" })
+        screen.getByRole("button", { name: "🔄 Restart Server" })
       ).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: "Start Server" })
+        screen.queryByRole("button", { name: "▶ Start Server" })
       ).not.toBeInTheDocument();
     });
 
@@ -346,7 +346,8 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const startButton = screen.getByRole("button", { name: "Start Server" });
+      // Find start button - it may contain icon and text
+      const startButton = screen.getByRole("button", { name: /start server/i });
       await user.click(startButton);
 
       expect(mockStartServer).toHaveBeenCalledWith(1);
@@ -362,7 +363,8 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const stopButton = screen.getByRole("button", { name: "Stop Server" });
+      // Find stop button - it may contain icon and text
+      const stopButton = screen.getByRole("button", { name: /stop server/i });
       await user.click(stopButton);
 
       expect(mockStopServer).toHaveBeenCalledWith(1);
@@ -378,8 +380,9 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
+      // Find restart button - it may contain icon and text
       const restartButton = screen.getByRole("button", {
-        name: "Restart Server",
+        name: "🔄 Restart Server",
       });
       await user.click(restartButton);
 
@@ -396,8 +399,9 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
+      // Find delete button - it may contain icon and text
       const deleteButton = screen.getByRole("button", {
-        name: "Delete Server",
+        name: "🗑️ Delete Server",
       });
       await user.click(deleteButton);
 
@@ -430,8 +434,9 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
+      // Find delete button - it may contain icon and text
       const deleteButton = screen.getByRole("button", {
-        name: "Delete Server",
+        name: "🗑️ Delete Server",
       });
       await user.click(deleteButton);
 
@@ -470,7 +475,8 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const startButton = screen.getByRole("button", { name: "Start Server" });
+      // Find start button - it may contain icon and text
+      const startButton = screen.getByRole("button", { name: /start server/i });
       await user.click(startButton);
 
       await waitFor(() => {
@@ -491,7 +497,8 @@ describe("ServerDetailPage", () => {
         expect(screen.getByText("Test Server")).toBeInTheDocument();
       });
 
-      const startButton = screen.getByRole("button", { name: "Start Server" });
+      // Find start button - it may contain icon and text
+      const startButton = screen.getByRole("button", { name: /start server/i });
       await user.click(startButton);
 
       await waitFor(() => {
