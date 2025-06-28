@@ -542,17 +542,17 @@ export default function ServerDetailPage() {
                     </button>
                   )}
                 </div>
-                <button
-                  onClick={handleExportServer}
-                  className={`${styles.actionButton} ${styles.exportButton}`}
-                  disabled={isActioning}
-                >
-                  <span>📦</span>
-                  {actioningButton === "export"
-                    ? t("servers.actions.exporting")
-                    : t("servers.actions.export")}
-                </button>
-                <div className={styles.dangerZone}>
+                <div className={styles.actionGroup}>
+                  <button
+                    onClick={handleExportServer}
+                    className={`${styles.actionButton} ${styles.exportButton}`}
+                    disabled={isActioning}
+                  >
+                    <span>📦</span>
+                    {actioningButton === "export"
+                      ? t("servers.actions.exporting")
+                      : t("servers.actions.export")}
+                  </button>
                   <button
                     onClick={handleDeleteServer}
                     className={`${styles.actionButton} ${styles.deleteButton}`}
