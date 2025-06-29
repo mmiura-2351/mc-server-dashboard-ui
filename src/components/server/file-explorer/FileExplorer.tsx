@@ -434,8 +434,8 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       // Refresh after any upload attempt
       try {
         await refreshFiles();
-      } catch (error) {
-        console.error("Failed to refresh files after upload:", error);
+      } catch {
+        // Silently handle refresh failure
       }
 
       // Always refresh if there are any successful uploads, regardless of result.success flag

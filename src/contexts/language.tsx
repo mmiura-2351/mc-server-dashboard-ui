@@ -42,9 +42,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       try {
         const messageModule = await import(`@/i18n/messages/${locale}.json`);
         setMessages(messageModule.default);
-      } catch (error) {
-        console.error(`Failed to load messages for locale ${locale}:`, error);
-        // Fallback to English
+      } catch {
+        // Silently fallback to English on message loading error
         const fallbackModule = await import(`@/i18n/messages/en.json`);
         setMessages(fallbackModule.default);
       }

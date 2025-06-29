@@ -547,19 +547,11 @@ describe("TokenManager", () => {
       expect(isTokenExpired(token)).toBe(false);
     });
 
-    test("should log warning and return true for JSON parsing errors", () => {
-      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
+    test("should return true for JSON parsing errors without logging", () => {
       // Create a token with invalid JSON in payload
       const invalidToken = "header.bm90LWpzb24=.signature"; // "not-json" in base64
 
       expect(isTokenExpired(invalidToken)).toBe(true);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Token validation error:",
-        expect.any(Error)
-      );
-
-      consoleSpy.mockRestore();
     });
   });
 });

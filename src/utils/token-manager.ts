@@ -170,8 +170,7 @@ class TokenManager {
       }
 
       return false;
-    } catch (error) {
-      console.warn("Token validation error:", error);
+    } catch {
       return true;
     }
   }
