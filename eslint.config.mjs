@@ -46,6 +46,13 @@ const eslintConfig = [
       // Prettier handles all code formatting, and "prettier" config disables conflicting ESLint rules
     },
   },
+  // Allow console statements in test files
+  {
+    files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}", "**/__tests__/**/*"],
+    rules: {
+      "no-console": "off",
+    },
+  },
 ];
 
 export default eslintConfig;
