@@ -10,8 +10,7 @@ export class SecureStorage {
     try {
       if (typeof window === "undefined") return null;
       return localStorage.getItem(key);
-    } catch (error) {
-      console.error(`Failed to get item from localStorage: ${key}`, error);
+    } catch {
       return null;
     }
   }
@@ -24,8 +23,7 @@ export class SecureStorage {
       if (typeof window === "undefined") return false;
       localStorage.setItem(key, value);
       return true;
-    } catch (error) {
-      console.error(`Failed to set item in localStorage: ${key}`, error);
+    } catch {
       return false;
     }
   }
@@ -38,8 +36,7 @@ export class SecureStorage {
       if (typeof window === "undefined") return false;
       localStorage.removeItem(key);
       return true;
-    } catch (error) {
-      console.error(`Failed to remove item from localStorage: ${key}`, error);
+    } catch {
       return false;
     }
   }
@@ -52,8 +49,7 @@ export class SecureStorage {
       if (typeof window === "undefined") return false;
       localStorage.clear();
       return true;
-    } catch (error) {
-      console.error("Failed to clear localStorage", error);
+    } catch {
       return false;
     }
   }
@@ -73,14 +69,12 @@ export class SecureStorage {
 
       // If validator provided, use it to validate the parsed data
       if (validator && !validator(parsed)) {
-        console.warn(`Invalid data format for key: ${key}`);
         this.removeItem(key); // Remove invalid data
         return null;
       }
 
       return parsed as T;
-    } catch (error) {
-      console.error(`Failed to parse JSON from localStorage: ${key}`, error);
+    } catch {
       this.removeItem(key); // Remove corrupted data
       return null;
     }
@@ -93,8 +87,7 @@ export class SecureStorage {
     try {
       const serialized = JSON.stringify(value);
       return this.setItem(key, serialized);
-    } catch (error) {
-      console.error(`Failed to serialize JSON for localStorage: ${key}`, error);
+    } catch {
       return false;
     }
   }
@@ -190,7 +183,6 @@ export class AuthStorage {
 
   static setAccessToken(token: string): boolean {
     if (!validators.token(token)) {
-      console.error("Invalid access token format");
       return false;
     }
     return SecureStorage.setItem(this.ACCESS_TOKEN_KEY, token);
@@ -203,7 +195,6 @@ export class AuthStorage {
 
   static setRefreshToken(token: string): boolean {
     if (!validators.token(token)) {
-      console.error("Invalid refresh token format");
       return false;
     }
     return SecureStorage.setItem(this.REFRESH_TOKEN_KEY, token);
@@ -215,7 +206,6 @@ export class AuthStorage {
 
   static setUserData(user: unknown): boolean {
     if (!validators.user(user)) {
-      console.error("Invalid user data format");
       return false;
     }
     return SecureStorage.setJSON(this.USER_DATA_KEY, user);

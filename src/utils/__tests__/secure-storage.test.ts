@@ -34,18 +34,9 @@ describe("SecureStorage", () => {
         throw new Error("localStorage error");
       });
 
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
       const result = SecureStorage.getItem("test-key");
 
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Failed to get item from localStorage: test-key",
-        expect.any(Error)
-      );
-
-      consoleSpy.mockRestore();
     });
 
     test("should return null in SSR environment", () => {
@@ -79,18 +70,9 @@ describe("SecureStorage", () => {
         throw new Error("localStorage error");
       });
 
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
       const result = SecureStorage.setItem("test-key", "test-value");
 
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Failed to set item in localStorage: test-key",
-        expect.any(Error)
-      );
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -108,15 +90,10 @@ describe("SecureStorage", () => {
       mockLocalStorage.getItem.mockReturnValue("invalid-json");
       mockLocalStorage.removeItem.mockImplementation(() => {});
 
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
       const result = SecureStorage.getJSON("test-key");
 
       expect(result).toBeNull();
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("test-key");
-
-      consoleSpy.mockRestore();
     });
 
     test("should validate data with provided validator", () => {
@@ -141,16 +118,10 @@ describe("SecureStorage", () => {
         return typeof value === "object" && value !== null && "name" in value;
       };
 
-      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const result = SecureStorage.getJSON("test-key", validator);
 
       expect(result).toBeNull();
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("test-key");
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Invalid data format for key: test-key"
-      );
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -247,16 +218,9 @@ describe("AuthStorage", () => {
     });
 
     test("should reject invalid token format", () => {
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
       const result = AuthStorage.setAccessToken("");
 
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith("Invalid access token format");
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -282,16 +246,10 @@ describe("AuthStorage", () => {
 
     test("should reject invalid user data format", () => {
       const invalidUserData = { invalid: "data" };
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
 
       const result = AuthStorage.setUserData(invalidUserData as unknown);
 
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith("Invalid user data format");
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -327,15 +285,9 @@ describe("AuthStorage", () => {
     });
 
     test("should return false if either token is invalid", () => {
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
       const result = AuthStorage.setAuthTokens("", "valid-refresh-token");
 
       expect(result).toBe(false);
-
-      consoleSpy.mockRestore();
     });
   });
 });

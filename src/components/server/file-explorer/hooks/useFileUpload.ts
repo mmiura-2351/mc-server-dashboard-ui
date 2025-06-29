@@ -260,8 +260,8 @@ export function useFileUpload(serverId: number) {
             handleFileUpload(files, hasDirectoryStructure, currentPath);
           }
         }
-      } catch (error) {
-        console.error("Error processing dropped files:", error);
+      } catch {
+        // Silently handle file processing error
       }
     },
     [handleFileUpload]

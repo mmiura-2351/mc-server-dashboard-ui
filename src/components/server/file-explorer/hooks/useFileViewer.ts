@@ -72,18 +72,18 @@ export function useFileViewer(serverId: number) {
             const url = URL.createObjectURL(result.value);
             setImageUrl(url);
           } else {
-            console.error("Error loading image file:", result.error);
+            // Silently handle image loading error
           }
         } else if (isTextFile(file.name)) {
           const result = await fileService.readTextFile(serverId, filePath);
           if (result.isOk()) {
             setFileContent(result.value.content);
           } else {
-            console.error("Error loading text file:", result.error);
+            // Silently handle text file loading error
           }
         }
-      } catch (error) {
-        console.error("Error loading file:", error);
+      } catch {
+        // Silently handle file loading error
       } finally {
         setIsLoadingFile(false);
       }

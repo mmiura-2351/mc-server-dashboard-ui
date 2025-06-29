@@ -39,11 +39,18 @@ const eslintConfig = [
       // React rules
       "react-hooks/exhaustive-deps": "warn",
       
-      // Console and debugging
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      // Console and debugging - Stricter rule to prevent console statements in production
+      "no-console": "error",
       
       // Note: Removed code style rules (semi, quotes, indent) to avoid conflict with Prettier
       // Prettier handles all code formatting, and "prettier" config disables conflicting ESLint rules
+    },
+  },
+  // Allow console statements in test files
+  {
+    files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}", "**/__tests__/**/*"],
+    rules: {
+      "no-console": "off",
     },
   },
 ];

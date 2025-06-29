@@ -105,10 +105,10 @@ export function FileViewer({
         onReloadFile?.();
         setActiveTab("content");
       } else {
-        console.error("Failed to restore file:", result.error);
+        // Silently handle restore file error
       }
-    } catch (error) {
-      console.error("Error restoring file:", error);
+    } catch {
+      // Silently handle restore file exception
     } finally {
       setIsRestoring(false);
     }
@@ -122,10 +122,10 @@ export function FileViewer({
       const result = await deleteFileVersion(serverId, filePath, version);
 
       if (result.isErr()) {
-        console.error("Failed to delete version:", result.error);
+        // Silently handle delete version error
       }
-    } catch (error) {
-      console.error("Error deleting version:", error);
+    } catch {
+      // Silently handle delete version exception
     }
   };
 
@@ -161,7 +161,7 @@ export function FileViewer({
                   fileName={file.name}
                   imageUrl={imageUrl}
                   onError={() => {
-                    console.error(`Failed to display image: ${file.name}`);
+                    // Silently handle image display error
                   }}
                 />
               ) : (

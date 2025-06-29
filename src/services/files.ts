@@ -31,11 +31,6 @@ export async function listFiles(
   const result = await fetchJson<FileListResponse>(url);
 
   if (result.isErr()) {
-    console.error("File listing failed:", {
-      status: result.error.status,
-      message: result.error.message,
-      url,
-    });
     // Return a more user-friendly error message
     const errorMessage =
       result.error.message === "Failed to fetch"
@@ -607,10 +602,6 @@ export async function downloadAsZip(
         if (downloadResult.isOk()) {
           zip.file(file.name, downloadResult.value);
         } else {
-          console.warn(
-            `Failed to download ${file.name}:`,
-            downloadResult.error
-          );
           // Continue with other files instead of failing completely
         }
       }
@@ -672,13 +663,11 @@ async function addDirectoryToZip(
     // List directory contents
     const listResult = await listFiles(serverId, dirPath);
     if (listResult.isErr()) {
-      console.warn(`Failed to list directory ${dirPath}:`, listResult.error);
       return;
     }
 
     const folder = zip.folder(zipPath);
     if (!folder) {
-      console.warn(`Failed to create folder ${zipPath}`);
       return;
     }
 
@@ -701,11 +690,11 @@ async function addDirectoryToZip(
         if (downloadResult.isOk()) {
           folder.file(itemZipPath, downloadResult.value);
         } else {
-          console.warn(`Failed to download ${itemPath}:`, downloadResult.error);
+          // Continue with other files
         }
       }
     }
-  } catch (error) {
-    console.warn(`Error processing directory ${dirPath}:`, error);
+  } catch {
+    // Directory processing error handled silently
   }
 }
