@@ -84,11 +84,13 @@ describe("FileHistoryViewer", () => {
   };
 
   const mockVersionContent = {
-    version: 1,
+    file_path: "config/server.properties",
+    version_number: 1,
     content: "server.properties content here",
-    timestamp: "2024-01-01T10:00:00Z",
-    filesize: 1024,
-    created_by: "admin",
+    encoding: "utf-8",
+    created_at: "2024-01-01T10:00:00Z",
+    editor_username: "admin",
+    description: "Initial version",
   };
 
   const defaultProps = {
@@ -113,7 +115,7 @@ describe("FileHistoryViewer", () => {
     });
 
     it("should load file history on mount", async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
 
       render(<FileHistoryViewer {...defaultProps} />);
 
@@ -128,7 +130,7 @@ describe("FileHistoryViewer", () => {
     });
 
     it("should reload history when serverId changes", async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
 
       const { rerender } = render(<FileHistoryViewer {...defaultProps} />);
 
@@ -150,7 +152,7 @@ describe("FileHistoryViewer", () => {
     });
 
     it("should reload history when filePath changes", async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
 
       const { rerender } = render(<FileHistoryViewer {...defaultProps} />);
 
@@ -190,7 +192,7 @@ describe("FileHistoryViewer", () => {
     });
 
     it("should show error when version content loading fails", async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
       const errorMessage = "Failed to load version content";
       mockGetFileVersionContent.mockResolvedValue(err(errorMessage));
 
@@ -211,7 +213,7 @@ describe("FileHistoryViewer", () => {
   describe("Empty State", () => {
     it("should show empty state when no history exists", async () => {
       mockGetFileHistory.mockResolvedValue(
-        ok({ history: [], total_versions: 0, file_path: "test.txt" } as any)
+        ok({ history: [], total_versions: 0, file_path: "test.txt" })
       );
 
       render(<FileHistoryViewer {...defaultProps} />);
@@ -224,7 +226,7 @@ describe("FileHistoryViewer", () => {
 
   describe("History Display", () => {
     beforeEach(async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
     });
 
     it("should display all version items", async () => {
@@ -279,10 +281,8 @@ describe("FileHistoryViewer", () => {
 
   describe("Version Selection", () => {
     beforeEach(async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
-      mockGetFileVersionContent.mockResolvedValue(
-        ok(mockVersionContent as any)
-      );
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
+      mockGetFileVersionContent.mockResolvedValue(ok(mockVersionContent));
     });
 
     it("should load version content when version is selected", async () => {
@@ -349,10 +349,8 @@ describe("FileHistoryViewer", () => {
 
   describe("Restore Functionality", () => {
     beforeEach(async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
-      mockGetFileVersionContent.mockResolvedValue(
-        ok(mockVersionContent as any)
-      );
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
+      mockGetFileVersionContent.mockResolvedValue(ok(mockVersionContent));
     });
 
     it("should call onRestore with correct parameters", async () => {
@@ -429,7 +427,7 @@ describe("FileHistoryViewer", () => {
 
   describe("Admin Features", () => {
     beforeEach(async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
     });
 
     it("should show delete buttons when user is admin", async () => {
@@ -498,7 +496,12 @@ describe("FileHistoryViewer", () => {
           history: [
             {
               id: 1,
+              server_id: 1,
+              file_path: "test.txt",
               version_number: 1,
+              backup_file_path: "/backups/test.txt.v1",
+              content_hash: "hash1",
+              editor_user_id: 1,
               created_at: "2024-01-01T10:00:00Z",
               editor_username: "admin",
               file_size: 0,
@@ -506,7 +509,12 @@ describe("FileHistoryViewer", () => {
             },
             {
               id: 2,
+              server_id: 1,
+              file_path: "test.txt",
               version_number: 2,
+              backup_file_path: "/backups/test.txt.v2",
+              content_hash: "hash2",
+              editor_user_id: 1,
               created_at: "2024-01-01T10:00:00Z",
               editor_username: "admin",
               file_size: 1024 * 1024 * 1024, // 1GB
@@ -515,7 +523,7 @@ describe("FileHistoryViewer", () => {
           ],
           total_versions: 2,
           file_path: "test.txt",
-        } as any)
+        })
       );
     });
 
@@ -531,7 +539,7 @@ describe("FileHistoryViewer", () => {
 
   describe("Edge Cases", () => {
     it("should handle missing onDelete prop gracefully", async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
 
       render(
         <FileHistoryViewer
@@ -552,7 +560,7 @@ describe("FileHistoryViewer", () => {
     });
 
     it("should handle restore when no version is selected", async () => {
-      mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
+      mockGetFileHistory.mockResolvedValue(ok(mockHistory));
       const onRestore = vi.fn();
 
       render(<FileHistoryViewer {...defaultProps} onRestore={onRestore} />);

@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi, beforeEach } from "vitest";
-import { ok, err } from "neverthrow";
+import { ok, err, Result } from "neverthrow";
 import { useFileViewer } from "./useFileViewer";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
@@ -137,7 +137,7 @@ describe("useFileViewer", () => {
 
     const mockImageFile: FileSystemItem = {
       name: "image.png",
-      type: "binary" as any,
+      type: "binary",
       is_directory: false,
       size: 500,
       modified: "2023-01-01T00:00:00Z",
@@ -161,7 +161,7 @@ describe("useFileViewer", () => {
         const { result } = renderHook(() => useFileViewer(mockServerId));
         const nonViewableFile: FileSystemItem = {
           name: "data.zip",
-          type: "binary" as any,
+          type: "binary",
           is_directory: false,
           size: 1000,
           modified: "2023-01-01T00:00:00Z",
@@ -179,7 +179,14 @@ describe("useFileViewer", () => {
 
       it("should open text file successfully", async () => {
         const mockContent = "This is file content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -199,7 +206,14 @@ describe("useFileViewer", () => {
 
       it("should open text file in root directory", async () => {
         const mockContent = "Root file content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -294,7 +308,14 @@ describe("useFileViewer", () => {
     describe("closeFileViewer", () => {
       it("should close viewer and reset state", async () => {
         const mockContent = "Test content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -347,8 +368,15 @@ describe("useFileViewer", () => {
     describe("saveFile", () => {
       it("should save file successfully", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
-        mockWriteFile.mockResolvedValue(ok(undefined as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
+        mockWriteFile.mockResolvedValue(ok(undefined));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -363,12 +391,12 @@ describe("useFileViewer", () => {
         });
 
         // Save file
-        let saveResult: any;
+        let saveResult: Result<void, string> | undefined;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
 
-        expect(saveResult.isOk()).toBe(true);
+        expect(saveResult!.isOk()).toBe(true);
         expect(result.current.fileContent).toBe("Modified content");
         expect(result.current.isEditing).toBe(false);
         expect(result.current.editedContent).toBe("");
@@ -387,8 +415,15 @@ describe("useFileViewer", () => {
 
       it("should save file in root directory", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
-        mockWriteFile.mockResolvedValue(ok(undefined as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
+        mockWriteFile.mockResolvedValue(ok(undefined));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -418,7 +453,14 @@ describe("useFileViewer", () => {
 
       it("should handle save error", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
         const errorMessage = "Permission denied";
         mockWriteFile.mockResolvedValue(
           err({ status: 403, message: errorMessage, details: "Access denied" })
@@ -437,13 +479,13 @@ describe("useFileViewer", () => {
         });
 
         // Save file
-        let saveResult: any;
+        let saveResult: Result<void, string> | undefined;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
 
-        expect(saveResult.isErr()).toBe(true);
-        if (saveResult.isErr()) {
+        expect(saveResult!.isErr()).toBe(true);
+        if (saveResult!.isErr()) {
           expect(saveResult.error).toBe(errorMessage);
         }
         expect(result.current.isSaving).toBe(false);
@@ -451,7 +493,14 @@ describe("useFileViewer", () => {
 
       it("should handle unexpected save error", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
         mockWriteFile.mockImplementation(() => {
           throw new Error("Network error");
         });
@@ -469,13 +518,13 @@ describe("useFileViewer", () => {
         });
 
         // Save file
-        let saveResult: any;
+        let saveResult: Result<void, string> | undefined;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
 
-        expect(saveResult.isErr()).toBe(true);
-        if (saveResult.isErr()) {
+        expect(saveResult!.isErr()).toBe(true);
+        if (saveResult!.isErr()) {
           expect(saveResult.error).toBe("Network error");
         }
       });
@@ -483,13 +532,13 @@ describe("useFileViewer", () => {
       it("should reject save when no file is selected", async () => {
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
-        let saveResult: any;
+        let saveResult: Result<void, string> | undefined;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
 
-        expect(saveResult.isErr()).toBe(true);
-        if (saveResult.isErr()) {
+        expect(saveResult!.isErr()).toBe(true);
+        if (saveResult!.isErr()) {
           expect(saveResult.error).toBe(
             "No file selected or not in editing mode"
           );
@@ -498,7 +547,14 @@ describe("useFileViewer", () => {
 
       it("should reject save when not in editing mode", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -507,13 +563,13 @@ describe("useFileViewer", () => {
           await result.current.openFileViewer(mockTextFile, "/config");
         });
 
-        let saveResult: any;
+        let saveResult: Result<void, string> | undefined;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
 
-        expect(saveResult.isErr()).toBe(true);
-        if (saveResult.isErr()) {
+        expect(saveResult!.isErr()).toBe(true);
+        if (saveResult!.isErr()) {
           expect(saveResult.error).toBe(
             "No file selected or not in editing mode"
           );
@@ -526,7 +582,12 @@ describe("useFileViewer", () => {
         const mockBlob = new Blob(["file content"], { type: "text/plain" });
         mockDownloadFile.mockResolvedValue(ok(mockBlob));
         mockReadTextFile.mockResolvedValue(
-          ok({ content: "File content" } as any)
+          ok({
+            content: "File content",
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
         );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
@@ -537,13 +598,13 @@ describe("useFileViewer", () => {
         });
 
         // Download file
-        let downloadResult: any;
+        let downloadResult: Result<void, string> | undefined;
         await act(async () => {
           downloadResult =
             await result.current.downloadCurrentFile("/downloads");
         });
 
-        expect(downloadResult.isOk()).toBe(true);
+        expect(downloadResult!.isOk()).toBe(true);
         expect(mockDownloadFile).toHaveBeenCalledWith(
           mockServerId,
           "/downloads/config.txt"
@@ -554,7 +615,12 @@ describe("useFileViewer", () => {
         const mockBlob = new Blob(["file content"], { type: "text/plain" });
         mockDownloadFile.mockResolvedValue(ok(mockBlob));
         mockReadTextFile.mockResolvedValue(
-          ok({ content: "File content" } as any)
+          ok({
+            content: "File content",
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
         );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
@@ -581,7 +647,12 @@ describe("useFileViewer", () => {
           err({ status: 500, message: errorMessage, details: "Server error" })
         );
         mockReadTextFile.mockResolvedValue(
-          ok({ content: "File content" } as any)
+          ok({
+            content: "File content",
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
         );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
@@ -592,14 +663,14 @@ describe("useFileViewer", () => {
         });
 
         // Download file
-        let downloadResult: any;
+        let downloadResult: Result<void, string> | undefined;
         await act(async () => {
           downloadResult =
             await result.current.downloadCurrentFile("/downloads");
         });
 
-        expect(downloadResult.isErr()).toBe(true);
-        if (downloadResult.isErr()) {
+        expect(downloadResult!.isErr()).toBe(true);
+        if (downloadResult!.isErr()) {
           expect(downloadResult.error).toBe(errorMessage);
         }
       });
@@ -607,14 +678,14 @@ describe("useFileViewer", () => {
       it("should reject download when no file is selected", async () => {
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
-        let downloadResult: any;
+        let downloadResult: Result<void, string> | undefined;
         await act(async () => {
           downloadResult =
             await result.current.downloadCurrentFile("/downloads");
         });
 
-        expect(downloadResult.isErr()).toBe(true);
-        if (downloadResult.isErr()) {
+        expect(downloadResult!.isErr()).toBe(true);
+        if (downloadResult!.isErr()) {
           expect(downloadResult.error).toBe("No file selected");
         }
       });
@@ -623,8 +694,15 @@ describe("useFileViewer", () => {
     describe("Integration Tests", () => {
       it("should handle complete workflow: open -> edit -> save -> close", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
-        mockWriteFile.mockResolvedValue(ok(undefined as any));
+        mockReadTextFile.mockResolvedValue(
+          ok({
+            content: mockContent,
+            encoding: "utf-8",
+            size: 1024,
+            modified: "2023-01-01T00:00:00Z",
+          })
+        );
+        mockWriteFile.mockResolvedValue(ok(undefined));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -652,12 +730,12 @@ describe("useFileViewer", () => {
         expect(result.current.editedContent).toBe("Modified content");
 
         // Save file
-        let saveResult: any;
+        let saveResult: Result<void, string> | undefined;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
 
-        expect(saveResult.isOk()).toBe(true);
+        expect(saveResult!.isOk()).toBe(true);
         expect(result.current.fileContent).toBe("Modified content");
         expect(result.current.isEditing).toBe(false);
 

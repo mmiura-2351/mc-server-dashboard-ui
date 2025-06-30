@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ok, err } from "neverthrow";
 import { ServerType, ServerStatus } from "@/types/server";
+import type { Group, AttachedGroup } from "@/services/groups";
 
 // Mock the auth context
 const mockLogout = vi.fn();
@@ -44,7 +45,7 @@ const translations: Record<string, string> = {
   "groups.servers.priority": "Priority",
   "groups.servers.attach": "Attach",
   "groups.types.whitelist": "Whitelist",
-  "groups.types.operators": "Operators",
+  "groups.types.op": "OP",
   "common.cancel": "Cancel",
   "common.close": "Close",
   "servers.settings.description": "Configure your server settings",
@@ -669,11 +670,11 @@ describe("ServerSettings", () => {
   });
 
   describe("ServerGroupsSection", () => {
-    const mockAttachedGroups = [
+    const mockAttachedGroups: AttachedGroup[] = [
       {
         id: 1,
         name: "Whitelist Group",
-        type: "whitelist" as const,
+        type: "whitelist",
         priority: 10,
         attached_at: "2025-01-01T12:00:00Z",
         description: "Whitelist group description",
@@ -682,7 +683,7 @@ describe("ServerSettings", () => {
       {
         id: 2,
         name: "Operators Group",
-        type: "op" as const,
+        type: "op",
         priority: 20,
         attached_at: "2025-01-02T12:00:00Z",
         description: "Operators group description",
@@ -690,14 +691,25 @@ describe("ServerSettings", () => {
       },
     ];
 
-    const mockAvailableGroups = [
+    const mockAvailableGroups: Group[] = [
       {
         id: 3,
         name: "Available Group",
-        type: "whitelist" as const,
+        type: "whitelist",
         created_at: "2025-01-01T00:00:00Z",
         updated_at: "2025-01-01T00:00:00Z",
         description: "Available group description",
+        players: [],
+        owner_id: 1,
+        is_template: false,
+      },
+      {
+        id: 4,
+        name: "Available Group 2",
+        type: "op",
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-01T00:00:00Z",
+        description: "OP group description",
         players: [],
         owner_id: 1,
         is_template: false,
@@ -720,10 +732,10 @@ describe("ServerSettings", () => {
 
     test("should render attached groups successfully", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(
-        ok(mockAttachedGroups as any)
+        ok(mockAttachedGroups)
       );
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -735,7 +747,7 @@ describe("ServerSettings", () => {
 
       expect(screen.getByText("2 attached groups")).toBeInTheDocument();
       expect(screen.getByText("Whitelist")).toBeInTheDocument();
-      expect(screen.getByText("Operators")).toBeInTheDocument();
+      expect(screen.getByText("OP")).toBeInTheDocument();
       expect(screen.getByText("Priority: 10")).toBeInTheDocument();
       expect(screen.getByText("Priority: 20")).toBeInTheDocument();
     });
@@ -743,7 +755,7 @@ describe("ServerSettings", () => {
     test("should render empty state when no groups attached", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -801,7 +813,7 @@ describe("ServerSettings", () => {
     test("should open attach group modal", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -819,11 +831,11 @@ describe("ServerSettings", () => {
 
     test("should disable attach button when no groups available", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(
-        ok(mockAttachedGroups as any)
+        ok(mockAttachedGroups)
       );
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAttachedGroups as any)
-      ); // Same groups (all attached)
+        ok(mockAvailableGroups)
+      );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
 
@@ -837,7 +849,7 @@ describe("ServerSettings", () => {
 
     test("should open detach confirmation modal", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(
-        ok(mockAttachedGroups as any)
+        ok(mockAttachedGroups)
       );
       vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
 
@@ -894,7 +906,7 @@ describe("ServerSettings", () => {
 
     test("should handle detach group error", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(
-        ok(mockAttachedGroups as any)
+        ok(mockAttachedGroups)
       );
       vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.detachGroupFromServer).mockResolvedValue(
@@ -924,7 +936,7 @@ describe("ServerSettings", () => {
 
     test("should cancel detach operation", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(
-        ok(mockAttachedGroups as any)
+        ok(mockAttachedGroups)
       );
       vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
 
@@ -980,7 +992,7 @@ describe("ServerSettings", () => {
     test("should render attach group modal with available groups", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -996,15 +1008,13 @@ describe("ServerSettings", () => {
       expect(
         screen.getByText("Available Group 1 (Whitelist)")
       ).toBeInTheDocument();
-      expect(
-        screen.getByText("Available Group 2 (Operators)")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Available Group 2 (OP)")).toBeInTheDocument();
     });
 
     test("should close attach group modal", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -1025,7 +1035,7 @@ describe("ServerSettings", () => {
     test("should cancel attach group modal", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -1048,7 +1058,7 @@ describe("ServerSettings", () => {
         .mockResolvedValueOnce(ok([]))
         .mockResolvedValueOnce(ok([])); // After attachment
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
       vi.mocked(groupService.attachGroupToServer).mockResolvedValue(
         ok({ message: "Group attached successfully" })
@@ -1086,7 +1096,7 @@ describe("ServerSettings", () => {
     test("should handle attach group error", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
       vi.mocked(groupService.attachGroupToServer).mockResolvedValue(
         err({ message: "Failed to attach group", status: 500 })
@@ -1115,7 +1125,7 @@ describe("ServerSettings", () => {
     test("should disable attach button when no group selected", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
@@ -1134,7 +1144,7 @@ describe("ServerSettings", () => {
     test("should handle priority input changes", async () => {
       vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
       vi.mocked(groupService.getGroups).mockResolvedValue(
-        ok(mockAvailableGroups as any)
+        ok(mockAvailableGroups)
       );
 
       render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);

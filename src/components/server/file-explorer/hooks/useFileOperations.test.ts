@@ -1,8 +1,8 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi, beforeEach } from "vitest";
-import { ok, err } from "neverthrow";
+import { ok, err, Result } from "neverthrow";
 import { useFileOperations } from "./useFileOperations";
-import type { FileSystemItem } from "@/types/files";
+import type { FileSystemItem, FileError } from "@/types/files";
 import * as fileService from "@/services/files";
 
 // Mock file service
@@ -158,7 +158,7 @@ describe("useFileOperations", () => {
 
   describe("Confirm Rename Operations", () => {
     it("should successfully confirm rename operation", async () => {
-      mockRenameFile.mockResolvedValue(ok(undefined as any));
+      mockRenameFile.mockResolvedValue(ok(undefined));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -168,12 +168,12 @@ describe("useFileOperations", () => {
         result.current.setNewName("new-name.txt");
       });
 
-      let renameResult: any;
+      let renameResult: Result<void, string> | undefined;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
 
-      expect(renameResult.isOk()).toBe(true);
+      expect(renameResult!.isOk()).toBe(true);
       expect(mockRenameFile).toHaveBeenCalledWith(
         mockServerId,
         "/test/file1.txt",
@@ -185,7 +185,7 @@ describe("useFileOperations", () => {
     });
 
     it("should handle rename operation in root directory", async () => {
-      mockRenameFile.mockResolvedValue(ok(undefined as any));
+      mockRenameFile.mockResolvedValue(ok(undefined));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -220,13 +220,13 @@ describe("useFileOperations", () => {
         result.current.setNewName("new-name.txt");
       });
 
-      let renameResult: any;
+      let renameResult: Result<void, string> | undefined;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
 
-      expect(renameResult.isErr()).toBe(true);
-      if (renameResult.isErr()) {
+      expect(renameResult!.isErr()).toBe(true);
+      if (renameResult!.isErr()) {
         expect(renameResult.error).toBe(errorMessage);
       }
       expect(result.current.isRenaming).toBe(false);
@@ -235,13 +235,13 @@ describe("useFileOperations", () => {
     it("should reject rename with invalid parameters", async () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
 
-      let renameResult: any;
+      let renameResult: Result<void, string> | undefined;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
 
-      expect(renameResult.isErr()).toBe(true);
-      if (renameResult.isErr()) {
+      expect(renameResult!.isErr()).toBe(true);
+      if (renameResult!.isErr()) {
         expect(renameResult.error).toBe("Invalid rename parameters");
       }
     });
@@ -255,13 +255,13 @@ describe("useFileOperations", () => {
         result.current.setNewName("   ");
       });
 
-      let renameResult: any;
+      let renameResult: Result<void, string> | undefined;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
 
-      expect(renameResult.isErr()).toBe(true);
-      if (renameResult.isErr()) {
+      expect(renameResult!.isErr()).toBe(true);
+      if (renameResult!.isErr()) {
         expect(renameResult.error).toBe("Invalid rename parameters");
       }
     });
@@ -275,13 +275,13 @@ describe("useFileOperations", () => {
         // Don't change the name - keep it same as original
       });
 
-      let renameResult: any;
+      let renameResult: Result<void, string> | undefined;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
 
-      expect(renameResult.isErr()).toBe(true);
-      if (renameResult.isErr()) {
+      expect(renameResult!.isErr()).toBe(true);
+      if (renameResult!.isErr()) {
         expect(renameResult.error).toBe("Invalid rename parameters");
       }
     });
@@ -289,17 +289,17 @@ describe("useFileOperations", () => {
 
   describe("Delete Operations", () => {
     it("should delete single file successfully", async () => {
-      mockDeleteFile.mockResolvedValue(ok(undefined as any));
+      mockDeleteFile.mockResolvedValue(ok(undefined));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let deleteResult: any;
+      let deleteResult: Result<void, FileError> | undefined;
       await act(async () => {
         deleteResult = await result.current.deleteFile(file, "/test");
       });
 
-      expect(deleteResult.isOk()).toBe(true);
+      expect(deleteResult!.isOk()).toBe(true);
       expect(mockDeleteFile).toHaveBeenCalledWith(
         mockServerId,
         "/test/file1.txt"
@@ -307,7 +307,7 @@ describe("useFileOperations", () => {
     });
 
     it("should delete single file in root directory", async () => {
-      mockDeleteFile.mockResolvedValue(ok(undefined as any));
+      mockDeleteFile.mockResolvedValue(ok(undefined));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -328,19 +328,19 @@ describe("useFileOperations", () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let deleteResult: any;
+      let deleteResult: Result<void, FileError> | undefined;
       await act(async () => {
         deleteResult = await result.current.deleteFile(file, "/test");
       });
 
-      expect(deleteResult.isErr()).toBe(true);
-      if (deleteResult.isErr()) {
+      expect(deleteResult!.isErr()).toBe(true);
+      if (deleteResult!.isErr()) {
         expect(deleteResult.error.message).toBe(errorMessage);
       }
     });
 
     it("should delete multiple files successfully", async () => {
-      mockDeleteFile.mockResolvedValue(ok(undefined as any));
+      mockDeleteFile.mockResolvedValue(ok(undefined));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
 
@@ -350,13 +350,22 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file2.txt");
       });
 
-      let deleteResult: any;
+      let deleteResult:
+        | Result<
+            {
+              successCount: number;
+              failCount: number;
+              deletedFileNames: string[];
+            },
+            string
+          >
+        | undefined;
       await act(async () => {
         deleteResult = await result.current.deleteBulkFiles(mockFiles, "/test");
       });
 
-      expect(deleteResult.isOk()).toBe(true);
-      if (deleteResult.isOk()) {
+      expect(deleteResult!.isOk()).toBe(true);
+      if (deleteResult!.isOk()) {
         expect(deleteResult.value.successCount).toBe(2);
         expect(deleteResult.value.failCount).toBe(0);
         expect(deleteResult.value.deletedFileNames).toEqual([
@@ -370,15 +379,13 @@ describe("useFileOperations", () => {
     });
 
     it("should handle partial failure in bulk delete", async () => {
-      mockDeleteFile
-        .mockResolvedValueOnce(ok(undefined as any))
-        .mockResolvedValueOnce(
-          err({
-            status: 500,
-            message: "Delete failed",
-            details: "Server error",
-          })
-        );
+      mockDeleteFile.mockResolvedValueOnce(ok(undefined)).mockResolvedValueOnce(
+        err({
+          status: 500,
+          message: "Delete failed",
+          details: "Server error",
+        })
+      );
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
 
@@ -388,13 +395,22 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file2.txt");
       });
 
-      let deleteResult: any;
+      let deleteResult:
+        | Result<
+            {
+              successCount: number;
+              failCount: number;
+              deletedFileNames: string[];
+            },
+            string
+          >
+        | undefined;
       await act(async () => {
         deleteResult = await result.current.deleteBulkFiles(mockFiles, "/test");
       });
 
-      expect(deleteResult.isOk()).toBe(true);
-      if (deleteResult.isOk()) {
+      expect(deleteResult!.isOk()).toBe(true);
+      if (deleteResult!.isOk()) {
         expect(deleteResult.value.successCount).toBe(1);
         expect(deleteResult.value.failCount).toBe(1);
         expect(deleteResult.value.deletedFileNames).toEqual(["file1.txt"]);
@@ -414,12 +430,12 @@ describe("useFileOperations", () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let downloadResult: any;
+      let downloadResult: Result<Blob, FileError> | undefined;
       await act(async () => {
         downloadResult = await result.current.downloadFile(file, "/test");
       });
 
-      expect(downloadResult.isOk()).toBe(true);
+      expect(downloadResult!.isOk()).toBe(true);
       expect(mockDownloadFile).toHaveBeenCalledWith(
         mockServerId,
         "/test/file1.txt"
@@ -452,7 +468,7 @@ describe("useFileOperations", () => {
         path: "/test-dir",
       };
 
-      let downloadResult: any;
+      let downloadResult: Result<Blob, FileError> | undefined;
       await act(async () => {
         downloadResult = await result.current.downloadFile(
           directoryFile,
@@ -460,8 +476,8 @@ describe("useFileOperations", () => {
         );
       });
 
-      expect(downloadResult.isErr()).toBe(true);
-      if (downloadResult.isErr()) {
+      expect(downloadResult!.isErr()).toBe(true);
+      if (downloadResult!.isErr()) {
         expect(downloadResult.error.message).toBe("Cannot download directory");
       }
     });
@@ -475,13 +491,13 @@ describe("useFileOperations", () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let downloadResult: any;
+      let downloadResult: Result<Blob, FileError> | undefined;
       await act(async () => {
         downloadResult = await result.current.downloadFile(file, "/test");
       });
 
-      expect(downloadResult.isErr()).toBe(true);
-      if (downloadResult.isErr()) {
+      expect(downloadResult!.isErr()).toBe(true);
+      if (downloadResult!.isErr()) {
         expect(downloadResult.error.message).toBe(errorMessage);
       }
     });
@@ -500,7 +516,9 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file2.txt");
       });
 
-      let downloadResult: any;
+      let downloadResult:
+        | Result<{ filename: string; fileCount: number }, string>
+        | undefined;
       await act(async () => {
         downloadResult = await result.current.downloadBulkFiles(
           mockFiles,
@@ -508,8 +526,8 @@ describe("useFileOperations", () => {
         );
       });
 
-      expect(downloadResult.isOk()).toBe(true);
-      if (downloadResult.isOk()) {
+      expect(downloadResult!.isOk()).toBe(true);
+      if (downloadResult!.isOk()) {
         expect(downloadResult.value.filename).toBe("files.zip");
         expect(downloadResult.value.fileCount).toBe(2);
       }
@@ -525,7 +543,9 @@ describe("useFileOperations", () => {
     it("should handle bulk download with no files selected", async () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
 
-      let downloadResult: any;
+      let downloadResult:
+        | Result<{ filename: string; fileCount: number }, string>
+        | undefined;
       await act(async () => {
         downloadResult = await result.current.downloadBulkFiles(
           mockFiles,
@@ -533,8 +553,8 @@ describe("useFileOperations", () => {
         );
       });
 
-      expect(downloadResult.isErr()).toBe(true);
-      if (downloadResult.isErr()) {
+      expect(downloadResult!.isErr()).toBe(true);
+      if (downloadResult!.isErr()) {
         expect(downloadResult.error).toBe("No files selected for download");
       }
     });
@@ -552,7 +572,9 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file1.txt");
       });
 
-      let downloadResult: any;
+      let downloadResult:
+        | Result<{ filename: string; fileCount: number }, string>
+        | undefined;
       await act(async () => {
         downloadResult = await result.current.downloadBulkFiles(
           mockFiles,
@@ -560,8 +582,8 @@ describe("useFileOperations", () => {
         );
       });
 
-      expect(downloadResult.isErr()).toBe(true);
-      if (downloadResult.isErr()) {
+      expect(downloadResult!.isErr()).toBe(true);
+      if (downloadResult!.isErr()) {
         expect(downloadResult.error).toBe(errorMessage);
       }
     });
