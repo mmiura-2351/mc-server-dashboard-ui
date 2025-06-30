@@ -123,7 +123,8 @@ When completing issue resolution:
 1. **Update with Main**: Before creating PR, ensure feature branch is updated with latest main (`git pull origin main` or `git rebase origin/main`)
 2. **Resolve Conflicts**: Address any merge conflicts locally before pushing
 3. **Verify CI**: Ensure all tests pass and code quality checks succeed (`npm run lint`, `npm run type-check`, `npm test`)
-4. **Clean History**: Consider interactive rebase for cleaner commit history if needed
+4. **Format Check**: Always run `npm run format:check` before committing to ensure consistent code formatting
+5. **Clean History**: Consider interactive rebase for cleaner commit history if needed
 
 **Pull Request Creation:**
 
@@ -174,6 +175,41 @@ Benefits of squash merge:
 - Groups all PR changes into a single commit
 - Makes it easier to revert changes if needed
 - Keeps the main branch history readable
+
+### Rule 11: Pre-Pull Request CI Verification
+
+**Always verify CI checks locally before creating or updating pull requests.**
+
+When preparing to create or update a pull request:
+
+1. **Run Full CI Check Suite**:
+
+   ```bash
+   npm run lint          # ESLint checking
+   npm run format:check  # Prettier formatting check
+   npm run type-check    # TypeScript type checking
+   npm test             # Run test suite
+   ```
+
+2. **Fix Any Issues Before Pushing**:
+
+   - If formatting issues: Run `npm run format` to auto-fix
+   - If linting issues: Run `npm run lint:fix` for auto-fixable issues
+   - If type errors: Fix TypeScript errors manually
+   - If test failures: Debug and fix failing tests
+
+3. **Verify New Files**:
+
+   - Ensure all new files are properly formatted
+   - Run format check specifically on new files before first commit
+   - Pre-commit hooks may not catch all issues in new files
+
+4. **CI Failure Recovery**:
+   - If CI fails after pushing, fix locally first
+   - Run the specific failed check locally to verify fix
+   - Commit with descriptive message about what was fixed
+
+This prevents CI failures and reduces unnecessary commit noise in pull requests.
 
 ## Project Overview
 
