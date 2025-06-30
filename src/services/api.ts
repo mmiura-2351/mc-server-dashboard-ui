@@ -3,6 +3,7 @@ import type { AuthError } from "@/types/auth";
 import type { ApiRequestConfig } from "./api-types";
 import { ResponseHandlerManager } from "./response-handlers";
 import { tokenManager } from "@/utils/token-manager";
+import { ErrorHandler } from "@/utils/error-handler";
 
 // Note: Token refresh is now handled by TokenManager to prevent race conditions
 
@@ -69,31 +70,60 @@ async function fetchWithErrorHandlingInternal<T>(
     }
 
     if (!response.ok) {
-      return handleErrorResponse(response);
+      return handleErrorResponse(response, "network_request");
     }
 
     return handleSuccessResponse<T>(response, config);
   } catch (error) {
     // Handle abort/timeout errors specifically
     if (error instanceof Error && error.name === "AbortError") {
+      const timeoutError = ErrorHandler.createNetworkError(
+        "Request timeout - the operation took too long to complete",
+        "network_timeout",
+        {
+          status: 408,
+          retryable: true,
+          suggestions: [
+            "Check your internet connection",
+            "Try again with a longer timeout",
+          ],
+        }
+      );
+      ErrorHandler.logError(timeoutError);
+
       return err({
-        message: "Request timeout - the operation took too long to complete",
+        message: timeoutError.message,
         status: 408, // HTTP 408 Request Timeout
       });
     }
 
+    const networkError = ErrorHandler.createNetworkError(
+      error instanceof Error ? error.message : "Network error",
+      "network_exception",
+      {
+        retryable: true,
+        suggestions: [
+          "Check your internet connection",
+          "Verify the server is accessible",
+        ],
+      }
+    );
+    ErrorHandler.logError(networkError);
+
     return err({
-      message: error instanceof Error ? error.message : "Network error",
+      message: networkError.message,
     });
   }
 }
 
-// Handle error responses
+// Handle error responses with enhanced error context
 async function handleErrorResponse(
-  response: Response
+  response: Response,
+  operation: string = "api_request"
 ): Promise<Result<never, AuthError>> {
   const errorText = await response.text();
   let errorMessage = "An error occurred";
+  let suggestions: string[] = [];
 
   try {
     const errorData = JSON.parse(errorText);
@@ -108,6 +138,10 @@ async function handleErrorResponse(
         })
         .join(", ");
       errorMessage = `Validation error: ${validationErrors}`;
+      suggestions = [
+        "Please check your input data",
+        "Verify all required fields are provided",
+      ];
     } else if (errorData.detail) {
       // Handle standard FastAPI errors
       errorMessage = errorData.detail;
@@ -119,10 +153,72 @@ async function handleErrorResponse(
     errorMessage = errorText || `HTTP ${response.status}`;
   }
 
+  // Create structured error based on status code
+  let structuredError;
+
+  if (response.status === 401) {
+    structuredError = ErrorHandler.createAuthError(errorMessage, operation, {
+      status: response.status,
+      shouldLogout: true,
+      retryable: true,
+      suggestions:
+        suggestions.length > 0
+          ? suggestions
+          : ["Please log in again", "Check your session status"],
+    });
+  } else if (response.status === 403) {
+    structuredError = ErrorHandler.createAuthError(errorMessage, operation, {
+      status: response.status,
+      shouldLogout: false,
+      retryable: false,
+      suggestions: [
+        "You may not have permission for this action",
+        "Contact an administrator",
+      ],
+    });
+  } else if (response.status === 422) {
+    structuredError = ErrorHandler.createValidationError(
+      errorMessage,
+      operation,
+      {
+        suggestions:
+          suggestions.length > 0
+            ? suggestions
+            : ["Please check your input and try again"],
+      }
+    );
+  } else {
+    structuredError = ErrorHandler.createNetworkError(errorMessage, operation, {
+      status: response.status,
+      retryable: [408, 429, 500, 502, 503, 504].includes(response.status),
+      suggestions: getNetworkErrorSuggestions(response.status),
+    });
+  }
+
+  // Log the structured error for debugging
+  ErrorHandler.logError(structuredError);
+
+  // Return compatible AuthError for existing code
   return err({
-    message: errorMessage,
+    message: structuredError.message,
     status: response.status,
   });
+}
+
+// Get suggestions based on HTTP status code
+function getNetworkErrorSuggestions(status: number): string[] {
+  const suggestions: Record<number, string[]> = {
+    400: ["Check your request data", "Verify the request format"],
+    404: ["The resource was not found", "Check the URL or refresh the page"],
+    408: ["Request timed out", "Check your connection and try again"],
+    429: ["Too many requests", "Please wait a moment and try again"],
+    500: ["Server error", "Please try again later"],
+    502: ["Service unavailable", "Please try again in a few minutes"],
+    503: ["Service under maintenance", "Please try again later"],
+    504: ["Gateway timeout", "Please try again later"],
+  };
+
+  return suggestions[status] || ["Please check your connection and try again"];
 }
 
 // Handle success responses with proper type detection

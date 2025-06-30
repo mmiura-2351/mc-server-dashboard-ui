@@ -404,7 +404,19 @@
     "conflict": "サーバーの状態により操作を実行できません。",
     "serverError": "サーバーエラーが発生しました。しばらく待ってから再試行してください。",
     "failedToLoad": "データの読み込みに失敗しました",
-    "operationFailed": "サーバーの{action}に失敗しました"
+    "operationFailed": "サーバーの{action}に失敗しました",
+    "boundary": {
+      "title": "エラーが発生しました",
+      "message": "予期しないエラーが発生しました。ページを再読み込みするか、問題が解決しない場合はサポートにお問い合わせください。",
+      "technicalDetails": "技術的な詳細",
+      "errorMessage": "エラーメッセージ",
+      "errorId": "エラーID",
+      "retryCount": "再試行回数",
+      "retry": "再試行",
+      "reset": "リセット",
+      "reload": "ページを再読み込み",
+      "helpText": "このエラーが継続する場合は、エラーIDをコピーしてサポートにお問い合わせください。"
+    }
   },
   "validation": {
     "required": "この項目は必須です",
