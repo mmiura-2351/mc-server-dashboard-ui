@@ -26,7 +26,11 @@
     "service:stop": "scripts/service-manager.sh stop",
     "service:restart": "scripts/service-manager.sh restart",
     "service:logs": "scripts/service-manager.sh logs",
-    "update": "scripts/update.sh"
+    "update": "scripts/update.sh",
+    "analyze": "ANALYZE=true npm run build",
+    "audit:fix": "npm audit fix",
+    "deps:check": "npm outdated",
+    "deps:update": "npm update"
   },
   "dependencies": {
     "dompurify": "^3.2.6",
@@ -43,6 +47,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.3.4",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.0",
