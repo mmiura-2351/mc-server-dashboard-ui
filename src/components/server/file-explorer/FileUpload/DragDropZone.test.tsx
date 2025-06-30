@@ -10,11 +10,17 @@ const createMockFile = (name: string, type: string = "text/plain"): File => {
 
 // Helper function to create mock FileList
 const createMockFileList = (files: File[]): FileList => {
-  const fileList = {
+  const fileList: {
+    length: number;
+    item: (index: number) => File | null;
+    [index: number]: File;
+  } = {
     length: files.length,
     item: (index: number) => files[index] || null,
-    ...files,
   };
+  files.forEach((file, index) => {
+    fileList[index] = file;
+  });
   Object.setPrototypeOf(fileList, FileList.prototype);
   return fileList as FileList;
 };

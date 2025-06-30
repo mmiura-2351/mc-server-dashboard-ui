@@ -41,7 +41,7 @@ const createMockDragEvent = (files: File[] = []) => {
     webkitGetAsEntry: vi.fn(() => ({
       isFile: true,
       isDirectory: false,
-      file: vi.fn((callback) => {
+      file: vi.fn((callback: (file: File) => void) => {
         // Preserve webkitRelativePath when processing files
         const processedFile = file;
         callback(processedFile);
@@ -65,7 +65,7 @@ const createMockDragEvent = (files: File[] = []) => {
     dataTransfer: {
       items,
     },
-  } as React.DragEvent;
+  } as unknown as React.DragEvent;
 };
 
 describe("useFileUpload", () => {
@@ -169,7 +169,7 @@ describe("useFileUpload", () => {
 
       vi.mocked(FileUploadSecurity.securityFilter).mockResolvedValue({
         allowed: [],
-        blocked: [{ file: testFiles[0], reason: "Dangerous file type" }],
+        blocked: [{ file: testFiles[0]!, reason: "Dangerous file type" }],
         warnings: [],
       });
 
@@ -181,7 +181,7 @@ describe("useFileUpload", () => {
         success: false,
         error: "No files allowed",
         warnings: [],
-        blocked: [{ file: testFiles[0], reason: "Dangerous file type" }],
+        blocked: [{ file: testFiles[0]!, reason: "Dangerous file type" }],
       });
     });
 
@@ -558,7 +558,7 @@ describe("useFileUpload", () => {
         dataTransfer: {
           items: [],
         },
-      } as React.DragEvent;
+      } as unknown as React.DragEvent;
 
       // Set drag over state first
       act(() => {
@@ -629,7 +629,7 @@ describe("useFileUpload", () => {
         result.current.handleFileUpload([folderFile], true, "/");
       });
 
-      expect(result.current.uploadState.progress[0].filename).toBe(
+      expect(result.current.uploadState.progress[0]?.filename).toBe(
         "folder/subfolder/test.txt"
       );
     });
@@ -671,7 +671,7 @@ describe("useFileUpload", () => {
       vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
         ok({
           successful: ["test1.txt"],
-          failed: ["test2.txt"],
+          failed: [{ file: "test2.txt", error: "Upload failed" }],
         })
       );
 
@@ -681,9 +681,13 @@ describe("useFileUpload", () => {
 
       expect(uploadResult.success).toBe(true);
       expect(uploadResult.successful).toEqual(["test1.txt"]);
-      expect(uploadResult.failed).toEqual(["test2.txt"]);
+      expect(uploadResult.failed).toEqual([
+        { file: "test2.txt", error: "Upload failed" },
+      ]);
       expect(result.current.uploadState.completed).toEqual(["test1.txt"]);
-      expect(result.current.uploadState.failed).toEqual(["test2.txt"]);
+      expect(result.current.uploadState.failed).toEqual([
+        { file: "test2.txt", error: "Upload failed" },
+      ]);
     });
   });
 });

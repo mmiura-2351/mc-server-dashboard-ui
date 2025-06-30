@@ -407,7 +407,7 @@ describe("FileExplorer", () => {
   describe("Error Handling", () => {
     it("should handle service errors gracefully", () => {
       vi.mocked(fileService.downloadFile).mockResolvedValue(
-        err("Download failed")
+        err({ message: "Download failed" })
       );
 
       render(<FileExplorer serverId={mockServerId} />);
