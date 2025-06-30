@@ -78,15 +78,13 @@ describe("RetryManager", () => {
     });
 
     it("should not retry non-retryable errors", async () => {
-      const operation = vi
-        .fn()
-        .mockResolvedValue(
-          err(
-            ErrorHandler.createAuthError("Non-retryable", "test", {
-              retryable: false,
-            })
-          )
-        );
+      const operation = vi.fn().mockResolvedValue(
+        err(
+          ErrorHandler.createAuthError("Non-retryable", "test", {
+            retryable: false,
+          })
+        )
+      );
 
       const result = await RetryManager.withRetry(operation, {
         maxRetries: 3,
@@ -98,15 +96,13 @@ describe("RetryManager", () => {
     });
 
     it("should respect custom retry condition", async () => {
-      const operation = vi
-        .fn()
-        .mockResolvedValue(
-          err(
-            ErrorHandler.createNetworkError("Custom error", "test", {
-              retryable: true,
-            })
-          )
-        );
+      const operation = vi.fn().mockResolvedValue(
+        err(
+          ErrorHandler.createNetworkError("Custom error", "test", {
+            retryable: true,
+          })
+        )
+      );
 
       const shouldRetry = vi.fn().mockReturnValue(false);
 
@@ -127,15 +123,13 @@ describe("RetryManager", () => {
 
   describe("Retry Delays and Backoff", () => {
     it("should implement exponential backoff", async () => {
-      const operation = vi
-        .fn()
-        .mockResolvedValue(
-          err(
-            ErrorHandler.createNetworkError("Test error", "test", {
-              retryable: true,
-            })
-          )
-        );
+      const operation = vi.fn().mockResolvedValue(
+        err(
+          ErrorHandler.createNetworkError("Test error", "test", {
+            retryable: true,
+          })
+        )
+      );
 
       const startTime = Date.now();
 
@@ -155,15 +149,13 @@ describe("RetryManager", () => {
     });
 
     it("should respect max delay", async () => {
-      const operation = vi
-        .fn()
-        .mockResolvedValue(
-          err(
-            ErrorHandler.createNetworkError("Test error", "test", {
-              retryable: true,
-            })
-          )
-        );
+      const operation = vi.fn().mockResolvedValue(
+        err(
+          ErrorHandler.createNetworkError("Test error", "test", {
+            retryable: true,
+          })
+        )
+      );
 
       const startTime = Date.now();
 
@@ -416,15 +408,13 @@ describe("RetryManager", () => {
     });
 
     it("should handle zero max retries", async () => {
-      const operation = vi
-        .fn()
-        .mockResolvedValue(
-          err(
-            ErrorHandler.createNetworkError("Test error", "test", {
-              retryable: true,
-            })
-          )
-        );
+      const operation = vi.fn().mockResolvedValue(
+        err(
+          ErrorHandler.createNetworkError("Test error", "test", {
+            retryable: true,
+          })
+        )
+      );
 
       const result = await RetryManager.withRetry(operation, {
         maxRetries: 0,
