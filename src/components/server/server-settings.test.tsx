@@ -830,8 +830,31 @@ describe("ServerSettings", () => {
     });
 
     test("should disable attach button when no groups available", async () => {
+      // All available groups are already attached
+      const allGroupsAttached: AttachedGroup[] = [
+        ...mockAttachedGroups,
+        {
+          id: 3,
+          name: "Available Group",
+          type: "whitelist",
+          priority: 30,
+          attached_at: "2025-01-03T12:00:00Z",
+          description: "Available group description",
+          player_count: 2,
+        },
+        {
+          id: 4,
+          name: "Available Group 2",
+          type: "op",
+          priority: 40,
+          attached_at: "2025-01-04T12:00:00Z",
+          description: "OP group description",
+          player_count: 1,
+        },
+      ];
+
       vi.mocked(groupService.getServerGroups).mockResolvedValue(
-        ok(mockAttachedGroups)
+        ok(allGroupsAttached)
       );
       vi.mocked(groupService.getGroups).mockResolvedValue(
         ok(mockAvailableGroups)
