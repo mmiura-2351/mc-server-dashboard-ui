@@ -14,7 +14,7 @@ vi.mock("@/utils/input-sanitizer", () => ({
 const mockT = vi.fn((key: string) => {
   const translations: Record<string, string> = {
     "files.rename": "Rename",
-    "files.folder": "folder", 
+    "files.folder": "folder",
     "files.file": "file",
     "files.newNameFor": "New name for",
     "files.renaming": "Renaming...",
@@ -98,7 +98,9 @@ describe("RenameModal", () => {
     });
 
     it("should display current folder name in label", () => {
-      render(<RenameModal {...defaultProps} file={mockFolder} newName="testfolder" />);
+      render(
+        <RenameModal {...defaultProps} file={mockFolder} newName="testfolder" />
+      );
 
       expect(screen.getByLabelText(/New name for/)).toBeInTheDocument();
     });
@@ -117,14 +119,16 @@ describe("RenameModal", () => {
       const { InputSanitizer } = await import("@/utils/input-sanitizer");
       const mockSanitize = vi.mocked(InputSanitizer.sanitizeFilePath);
       mockSanitize.mockReturnValue("sanitized-name.txt");
-      
+
       render(<RenameModal {...defaultProps} />);
 
       const input = screen.getByDisplayValue("test.txt");
       fireEvent.change(input, { target: { value: "new-name.txt" } });
 
       expect(mockSanitize).toHaveBeenCalledWith("new-name.txt");
-      expect(defaultProps.onNameChange).toHaveBeenCalledWith("sanitized-name.txt");
+      expect(defaultProps.onNameChange).toHaveBeenCalledWith(
+        "sanitized-name.txt"
+      );
     });
 
     it("should auto-focus the input field", () => {
@@ -203,7 +207,13 @@ describe("RenameModal", () => {
     });
 
     it("should disable rename button when renaming is in progress", () => {
-      render(<RenameModal {...defaultProps} isRenaming={true} newName="new-name.txt" />);
+      render(
+        <RenameModal
+          {...defaultProps}
+          isRenaming={true}
+          newName="new-name.txt"
+        />
+      );
 
       const renameButton = screen.getByText("Renaming...");
       expect(renameButton).toBeDisabled();
@@ -247,7 +257,9 @@ describe("RenameModal", () => {
 
   describe("Form Validation", () => {
     it("should handle names with special characters", () => {
-      render(<RenameModal {...defaultProps} newName="file-with_special.chars.txt" />);
+      render(
+        <RenameModal {...defaultProps} newName="file-with_special.chars.txt" />
+      );
 
       const renameButton = screen.getByText("Rename");
       expect(renameButton).not.toBeDisabled();
