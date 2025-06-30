@@ -3,6 +3,7 @@
  */
 import { ok, err, type Result } from "neverthrow";
 import { AuthStorage } from "./secure-storage";
+import { isTokenExpired } from "./jwt";
 import type { AuthError, RefreshTokenResponse } from "@/types/auth";
 
 interface TokenRefreshRequest {
@@ -41,7 +42,7 @@ class TokenManager {
     }
 
     // Check if token is expired (basic check - could be enhanced with JWT parsing)
-    if (this.isTokenExpired(accessToken)) {
+    if (isTokenExpired(accessToken)) {
       const refreshResult = await this.refreshTokens();
       if (refreshResult.isOk()) {
         return refreshResult.value.access_token;
@@ -143,43 +144,20 @@ class TokenManager {
   }
 
   /**
-   * JWT token expiration check with proper validation
-   */
-  private isTokenExpired(token: string): boolean {
-    try {
-      if (!token || token.length < 10) {
-        return true;
-      }
-
-      const parts = token.split(".");
-      if (parts.length !== 3) {
-        return true;
-      }
-
-      const payload = JSON.parse(atob(parts[1]!));
-      const currentTime = Math.floor(Date.now() / 1000);
-
-      // Check expiration (exp claim)
-      if (payload.exp && currentTime >= payload.exp) {
-        return true;
-      }
-
-      // Check not before (nbf claim)
-      if (payload.nbf && currentTime < payload.nbf) {
-        return true;
-      }
-
-      return false;
-    } catch {
-      return true;
-    }
-  }
-
-  /**
    * Clear all token-related data
    */
   clearTokens(): void {
     AuthStorage.clearAuthData();
+    this.refreshInProgress = false;
+    this.refreshPromise = null;
+    this.lastRefreshTime = 0;
+  }
+
+  /**
+   * Reset internal state for testing purposes
+   * NOTE: This method is public only for testing and should not be used in production code
+   */
+  resetForTesting(): void {
     this.refreshInProgress = false;
     this.refreshPromise = null;
     this.lastRefreshTime = 0;

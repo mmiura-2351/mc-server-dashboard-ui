@@ -1,8 +1,9 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ok, err } from "neverthrow";
 import { ServerType, ServerStatus } from "@/types/server";
+import type { Group, AttachedGroup } from "@/services/groups";
 
 // Mock the auth context
 const mockLogout = vi.fn();
@@ -31,9 +32,45 @@ const translations: Record<string, string> = {
   "servers.settings.saveSettings": "Save Settings",
   "servers.settings.saving": "Saving...",
   "servers.description": "Description",
+  "servers.settings.associatedGroups": "Associated Groups",
+  "servers.settings.loadingGroups": "Loading groups...",
+  "groups.servers.attachedGroups": "attached groups",
+  "groups.servers.attachToServer": "Attach Group",
+  "groups.servers.noGroupsAttached": "No groups are attached to this server",
+  "groups.servers.detach": "Detach",
+  "groups.servers.detachServer": "Detach Group",
+  "groups.servers.confirmDetach": "Are you sure you want to detach {server}?",
+  "groups.servers.selectGroup": "Select Group",
+  "groups.servers.chooseGroup": "Choose a group",
+  "groups.servers.priority": "Priority",
+  "groups.servers.attach": "Attach",
+  "groups.types.whitelist": "Whitelist",
+  "groups.types.op": "OP",
+  "common.cancel": "Cancel",
+  "common.close": "Close",
+  "servers.settings.description": "Configure your server settings",
+  "servers.settings.groupsDescription": "Manage groups attached to this server",
+  "groups.servers.priorityHint": "Higher values have higher priority",
+  "servers.settings.basicInformation": "Basic Information",
+  "servers.settings.serverName": "Server Name",
+  "servers.settings.enterDescription": "Enter a description for your server",
+  "servers.settings.serverResources": "Server Resources",
+  "servers.settings.memoryLimit": "Memory Limit (MB)",
+  "servers.settings.memoryHint": "Minimum 512MB recommended",
+  "servers.fields.maxPlayers": "Max Players",
+  "servers.settings.maxPlayersHint": "1-200 players supported",
+  "groups.servers.attachedOn": "Attached on",
 };
 
-const mockT = vi.fn((key: string) => translations[key] || key);
+const mockT = vi.fn((key: string, params?: Record<string, string>) => {
+  let translation = translations[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([paramKey, paramValue]) => {
+      translation = translation.replace(`{${paramKey}}`, paramValue);
+    });
+  }
+  return translation;
+});
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({
     t: mockT,
@@ -54,23 +91,35 @@ vi.mock("@/services/groups");
 // Mock the modal component
 vi.mock("@/components/modal", () => ({
   ConfirmationModal: ({
+    isOpen,
     title,
     message,
     onConfirm,
     onCancel,
   }: {
+    isOpen: boolean;
     title: string;
     message: string;
     onConfirm: () => void;
     onCancel: () => void;
-  }) => (
-    <div data-testid="confirmation-modal">
-      <h3>{title}</h3>
-      <p>{message}</p>
-      <button onClick={onConfirm}>Confirm</button>
-      <button onClick={onCancel}>Cancel</button>
-    </div>
-  ),
+  }) =>
+    isOpen ? (
+      <div data-testid="confirmation-modal">
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <button onClick={onConfirm} data-testid="confirm-button">
+          Confirm
+        </button>
+        <button onClick={onCancel} data-testid="cancel-button">
+          Cancel
+        </button>
+      </div>
+    ) : null,
+}));
+
+// Mock formatDate utility
+vi.mock("@/utils/format", () => ({
+  formatDate: vi.fn((date: string) => `Formatted: ${date}`),
 }));
 
 // Import the component after mocks
@@ -100,14 +149,17 @@ describe("ServerSettings", () => {
     configurations: [],
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    // Setup default mock returns
+    // Setup default mock returns to prevent async operations in unrelated tests
     vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
     vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
+    vi.mocked(groupService.detachGroupFromServer).mockClear();
+    vi.mocked(groupService.attachGroupToServer).mockClear();
+    vi.mocked(serverService.updateServer).mockClear();
   });
 
-  test("should render server settings form with current values", () => {
+  test("should render server settings form with current values", async () => {
     render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
 
     expect(screen.getByText("Server Settings")).toBeInTheDocument();
@@ -115,6 +167,11 @@ describe("ServerSettings", () => {
     expect(screen.getByDisplayValue("A test server")).toBeInTheDocument();
     expect(screen.getByDisplayValue("2048")).toBeInTheDocument();
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
+
+    // Wait for groups to load to prevent act warnings
+    await waitFor(() => {
+      expect(screen.getByText("Associated Groups")).toBeInTheDocument();
+    });
   });
 
   // Read-only information section was removed as per requirements
@@ -342,7 +399,7 @@ describe("ServerSettings", () => {
     });
   });
 
-  test("should handle server without description", () => {
+  test("should handle server without description", async () => {
     const serverWithoutDescription = { ...mockServer, description: null };
     render(
       <ServerSettings
@@ -355,17 +412,783 @@ describe("ServerSettings", () => {
       name: /description/i,
     });
     expect(descriptionInput).toHaveValue("");
+
+    // Wait for groups to load to prevent act warnings
+    await waitFor(() => {
+      expect(screen.getByText("Associated Groups")).toBeInTheDocument();
+    });
   });
 
-  test("should update form when server prop changes", () => {
+  test("should update form when server prop changes", async () => {
     const { rerender } = render(
       <ServerSettings server={mockServer} onUpdate={mockOnUpdate} />
     );
+
+    // Wait for initial render to complete
+    await waitFor(() => {
+      expect(screen.getByText("Associated Groups")).toBeInTheDocument();
+    });
 
     const updatedServer = { ...mockServer, name: "New Name", max_memory: 4096 };
     rerender(<ServerSettings server={updatedServer} onUpdate={mockOnUpdate} />);
 
     expect(screen.getByDisplayValue("New Name")).toBeInTheDocument();
     expect(screen.getByDisplayValue("4096")).toBeInTheDocument();
+  });
+
+  describe("Form Validation", () => {
+    beforeEach(() => {
+      // Completely reset mocks for validation tests to prevent modal interference
+      vi.clearAllMocks();
+      // Return empty arrays to prevent groups UI from interfering with validation
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.detachGroupFromServer).mockClear();
+      vi.mocked(groupService.attachGroupToServer).mockClear();
+      vi.mocked(serverService.updateServer).mockClear();
+    });
+
+    test("should show error for empty server name", async () => {
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      // Wait for component to fully render and groups to load
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("Test Server")).toBeInTheDocument();
+      });
+
+      const nameInput = screen.getByDisplayValue("Test Server");
+      await user.clear(nameInput);
+      await user.type(nameInput, "   "); // Whitespace only
+
+      // Wait for buttons to appear after making changes
+      await waitFor(() => {
+        expect(
+          screen.getAllByRole("button", { name: /Save Settings/i })[0]
+        ).toBeInTheDocument();
+      });
+
+      const saveButtons = screen.getAllByRole("button", {
+        name: /Save Settings/i,
+      });
+      await user.click(saveButtons[0]!);
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText("Server name is required")
+          ).toBeInTheDocument();
+        },
+        { timeout: 10000 }
+      );
+
+      expect(serverService.updateServer).not.toHaveBeenCalled();
+    });
+
+    test(
+      "should show error for memory below minimum",
+      { timeout: 20000 },
+      async () => {
+        render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+        // Wait for component to fully render
+        await waitFor(() => {
+          expect(screen.getByDisplayValue("2048")).toBeInTheDocument();
+        });
+
+        const memoryInput = screen.getByDisplayValue("2048");
+        await user.clear(memoryInput);
+        await user.type(memoryInput, "256");
+
+        // Verify the input value was changed
+        expect(memoryInput).toHaveValue(256);
+
+        // Wait for buttons to appear after making changes
+        await waitFor(() => {
+          expect(
+            screen.getAllByRole("button", { name: /Save Settings/i })[0]
+          ).toBeInTheDocument();
+        });
+
+        // Find the form and submit it directly
+        const form = memoryInput.closest("form");
+        expect(form).toBeInTheDocument();
+
+        fireEvent.submit(form!);
+
+        await waitFor(
+          () => {
+            expect(
+              screen.getByText("Memory must be at least 512MB")
+            ).toBeInTheDocument();
+          },
+          { timeout: 5000 }
+        );
+
+        expect(serverService.updateServer).not.toHaveBeenCalled();
+      }
+    );
+
+    test(
+      "should show error for max players out of range",
+      { timeout: 20000 },
+      async () => {
+        render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+        // Wait for component to fully render
+        await waitFor(() => {
+          expect(screen.getByDisplayValue("20")).toBeInTheDocument();
+        });
+
+        const playersInput = screen.getByDisplayValue("20");
+        await user.clear(playersInput);
+        await user.type(playersInput, "300");
+
+        // Wait for buttons to appear after making changes
+        await waitFor(() => {
+          expect(
+            screen.getAllByRole("button", { name: /Save Settings/i })[0]
+          ).toBeInTheDocument();
+        });
+
+        // Find the form and submit it directly
+        const form = playersInput.closest("form");
+        expect(form).toBeInTheDocument();
+
+        fireEvent.submit(form!);
+
+        await waitFor(
+          () => {
+            expect(
+              screen.getByText("Max players must be between 1 and 200")
+            ).toBeInTheDocument();
+          },
+          { timeout: 10000 }
+        );
+
+        expect(serverService.updateServer).not.toHaveBeenCalled();
+      }
+    );
+
+    test("should show error for max players too low", async () => {
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      // Wait for component to fully render
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("20")).toBeInTheDocument();
+      });
+
+      const playersInput = screen.getByDisplayValue("20");
+      await user.clear(playersInput);
+      await user.type(playersInput, "0");
+
+      // Wait for buttons to appear after making changes
+      await waitFor(() => {
+        expect(
+          screen.getAllByRole("button", { name: /Save Settings/i })[0]
+        ).toBeInTheDocument();
+      });
+
+      // Find the form and submit it directly
+      const form = playersInput.closest("form");
+      expect(form).toBeInTheDocument();
+
+      fireEvent.submit(form!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Max players must be between 1 and 200")
+        ).toBeInTheDocument();
+      });
+
+      expect(serverService.updateServer).not.toHaveBeenCalled();
+    });
+
+    test("should clear error and success messages when input changes", async () => {
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      // Wait for component to fully render
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("Test Server")).toBeInTheDocument();
+      });
+
+      const nameInput = screen.getByDisplayValue("Test Server");
+      await user.clear(nameInput);
+      await user.type(nameInput, "   ");
+
+      // Wait for buttons to appear after making changes
+      await waitFor(() => {
+        expect(
+          screen.getAllByRole("button", { name: /Save Settings/i })[0]
+        ).toBeInTheDocument();
+      });
+
+      const saveButtons = screen.getAllByRole("button", {
+        name: /Save Settings/i,
+      });
+      await user.click(saveButtons[0]!);
+
+      await waitFor(() => {
+        expect(screen.getByText("Server name is required")).toBeInTheDocument();
+      });
+
+      // Make a change to clear the error
+      await user.clear(nameInput);
+      await user.type(nameInput, "Valid Name");
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Server name is required")
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    test("should handle numeric input parsing correctly", async () => {
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      // Wait for component to fully render
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("2048")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("20")).toBeInTheDocument();
+      });
+
+      const memoryInput = screen.getByDisplayValue("2048");
+      const playersInput = screen.getByDisplayValue("20");
+
+      // Test non-numeric input defaults to 0
+      await user.clear(memoryInput);
+      await user.type(memoryInput, "abc");
+      expect(memoryInput).toHaveValue(0);
+
+      await user.clear(playersInput);
+      await user.type(playersInput, "xyz");
+      expect(playersInput).toHaveValue(0);
+
+      // Test empty input defaults to 0
+      await user.clear(memoryInput);
+      expect(memoryInput).toHaveValue(0);
+    });
+  });
+
+  describe("ServerGroupsSection", () => {
+    const mockAttachedGroups: AttachedGroup[] = [
+      {
+        id: 1,
+        name: "Whitelist Group",
+        type: "whitelist",
+        priority: 10,
+        attached_at: "2025-01-01T12:00:00Z",
+        description: "Whitelist group description",
+        player_count: 5,
+      },
+      {
+        id: 2,
+        name: "Operators Group",
+        type: "op",
+        priority: 20,
+        attached_at: "2025-01-02T12:00:00Z",
+        description: "Operators group description",
+        player_count: 3,
+      },
+    ];
+
+    const mockAvailableGroups: Group[] = [
+      {
+        id: 3,
+        name: "Available Group",
+        type: "whitelist",
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-01T00:00:00Z",
+        description: "Available group description",
+        players: [],
+        owner_id: 1,
+        is_template: false,
+      },
+      {
+        id: 4,
+        name: "Available Group 2",
+        type: "op",
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-01T00:00:00Z",
+        description: "OP group description",
+        players: [],
+        owner_id: 1,
+        is_template: false,
+      },
+    ];
+
+    test("should render groups section with loading state", () => {
+      vi.mocked(groupService.getServerGroups).mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      );
+      vi.mocked(groupService.getGroups).mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      expect(screen.getByText("Associated Groups")).toBeInTheDocument();
+      expect(screen.getByText("Loading groups...")).toBeInTheDocument();
+    });
+
+    test("should render attached groups successfully", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(
+        ok(mockAttachedGroups)
+      );
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+        expect(screen.getByText("Operators Group")).toBeInTheDocument();
+      });
+
+      expect(screen.getByText("2 attached groups")).toBeInTheDocument();
+      expect(screen.getByText("Whitelist")).toBeInTheDocument();
+      expect(screen.getByText("OP")).toBeInTheDocument();
+      expect(screen.getByText("Priority: 10")).toBeInTheDocument();
+      expect(screen.getByText("Priority: 20")).toBeInTheDocument();
+    });
+
+    test("should render empty state when no groups attached", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("No groups are attached to this server")
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.getByText("0 attached groups")).toBeInTheDocument();
+    });
+
+    test("should handle groups loading error", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(
+        err({ message: "Failed to load groups", status: 500 })
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Failed to load groups")).toBeInTheDocument();
+      });
+    });
+
+    test("should handle available groups loading error", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        err({ message: "Failed to load available groups", status: 500 })
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Failed to load available groups")
+        ).toBeInTheDocument();
+      });
+    });
+
+    test("should handle unexpected error during groups loading", async () => {
+      vi.mocked(groupService.getServerGroups).mockRejectedValue(
+        new Error("Network error")
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Failed to load groups data")
+        ).toBeInTheDocument();
+      });
+    });
+
+    test("should open attach group modal", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      expect(screen.getByText("Select Group")).toBeInTheDocument();
+      expect(screen.getByText("Choose a group")).toBeInTheDocument();
+    });
+
+    test("should disable attach button when no groups available", async () => {
+      // All available groups are already attached
+      const allGroupsAttached: AttachedGroup[] = [
+        ...mockAttachedGroups,
+        {
+          id: 3,
+          name: "Available Group",
+          type: "whitelist",
+          priority: 30,
+          attached_at: "2025-01-03T12:00:00Z",
+          description: "Available group description",
+          player_count: 2,
+        },
+        {
+          id: 4,
+          name: "Available Group 2",
+          type: "op",
+          priority: 40,
+          attached_at: "2025-01-04T12:00:00Z",
+          description: "OP group description",
+          player_count: 1,
+        },
+      ];
+
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(
+        ok(allGroupsAttached)
+      );
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        const attachButton = screen.getByRole("button", {
+          name: "Attach Group",
+        });
+        expect(attachButton).toBeDisabled();
+      });
+    });
+
+    test("should open detach confirmation modal", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(
+        ok(mockAttachedGroups)
+      );
+      vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+      });
+
+      const detachButtons = screen.getAllByText("Detach");
+      await user.click(detachButtons[0]!);
+
+      await waitFor(() => {
+        expect(screen.getByText("Detach Group")).toBeInTheDocument();
+        expect(
+          screen.getByText("Are you sure you want to detach Whitelist Group?")
+        ).toBeInTheDocument();
+      });
+    });
+
+    test("should detach group successfully", async () => {
+      vi.mocked(groupService.getServerGroups)
+        .mockResolvedValueOnce(ok(mockAttachedGroups))
+        .mockResolvedValueOnce(ok([])); // After detachment
+      vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.detachGroupFromServer).mockResolvedValue(
+        ok({ message: "Group detached successfully" })
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+      });
+
+      const detachButtons = screen.getAllByText("Detach");
+      await user.click(detachButtons[0]!);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByTestId("confirm-button");
+      await user.click(confirmButton);
+
+      await waitFor(() => {
+        expect(groupService.detachGroupFromServer).toHaveBeenCalledWith(1, 1);
+      });
+
+      expect(
+        screen.queryByTestId("confirmation-modal")
+      ).not.toBeInTheDocument();
+    });
+
+    test("should handle detach group error", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(
+        ok(mockAttachedGroups)
+      );
+      vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.detachGroupFromServer).mockResolvedValue(
+        err({ message: "Failed to detach group", status: 500 })
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+      });
+
+      const detachButtons = screen.getAllByText("Detach");
+      await user.click(detachButtons[0]!);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByTestId("confirm-button");
+      await user.click(confirmButton);
+
+      await waitFor(() => {
+        expect(screen.getByText("Failed to detach group")).toBeInTheDocument();
+      });
+    });
+
+    test("should cancel detach operation", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(
+        ok(mockAttachedGroups)
+      );
+      vi.mocked(groupService.getGroups).mockResolvedValue(ok([]));
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Whitelist Group")).toBeInTheDocument();
+      });
+
+      const detachButtons = screen.getAllByText("Detach");
+      await user.click(detachButtons[0]!);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("confirmation-modal")).toBeInTheDocument();
+      });
+
+      const cancelButton = screen.getByTestId("cancel-button");
+      await user.click(cancelButton);
+
+      expect(
+        screen.queryByTestId("confirmation-modal")
+      ).not.toBeInTheDocument();
+      expect(groupService.detachGroupFromServer).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("AttachGroupModal", () => {
+    const mockAvailableGroups = [
+      {
+        id: 3,
+        name: "Available Group 1",
+        type: "whitelist" as const,
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-01T00:00:00Z",
+        description: "Available group 1 description",
+        players: [],
+        owner_id: 1,
+        is_template: false,
+      },
+      {
+        id: 4,
+        name: "Available Group 2",
+        type: "op" as const,
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-01T00:00:00Z",
+        description: "Available group 2 description",
+        players: [],
+        owner_id: 1,
+        is_template: false,
+      },
+    ];
+
+    test("should render attach group modal with available groups", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      expect(screen.getByText("Select Group")).toBeInTheDocument();
+      expect(
+        screen.getByText("Available Group 1 (Whitelist)")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Available Group 2 (OP)")).toBeInTheDocument();
+    });
+
+    test("should close attach group modal", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      const closeButton = screen.getByLabelText("Close");
+      await user.click(closeButton);
+
+      expect(screen.queryByText("Select Group")).not.toBeInTheDocument();
+    });
+
+    test("should cancel attach group modal", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      const cancelButton = screen.getByRole("button", { name: "Cancel" });
+      await user.click(cancelButton);
+
+      expect(screen.queryByText("Select Group")).not.toBeInTheDocument();
+    });
+
+    test("should attach group successfully", async () => {
+      vi.mocked(groupService.getServerGroups)
+        .mockResolvedValueOnce(ok([]))
+        .mockResolvedValueOnce(ok([])); // After attachment
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+      vi.mocked(groupService.attachGroupToServer).mockResolvedValue(
+        ok({ message: "Group attached successfully" })
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      const groupSelect = screen.getByRole("combobox");
+      await user.selectOptions(groupSelect, "3");
+
+      const priorityInput = screen.getByLabelText("Priority");
+      await user.clear(priorityInput);
+      await user.type(priorityInput, "15");
+
+      const submitButton = screen.getByRole("button", { name: "Attach" });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(groupService.attachGroupToServer).toHaveBeenCalledWith(3, {
+          server_id: 1,
+          priority: 15,
+        });
+      });
+
+      expect(screen.queryByText("Select Group")).not.toBeInTheDocument();
+    });
+
+    test("should handle attach group error", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+      vi.mocked(groupService.attachGroupToServer).mockResolvedValue(
+        err({ message: "Failed to attach group", status: 500 })
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      const groupSelect = screen.getByRole("combobox");
+      await user.selectOptions(groupSelect, "3");
+
+      const submitButton = screen.getByRole("button", { name: "Attach" });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText("Failed to attach group")).toBeInTheDocument();
+      });
+    });
+
+    test("should disable attach button when no group selected", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      const submitButton = screen.getByRole("button", { name: "Attach" });
+      expect(submitButton).toBeDisabled();
+    });
+
+    test("should handle priority input changes", async () => {
+      vi.mocked(groupService.getServerGroups).mockResolvedValue(ok([]));
+      vi.mocked(groupService.getGroups).mockResolvedValue(
+        ok(mockAvailableGroups)
+      );
+
+      render(<ServerSettings server={mockServer} onUpdate={mockOnUpdate} />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Attach Group")).toBeInTheDocument();
+      });
+
+      const attachButton = screen.getByRole("button", { name: "Attach Group" });
+      await user.click(attachButton);
+
+      const priorityInput = screen.getByLabelText("Priority");
+      await user.clear(priorityInput);
+      await user.type(priorityInput, "abc"); // Non-numeric input
+
+      expect(priorityInput).toHaveValue(0);
+
+      await user.clear(priorityInput);
+      await user.type(priorityInput, "50");
+
+      expect(priorityInput).toHaveValue(50);
+    });
   });
 });

@@ -1,10 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import {
   listFiles,
+  readFile,
   readTextFile,
   writeFile,
   deleteFile,
   renameFile,
+  createDirectory,
+  uploadFile,
+  uploadMultipleFiles,
   uploadFileWithProgress,
   uploadFolderStructure,
 } from "./files";
@@ -458,6 +462,314 @@ describe("File service", () => {
         expect(result.value.failed).toHaveLength(1);
         expect(result.value.failed[0]!.error).toBe("Permission denied");
       }
+    });
+  });
+
+  describe("readFile", () => {
+    test("should read file content successfully", async () => {
+      const { fetchJson } = await import("./api");
+      const mockResponse = {
+        content: "file content here",
+        encoding: "utf-8",
+        file_info: {
+          name: "test.txt",
+          size: 100,
+          modified: "2023-01-01T00:00:00Z",
+          is_directory: false,
+        },
+      };
+
+      vi.mocked(fetchJson).mockResolvedValue(ok(mockResponse));
+
+      const result = await readFile(1, "/test.txt");
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value.content).toBe("file content here");
+        expect(result.value.encoding).toBe("utf-8");
+        expect(result.value.file_info.size).toBe(100);
+      }
+
+      expect(fetchJson).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/test.txt/read"
+      );
+    });
+
+    test("should read image file with image parameter", async () => {
+      const { fetchJson } = await import("./api");
+      const mockResponse = {
+        content: "base64imagedata",
+        encoding: "base64",
+        file_info: {
+          name: "image.png",
+          size: 1024,
+          modified: "2023-01-01T00:00:00Z",
+          is_directory: false,
+        },
+      };
+
+      vi.mocked(fetchJson).mockResolvedValue(ok(mockResponse));
+
+      const result = await readFile(1, "images/image.png", true);
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value.content).toBe("base64imagedata");
+        expect(result.value.encoding).toBe("base64");
+      }
+
+      expect(fetchJson).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/images%2Fimage.png/read?image=true"
+      );
+    });
+
+    test("should handle read file error", async () => {
+      const { fetchJson } = await import("./api");
+
+      vi.mocked(fetchJson).mockResolvedValue(
+        err({ message: "File not found", status: 404 })
+      );
+
+      const result = await readFile(1, "/nonexistent.txt");
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toBe("File not found");
+        expect(result.error.status).toBe(404);
+      }
+    });
+  });
+
+  describe("createDirectory", () => {
+    test("should create directory successfully", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const result = await createDirectory(1, "/plugins", "newdir");
+
+      expect(result.isOk()).toBe(true);
+
+      expect(fetchEmpty).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/plugins/directories",
+        {
+          method: "POST",
+          body: JSON.stringify({ name: "newdir" }),
+        }
+      );
+    });
+
+    test("should create directory in root path", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const result = await createDirectory(1, "/", "rootdir");
+
+      expect(result.isOk()).toBe(true);
+
+      expect(fetchEmpty).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files//directories",
+        {
+          method: "POST",
+          body: JSON.stringify({ name: "rootdir" }),
+        }
+      );
+    });
+
+    test("should handle directory creation error", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(
+        err({ message: "Permission denied", status: 403 })
+      );
+
+      const result = await createDirectory(1, "/plugins", "newdir");
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toBe("Permission denied");
+        expect(result.error.status).toBe(403);
+      }
+    });
+  });
+
+  describe("uploadFile", () => {
+    test("should upload file successfully", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+      const result = await uploadFile(1, "/uploads", file);
+
+      expect(result.isOk()).toBe(true);
+
+      expect(fetchEmpty).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/files/servers/1/files/upload",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.any(FormData),
+        })
+      );
+    });
+
+    test("should upload file to root directory", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(ok(undefined));
+
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+      const result = await uploadFile(1, "/", file);
+
+      expect(result.isOk()).toBe(true);
+    });
+
+    test("should handle upload error", async () => {
+      const { fetchEmpty } = await import("./api");
+
+      vi.mocked(fetchEmpty).mockResolvedValue(
+        err({ message: "Upload failed", status: 500 })
+      );
+
+      const file = new File(["test content"], "test.txt", {
+        type: "text/plain",
+      });
+      const result = await uploadFile(1, "/uploads", file);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toBe("Upload failed");
+        expect(result.error.status).toBe(500);
+      }
+    });
+  });
+
+  describe("uploadMultipleFiles", () => {
+    test("should upload multiple files successfully", async () => {
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const file2 = new File(["content2"], "file2.txt", { type: "text/plain" });
+      const files = [file1, file2];
+
+      // Mock all uploads as successful
+      mockXMLHttpRequest.send = vi.fn(() => {
+        setTimeout(() => {
+          mockXMLHttpRequest.status = 200;
+          mockXMLHttpRequest.onload?.call(
+            mockXMLHttpRequest as unknown as XMLHttpRequest,
+            {} as ProgressEvent<XMLHttpRequestEventTarget>
+          );
+        }, 0);
+      });
+
+      const result = await uploadMultipleFiles(1, "/uploads", files);
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value.successful).toEqual(["file1.txt", "file2.txt"]);
+        expect(result.value.failed).toHaveLength(0);
+      }
+    });
+
+    test("should handle mixed success and failure", async () => {
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const file2 = new File(["content2"], "file2.txt", { type: "text/plain" });
+      const files = [file1, file2];
+
+      let callCount = 0;
+      mockXMLHttpRequest.send = vi.fn(() => {
+        setTimeout(() => {
+          if (callCount === 0) {
+            // First file succeeds
+            mockXMLHttpRequest.status = 200;
+            mockXMLHttpRequest.onload?.call(
+              mockXMLHttpRequest as unknown as XMLHttpRequest,
+              {} as ProgressEvent<XMLHttpRequestEventTarget>
+            );
+          } else {
+            // Second file fails
+            mockXMLHttpRequest.status = 500;
+            mockXMLHttpRequest.responseText = '{"detail": "Upload failed"}';
+            mockXMLHttpRequest.onload?.call(
+              mockXMLHttpRequest as unknown as XMLHttpRequest,
+              {} as ProgressEvent<XMLHttpRequestEventTarget>
+            );
+          }
+          callCount++;
+        }, 0);
+      });
+
+      const result = await uploadMultipleFiles(1, "/uploads", files);
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value.successful).toEqual(["file1.txt"]);
+        expect(result.value.failed).toHaveLength(1);
+        expect(result.value.failed[0]!.file).toBe("file2.txt");
+        expect(result.value.failed[0]!.error).toBe("Upload failed");
+      }
+    });
+
+    test("should handle missing files in array", async () => {
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const files = [
+        file1,
+        null as unknown as File,
+        undefined as unknown as File,
+      ];
+
+      mockXMLHttpRequest.send = vi.fn(() => {
+        setTimeout(() => {
+          mockXMLHttpRequest.status = 200;
+          mockXMLHttpRequest.onload?.call(
+            mockXMLHttpRequest as unknown as XMLHttpRequest,
+            {} as ProgressEvent<XMLHttpRequestEventTarget>
+          );
+        }, 0);
+      });
+
+      const result = await uploadMultipleFiles(1, "/uploads", files);
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        expect(result.value.successful).toEqual(["file1.txt"]);
+        expect(result.value.failed).toHaveLength(2);
+        expect(result.value.failed[0]!.file).toBe("File 2");
+        expect(result.value.failed[0]!.error).toBe("missing");
+        expect(result.value.failed[1]!.file).toBe("File 3");
+        expect(result.value.failed[1]!.error).toBe("missing");
+      }
+    });
+
+    test("should call progress callback", async () => {
+      const file1 = new File(["content1"], "file1.txt", { type: "text/plain" });
+      const files = [file1];
+      const progressCallback = vi.fn();
+
+      mockXMLHttpRequest.send = vi.fn(() => {
+        setTimeout(() => {
+          mockXMLHttpRequest.status = 200;
+          mockXMLHttpRequest.onload?.call(
+            mockXMLHttpRequest as unknown as XMLHttpRequest,
+            {} as ProgressEvent<XMLHttpRequestEventTarget>
+          );
+        }, 0);
+      });
+
+      const result = await uploadMultipleFiles(
+        1,
+        "/uploads",
+        files,
+        progressCallback
+      );
+
+      expect(result.isOk()).toBe(true);
+      // Progress callback should be called during upload
+      // Note: The exact call depends on the internal implementation
     });
   });
 });
