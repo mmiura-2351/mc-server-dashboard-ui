@@ -24,8 +24,12 @@ vi.mock("@/utils/file-upload-security", () => ({
 }));
 
 // Helper function to create mock File objects
-const createMockFile = (name: string, size: number = 1000, type: string = "text/plain"): File => {
-  const file = new File(["content"], name, { type }) as File;
+const createMockFile = (
+  name: string,
+  size: number = 1000,
+  type: string = "text/plain"
+): File => {
+  const file = new File(["content"], name, { type });
   // Override the size property to match our test expectations
   Object.defineProperty(file, "size", { value: size, writable: false });
   return file;
@@ -33,7 +37,7 @@ const createMockFile = (name: string, size: number = 1000, type: string = "text/
 
 // Helper function to create mock drag event
 const createMockDragEvent = (files: File[] = []) => {
-  const items = files.map(file => ({
+  const items = files.map((file) => ({
     webkitGetAsEntry: vi.fn(() => ({
       isFile: true,
       isDirectory: false,
@@ -61,7 +65,7 @@ const createMockDragEvent = (files: File[] = []) => {
     dataTransfer: {
       items,
     },
-  } as any;
+  } as React.DragEvent;
 };
 
 describe("useFileUpload", () => {
@@ -74,14 +78,18 @@ describe("useFileUpload", () => {
       blocked: [],
       warnings: [],
     });
-    vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(ok({
-      successful: [],
-      failed: [],
-    }));
-    vi.mocked(fileService.uploadFolderStructure).mockResolvedValue(ok({
-      successful: [],
-      failed: [],
-    }));
+    vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
+      ok({
+        successful: [],
+        failed: [],
+      })
+    );
+    vi.mocked(fileService.uploadFolderStructure).mockResolvedValue(
+      ok({
+        successful: [],
+        failed: [],
+      })
+    );
   });
 
   describe("Initial State", () => {
@@ -187,10 +195,12 @@ describe("useFileUpload", () => {
         warnings: [],
       });
 
-      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["test.txt"],
-        failed: [],
-      }));
+      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["test.txt"],
+          failed: [],
+        })
+      );
 
       const uploadResult = await act(async () => {
         return result.current.handleFileUpload(testFiles, false, "/");
@@ -225,10 +235,12 @@ describe("useFileUpload", () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
       const testFiles = [createMockFile("test.txt")];
 
-      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["test.txt"],
-        failed: [],
-      }));
+      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["test.txt"],
+          failed: [],
+        })
+      );
 
       const uploadResult = await act(async () => {
         return result.current.handleFileUpload(testFiles, false, "/path");
@@ -318,10 +330,12 @@ describe("useFileUpload", () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
       const testFiles = [createMockFile("folder/test.txt")];
 
-      vi.mocked(fileService.uploadFolderStructure).mockResolvedValue(ok({
-        successful: ["folder/test.txt"],
-        failed: [],
-      }));
+      vi.mocked(fileService.uploadFolderStructure).mockResolvedValue(
+        ok({
+          successful: ["folder/test.txt"],
+          failed: [],
+        })
+      );
 
       const uploadResult = await act(async () => {
         return result.current.handleFileUpload(testFiles, true, "/");
@@ -373,10 +387,12 @@ describe("useFileUpload", () => {
         warnings: [],
       });
 
-      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["file1.txt", "file2.txt"],
-        failed: [],
-      }));
+      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["file1.txt", "file2.txt"],
+          failed: [],
+        })
+      );
 
       await act(async () => {
         result.current.handleFileUpload(testFiles, false, "/");
@@ -453,7 +469,7 @@ describe("useFileUpload", () => {
 
     it("should clear drag over state on drag leave (when leaving container)", () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
-      
+
       // First set drag over
       act(() => {
         result.current.handleDragEnter(createMockDragEvent());
@@ -474,7 +490,7 @@ describe("useFileUpload", () => {
 
     it("should not clear drag over state when drag leave is within container", () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
-      
+
       // First set drag over
       act(() => {
         result.current.handleDragEnter(createMockDragEvent());
@@ -524,20 +540,25 @@ describe("useFileUpload", () => {
 
     it("should handle drag drop without errors", async () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
-      
+
       // Simplified test to ensure drag over state is cleared
       const mockEvent = {
         preventDefault: vi.fn(),
         stopPropagation: vi.fn(),
         currentTarget: {
-          getBoundingClientRect: vi.fn(() => ({ left: 0, right: 100, top: 0, bottom: 100 })),
+          getBoundingClientRect: vi.fn(() => ({
+            left: 0,
+            right: 100,
+            top: 0,
+            bottom: 100,
+          })),
         },
         clientX: 50,
         clientY: 50,
         dataTransfer: {
           items: [],
         },
-      } as any;
+      } as React.DragEvent;
 
       // Set drag over state first
       act(() => {
@@ -566,10 +587,12 @@ describe("useFileUpload", () => {
         warnings: [],
       });
 
-      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["test.txt"],
-        failed: [],
-      }));
+      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["test.txt"],
+          failed: [],
+        })
+      );
 
       await act(async () => {
         await result.current.handleDrop(mockEvent, "/");
@@ -582,7 +605,7 @@ describe("useFileUpload", () => {
   describe("Edge Cases", () => {
     it("should handle files with webkitRelativePath for folder uploads", async () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
-      
+
       const folderFile = createMockFile("test.txt");
       Object.defineProperty(folderFile, "webkitRelativePath", {
         value: "folder/subfolder/test.txt",
@@ -595,16 +618,20 @@ describe("useFileUpload", () => {
         warnings: [],
       });
 
-      vi.mocked(fileService.uploadFolderStructure).mockResolvedValue(ok({
-        successful: ["folder/subfolder/test.txt"],
-        failed: [],
-      }));
+      vi.mocked(fileService.uploadFolderStructure).mockResolvedValue(
+        ok({
+          successful: ["folder/subfolder/test.txt"],
+          failed: [],
+        })
+      );
 
       await act(async () => {
         result.current.handleFileUpload([folderFile], true, "/");
       });
 
-      expect(result.current.uploadState.progress[0].filename).toBe("folder/subfolder/test.txt");
+      expect(result.current.uploadState.progress[0].filename).toBe(
+        "folder/subfolder/test.txt"
+      );
     });
 
     it("should handle non-Error exceptions", async () => {
@@ -617,7 +644,9 @@ describe("useFileUpload", () => {
         warnings: [],
       });
 
-      vi.mocked(fileService.uploadMultipleFiles).mockRejectedValue("String error");
+      vi.mocked(fileService.uploadMultipleFiles).mockRejectedValue(
+        "String error"
+      );
 
       const uploadResult = await act(async () => {
         return result.current.handleFileUpload(testFiles, false, "/");
@@ -628,7 +657,10 @@ describe("useFileUpload", () => {
 
     it("should handle partial upload success", async () => {
       const { result } = renderHook(() => useFileUpload(mockServerId));
-      const testFiles = [createMockFile("test1.txt"), createMockFile("test2.txt")];
+      const testFiles = [
+        createMockFile("test1.txt"),
+        createMockFile("test2.txt"),
+      ];
 
       vi.mocked(FileUploadSecurity.securityFilter).mockResolvedValue({
         allowed: testFiles,
@@ -636,10 +668,12 @@ describe("useFileUpload", () => {
         warnings: [],
       });
 
-      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(ok({
-        successful: ["test1.txt"],
-        failed: ["test2.txt"],
-      }));
+      vi.mocked(fileService.uploadMultipleFiles).mockResolvedValue(
+        ok({
+          successful: ["test1.txt"],
+          failed: ["test2.txt"],
+        })
+      );
 
       const uploadResult = await act(async () => {
         return result.current.handleFileUpload(testFiles, false, "/");

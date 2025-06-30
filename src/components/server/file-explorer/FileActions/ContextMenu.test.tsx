@@ -38,7 +38,7 @@ describe("ContextMenu", () => {
 
   const mockFolder: FileSystemItem = {
     name: "testfolder",
-    type: "directory", 
+    type: "directory",
     is_directory: true,
     size: null,
     modified: "2023-01-01T00:00:00Z",
@@ -253,7 +253,9 @@ describe("ContextMenu", () => {
       );
 
       fireEvent.click(screen.getByText("Download as ZIP"));
-      expect(mockHandlers.onDownloadFolderAsZip).toHaveBeenCalledWith(mockFolder);
+      expect(mockHandlers.onDownloadFolderAsZip).toHaveBeenCalledWith(
+        mockFolder
+      );
     });
 
     it("should call onRenameFile when rename folder is clicked", () => {
@@ -286,7 +288,7 @@ describe("ContextMenu", () => {
   describe("Bulk Operations", () => {
     it("should show bulk operations when multiple files are selected", () => {
       const selectedFiles = new Set(["file1.txt", "file2.txt", "file3.txt"]);
-      
+
       render(
         <ContextMenu
           contextMenu={defaultContextMenu}
@@ -303,7 +305,7 @@ describe("ContextMenu", () => {
 
     it("should show bulk operations when current file is in selection", () => {
       const selectedFiles = new Set(["test.txt"]);
-      
+
       render(
         <ContextMenu
           contextMenu={defaultContextMenu}
@@ -319,7 +321,7 @@ describe("ContextMenu", () => {
 
     it("should call onBulkDownload and onClose when bulk download is clicked", () => {
       const selectedFiles = new Set(["file1.txt", "file2.txt"]);
-      
+
       render(
         <ContextMenu
           contextMenu={defaultContextMenu}
@@ -335,7 +337,7 @@ describe("ContextMenu", () => {
 
     it("should call onBulkDelete and onClose when bulk delete is clicked", () => {
       const selectedFiles = new Set(["file1.txt", "file2.txt"]);
-      
+
       render(
         <ContextMenu
           contextMenu={defaultContextMenu}
@@ -400,7 +402,7 @@ describe("ContextMenu", () => {
 
     it("should handle files without extension", () => {
       const fileWithoutExtension = { ...mockFile, name: "README" };
-      
+
       render(
         <ContextMenu
           contextMenu={{ ...defaultContextMenu, file: fileWithoutExtension }}
@@ -415,7 +417,7 @@ describe("ContextMenu", () => {
 
     it("should handle case-insensitive file extensions", () => {
       const upperCaseFile = { ...mockFile, name: "config.TXT" };
-      
+
       render(
         <ContextMenu
           contextMenu={{ ...defaultContextMenu, file: upperCaseFile }}
@@ -430,7 +432,7 @@ describe("ContextMenu", () => {
 
   describe("Menu Item States", () => {
     it("should apply danger class to delete buttons", () => {
-      const { container } = render(
+      render(
         <ContextMenu
           contextMenu={defaultContextMenu}
           selectedFiles={new Set()}

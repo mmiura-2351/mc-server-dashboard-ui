@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 import { DragDropZone, useDragDropZone } from "./DragDropZone";
 import styles from "../../file-explorer.module.css";
@@ -75,11 +75,11 @@ describe("DragDropZone", () => {
 
       const fileInputs = container.querySelectorAll('input[type="file"]');
       expect(fileInputs).toHaveLength(2);
-      
+
       // Check first input (regular file input)
       expect(fileInputs[0]).toHaveAttribute("multiple");
       expect(fileInputs[0]).toHaveStyle({ display: "none" });
-      
+
       // Check second input (folder input)
       expect(fileInputs[1]).toHaveAttribute("webkitdirectory");
       expect(fileInputs[1]).toHaveStyle({ display: "none" });
@@ -163,7 +163,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const mockFiles = [
         createMockFile("file1.txt"),
         createMockFile("file2.txt"),
@@ -186,7 +188,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const mockFiles = [createMockFile("file1.txt")];
 
       Object.defineProperty(fileInput, "files", {
@@ -206,7 +210,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
 
       Object.defineProperty(fileInput, "files", {
         value: null,
@@ -227,7 +233,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const folderInput = container.querySelector('input[webkitdirectory]') as HTMLInputElement;
+      const folderInput = container.querySelector(
+        "input[webkitdirectory]"
+      ) as HTMLInputElement;
       const mockFiles = [
         createMockFile("folder/file1.txt"),
         createMockFile("folder/file2.txt"),
@@ -250,7 +258,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const folderInput = container.querySelector('input[webkitdirectory]') as HTMLInputElement;
+      const folderInput = container.querySelector(
+        "input[webkitdirectory]"
+      ) as HTMLInputElement;
       const mockFiles = [createMockFile("folder/file1.txt")];
 
       Object.defineProperty(folderInput, "files", {
@@ -270,7 +280,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const folderInput = container.querySelector('input[webkitdirectory]') as HTMLInputElement;
+      const folderInput = container.querySelector(
+        "input[webkitdirectory]"
+      ) as HTMLInputElement;
 
       Object.defineProperty(folderInput, "files", {
         value: null,
@@ -291,7 +303,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const clickSpy = vi.spyOn(fileInput, "click");
 
       fireEvent.click(screen.getByTestId("trigger-file-upload"));
@@ -306,7 +320,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const folderInput = container.querySelector('input[webkitdirectory]') as HTMLInputElement;
+      const folderInput = container.querySelector(
+        "input[webkitdirectory]"
+      ) as HTMLInputElement;
       const clickSpy = vi.spyOn(folderInput, "click");
 
       fireEvent.click(screen.getByTestId("trigger-folder-upload"));
@@ -321,7 +337,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const clickSpy = vi.spyOn(fileInput, "click");
 
       fireEvent.click(screen.getByTestId("trigger-file-upload"));
@@ -336,7 +354,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const folderInput = container.querySelector('input[webkitdirectory]') as HTMLInputElement;
+      const folderInput = container.querySelector(
+        "input[webkitdirectory]"
+      ) as HTMLInputElement;
       const clickSpy = vi.spyOn(folderInput, "click");
 
       fireEvent.click(screen.getByTestId("trigger-folder-upload"));
@@ -353,7 +373,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const clickSpy = vi.spyOn(fileInput, "click");
 
       fireEvent.click(screen.getByTestId("trigger-file-upload"));
@@ -368,7 +390,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const clickSpy = vi.spyOn(fileInput, "click");
 
       fireEvent.click(screen.getByTestId("trigger-file-upload"));
@@ -385,7 +409,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
 
       Object.defineProperty(fileInput, "files", {
         value: createMockFileList([]),
@@ -404,7 +430,9 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
       const mockFiles = [
         createMockFile("file with spaces.txt"),
         createMockFile("file-with-dashes.txt"),
@@ -428,8 +456,10 @@ describe("DragDropZone", () => {
         </DragDropZone>
       );
 
-      const fileInput = container.querySelector('input[type="file"][multiple]') as HTMLInputElement;
-      const mockFiles = Array.from({ length: 100 }, (_, i) => 
+      const fileInput = container.querySelector(
+        'input[type="file"][multiple]'
+      ) as HTMLInputElement;
+      const mockFiles = Array.from({ length: 100 }, (_, i) =>
         createMockFile(`file${i}.txt`)
       );
 
@@ -447,7 +477,12 @@ describe("DragDropZone", () => {
 
 describe("useDragDropZone hook", () => {
   function TestComponent() {
-    const { fileInputRef, folderInputRef, triggerFileUpload, triggerFolderUpload } = useDragDropZone();
+    const {
+      fileInputRef,
+      folderInputRef,
+      triggerFileUpload,
+      triggerFolderUpload,
+    } = useDragDropZone();
 
     return (
       <div>
@@ -473,7 +508,7 @@ describe("useDragDropZone hook", () => {
   it("should trigger file input click when triggerFileUpload is called", () => {
     render(<TestComponent />);
 
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
+    const fileInput = screen.getByTestId("file-input");
     const clickSpy = vi.spyOn(fileInput, "click");
 
     fireEvent.click(screen.getByTestId("trigger-file"));
@@ -484,7 +519,7 @@ describe("useDragDropZone hook", () => {
   it("should trigger folder input click when triggerFolderUpload is called", () => {
     render(<TestComponent />);
 
-    const folderInput = screen.getByTestId("folder-input") as HTMLInputElement;
+    const folderInput = screen.getByTestId("folder-input");
     const clickSpy = vi.spyOn(folderInput, "click");
 
     fireEvent.click(screen.getByTestId("trigger-folder"));

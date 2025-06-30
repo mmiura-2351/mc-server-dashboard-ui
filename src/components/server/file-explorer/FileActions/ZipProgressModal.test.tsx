@@ -92,11 +92,15 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      expect(screen.getByText((content, element) => {
-        return element?.textContent === "Processing file: important-file.log" ||
-               content.includes("Processing file") ||
-               content.includes("important-file.log");
-      })).toBeInTheDocument();
+      expect(
+        screen.getByText((content, element) => {
+          return (
+            element?.textContent === "Processing file: important-file.log" ||
+            content.includes("Processing file") ||
+            content.includes("important-file.log")
+          );
+        })
+      ).toBeInTheDocument();
     });
 
     it("should show file count during downloading", () => {
@@ -112,7 +116,9 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      const progressDetails = container.querySelector('[class*="progressDetails"]');
+      const progressDetails = container.querySelector(
+        '[class*="progressDetails"]'
+      );
       expect(progressDetails).toHaveTextContent("7 / 15 files");
     });
   });
@@ -140,9 +146,15 @@ describe("ZipProgressModal", () => {
       );
 
       expect(screen.queryByText(/Processing file:/)).not.toBeInTheDocument();
-      expect(screen.queryByText((content, element) => {
-        return element?.textContent?.endsWith(" files") && !element?.textContent?.includes("Compressing") || false;
-      })).not.toBeInTheDocument();
+      expect(
+        screen.queryByText((content, element) => {
+          return (
+            (element?.textContent?.endsWith(" files") &&
+              !element?.textContent?.includes("Compressing")) ||
+            false
+          );
+        })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -178,9 +190,9 @@ describe("ZipProgressModal", () => {
       render(
         <ZipProgressModal
           {...defaultProps}
-          progress={{ 
-            ...defaultProps.progress, 
-            stage: "unknown" as any 
+          progress={{
+            ...defaultProps.progress,
+            stage: "unknown" as "downloading" | "zipping" | "finalizing",
           }}
         />
       );
@@ -262,7 +274,9 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      expect(screen.queryByText("ZIP download complete")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("ZIP download complete")
+      ).not.toBeInTheDocument();
       expect(screen.queryByText("OK")).not.toBeInTheDocument();
     });
 
@@ -294,9 +308,13 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      const progressDetails = container.querySelector('[class*="progressDetails"]');
+      const progressDetails = container.querySelector(
+        '[class*="progressDetails"]'
+      );
       expect(progressDetails).toHaveTextContent("0 / 0 files");
-      expect(screen.getByText((content) => content.includes("Processing file"))).toBeInTheDocument();
+      expect(
+        screen.getByText((content) => content.includes("Processing file"))
+      ).toBeInTheDocument();
     });
 
     it("should handle large numbers correctly", () => {
@@ -313,7 +331,9 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      const progressDetails = container.querySelector('[class*="progressDetails"]');
+      const progressDetails = container.querySelector(
+        '[class*="progressDetails"]'
+      );
       expect(progressDetails).toHaveTextContent("9999 / 10000 files");
       expect(progressDetails).toHaveTextContent("large-dataset.csv");
     });
@@ -332,8 +352,12 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      const progressDetails = container.querySelector('[class*="progressDetails"]');
-      expect(progressDetails).toHaveTextContent("file with spaces & symbols.txt");
+      const progressDetails = container.querySelector(
+        '[class*="progressDetails"]'
+      );
+      expect(progressDetails).toHaveTextContent(
+        "file with spaces & symbols.txt"
+      );
     });
 
     it("should display unicode file names", () => {
@@ -348,7 +372,9 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      const progressDetails = container.querySelector('[class*="progressDetails"]');
+      const progressDetails = container.querySelector(
+        '[class*="progressDetails"]'
+      );
       expect(progressDetails).toHaveTextContent("файл.txt");
     });
 
@@ -365,7 +391,9 @@ describe("ZipProgressModal", () => {
         />
       );
 
-      const progressDetails = container.querySelector('[class*="progressDetails"]');
+      const progressDetails = container.querySelector(
+        '[class*="progressDetails"]'
+      );
       expect(progressDetails).toHaveTextContent(longFileName);
     });
   });
@@ -374,10 +402,22 @@ describe("ZipProgressModal", () => {
     it("should render with proper modal structure", () => {
       const { container } = render(<ZipProgressModal {...defaultProps} />);
 
-      expect(container.querySelector(`.${styles.modalOverlay}`) || container.querySelector('.modalOverlay')).toBeInTheDocument();
-      expect(container.querySelector(`.${styles.modal}`) || container.querySelector('.modal')).toBeInTheDocument();
-      expect(container.querySelector(`.${styles.modalHeader}`) || container.querySelector('.modalHeader')).toBeInTheDocument();
-      expect(container.querySelector(`.${styles.modalContent}`) || container.querySelector('.modalContent')).toBeInTheDocument();
+      expect(
+        container.querySelector(`.${styles.modalOverlay}`) ||
+          container.querySelector(".modalOverlay")
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector(`.${styles.modal}`) ||
+          container.querySelector(".modal")
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector(`.${styles.modalHeader}`) ||
+          container.querySelector(".modalHeader")
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector(`.${styles.modalContent}`) ||
+          container.querySelector(".modalContent")
+      ).toBeInTheDocument();
     });
 
     it("should have proper heading structure", () => {
