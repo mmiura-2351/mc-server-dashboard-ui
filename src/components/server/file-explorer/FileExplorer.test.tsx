@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-import { ok } from "neverthrow";
+import { ok, err } from "neverthrow";
 import { FileExplorer } from "./FileExplorer";
 import * as fileService from "@/services/files";
 import type { FileSystemItem } from "@/types/files";
@@ -136,8 +136,9 @@ describe("FileExplorer", () => {
     });
 
     it("should handle file loading errors gracefully", async () => {
-      vi.mocked(fileService.listFiles).mockRejectedValue(
-        new Error("Network error")
+      // Return a proper neverthrow error result instead of throwing
+      vi.mocked(fileService.listFiles).mockResolvedValue(
+        err({ message: "Network error" })
       );
 
       render(<FileExplorer serverId={mockServerId} />);
