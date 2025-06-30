@@ -37,6 +37,12 @@ const mockT = vi.fn((key: string) => {
     "auth.showPassword": "Show password",
     "auth.hidePassword": "Hide password",
     "language.switchLanguage": "Language",
+    "language.languageDescription": "Choose your preferred language",
+    "language.english": "English",
+    "language.japanese": "Japanese",
+    "account.profileUpdatedSuccessfully": "Profile updated successfully",
+    "account.passwordUpdatedSuccessfully": "Password updated successfully",
+    "account.newPasswordsDoNotMatch": "New passwords do not match",
     "common.saving": "Saving...",
   };
   return translations[key] || key;
@@ -44,6 +50,7 @@ const mockT = vi.fn((key: string) => {
 
 vi.mock("@/contexts/language", () => ({
   useTranslation: () => ({ t: mockT, locale: "en" }),
+  useLanguage: () => ({ locale: "en", setLocale: vi.fn() }),
   LanguageProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
@@ -134,10 +141,10 @@ describe("AccountSettings", () => {
     fireEvent.click(screen.getByText("Language"));
 
     expect(
-      screen.getByText("language.languageDescription")
+      screen.getByText("Choose your preferred language")
     ).toBeInTheDocument();
-    expect(screen.getByText("language.english")).toBeInTheDocument();
-    expect(screen.getByText("language.japanese")).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Japanese")).toBeInTheDocument();
   });
 
   it("switches to danger zone tab when clicked", () => {
@@ -153,7 +160,9 @@ describe("AccountSettings", () => {
       screen.getByRole("heading", { name: "Delete Account" })
     ).toBeInTheDocument();
     expect(
-      screen.getByText("account.onceYouDeleteYourAccount")
+      screen.getByText(
+        "Once you delete your account, there is no going back. Please be certain."
+      )
     ).toBeInTheDocument();
   });
 
@@ -171,7 +180,7 @@ describe("AccountSettings", () => {
     const usernameInput = screen.getByDisplayValue("testuser");
     fireEvent.change(usernameInput, { target: { value: "newusername" } });
 
-    fireEvent.click(screen.getByText("account.updateProfile"));
+    fireEvent.click(screen.getByText("Update Profile"));
 
     await waitFor(() => {
       expect(mockUpdateUserInfo).toHaveBeenCalledWith({
@@ -182,7 +191,7 @@ describe("AccountSettings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.profileUpdatedSuccessfully")
+        screen.getByText("Profile updated successfully")
       ).toBeInTheDocument();
     });
   });
@@ -201,7 +210,7 @@ describe("AccountSettings", () => {
     const usernameInput = screen.getByDisplayValue("testuser");
     fireEvent.change(usernameInput, { target: { value: "existinguser" } });
 
-    fireEvent.click(screen.getByText("account.updateProfile"));
+    fireEvent.click(screen.getByText("Update Profile"));
 
     await waitFor(() => {
       expect(screen.getByText("Username already exists")).toBeInTheDocument();
@@ -217,19 +226,19 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("auth.password"));
+    fireEvent.click(screen.getByText("Password"));
 
-    fireEvent.change(screen.getByLabelText("auth.currentPassword"), {
+    fireEvent.change(screen.getByLabelText("Current Password"), {
       target: { value: "currentpass" },
     });
-    fireEvent.change(screen.getByLabelText("auth.newPassword"), {
+    fireEvent.change(screen.getByLabelText("New Password"), {
       target: { value: "newpass123" },
     });
-    fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
+    fireEvent.change(screen.getByLabelText("Confirm New Password"), {
       target: { value: "newpass123" },
     });
 
-    fireEvent.click(screen.getByText("account.updatePassword"));
+    fireEvent.click(screen.getByText("Update Password"));
 
     await waitFor(() => {
       expect(mockUpdatePassword).toHaveBeenCalledWith({
@@ -240,7 +249,7 @@ describe("AccountSettings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.passwordUpdatedSuccessfully")
+        screen.getByText("Password updated successfully")
       ).toBeInTheDocument();
     });
   });
@@ -252,23 +261,23 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("auth.password"));
+    fireEvent.click(screen.getByText("Password"));
 
-    fireEvent.change(screen.getByLabelText("auth.currentPassword"), {
+    fireEvent.change(screen.getByLabelText("Current Password"), {
       target: { value: "currentpass" },
     });
-    fireEvent.change(screen.getByLabelText("auth.newPassword"), {
+    fireEvent.change(screen.getByLabelText("New Password"), {
       target: { value: "newpass123" },
     });
-    fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
+    fireEvent.change(screen.getByLabelText("Confirm New Password"), {
       target: { value: "differentpass" },
     });
 
-    fireEvent.click(screen.getByText("account.updatePassword"));
+    fireEvent.click(screen.getByText("Update Password"));
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.newPasswordsDoNotMatch")
+        screen.getByText("New passwords do not match")
       ).toBeInTheDocument();
     });
 
@@ -322,7 +331,7 @@ describe("AccountSettings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.pleaseTypeDeleteToConfirm")
+        screen.getByText("Please type DELETE to confirm")
       ).toBeInTheDocument();
     });
 
