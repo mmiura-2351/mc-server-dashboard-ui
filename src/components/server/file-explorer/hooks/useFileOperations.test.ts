@@ -159,7 +159,7 @@ describe("useFileOperations", () => {
   describe("Confirm Rename Operations", () => {
     it("should successfully confirm rename operation", async () => {
       mockRenameFile.mockResolvedValue(
-        ok({ success: true, message: "File renamed successfully" })
+        ok(undefined as any)
       );
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
@@ -170,7 +170,7 @@ describe("useFileOperations", () => {
         result.current.setNewName("new-name.txt");
       });
 
-      let renameResult: unknown;
+      let renameResult: any;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
@@ -188,7 +188,7 @@ describe("useFileOperations", () => {
 
     it("should handle rename operation in root directory", async () => {
       mockRenameFile.mockResolvedValue(
-        ok({ success: true, message: "File renamed successfully" })
+        ok(undefined as any)
       );
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
@@ -224,7 +224,7 @@ describe("useFileOperations", () => {
         result.current.setNewName("new-name.txt");
       });
 
-      let renameResult: unknown;
+      let renameResult: any;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
@@ -239,7 +239,7 @@ describe("useFileOperations", () => {
     it("should reject rename with invalid parameters", async () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
 
-      let renameResult: unknown;
+      let renameResult: any;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
@@ -259,7 +259,7 @@ describe("useFileOperations", () => {
         result.current.setNewName("   ");
       });
 
-      let renameResult: unknown;
+      let renameResult: any;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
@@ -279,7 +279,7 @@ describe("useFileOperations", () => {
         // Don't change the name - keep it same as original
       });
 
-      let renameResult: unknown;
+      let renameResult: any;
       await act(async () => {
         renameResult = await result.current.confirmRename("/test");
       });
@@ -294,13 +294,13 @@ describe("useFileOperations", () => {
   describe("Delete Operations", () => {
     it("should delete single file successfully", async () => {
       mockDeleteFile.mockResolvedValue(
-        ok({ success: true, message: "File deleted" })
+        ok(undefined as any)
       );
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let deleteResult: unknown;
+      let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteFile(file, "/test");
       });
@@ -314,7 +314,7 @@ describe("useFileOperations", () => {
 
     it("should delete single file in root directory", async () => {
       mockDeleteFile.mockResolvedValue(
-        ok({ success: true, message: "File deleted" })
+        ok(undefined as any)
       );
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
@@ -336,7 +336,7 @@ describe("useFileOperations", () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let deleteResult: unknown;
+      let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteFile(file, "/test");
       });
@@ -349,7 +349,7 @@ describe("useFileOperations", () => {
 
     it("should delete multiple files successfully", async () => {
       mockDeleteFile.mockResolvedValue(
-        ok({ success: true, message: "File deleted" })
+        ok(undefined as any)
       );
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
@@ -360,7 +360,7 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file2.txt");
       });
 
-      let deleteResult: unknown;
+      let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteBulkFiles(mockFiles, "/test");
       });
@@ -381,7 +381,7 @@ describe("useFileOperations", () => {
 
     it("should handle partial failure in bulk delete", async () => {
       mockDeleteFile
-        .mockResolvedValueOnce(ok({ success: true, message: "File deleted" }))
+        .mockResolvedValueOnce(ok(undefined as any))
         .mockResolvedValueOnce(
           err({
             status: 500,
@@ -398,7 +398,7 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file2.txt");
       });
 
-      let deleteResult: unknown;
+      let deleteResult: any;
       await act(async () => {
         deleteResult = await result.current.deleteBulkFiles(mockFiles, "/test");
       });
@@ -424,7 +424,7 @@ describe("useFileOperations", () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let downloadResult: unknown;
+      let downloadResult: any;
       await act(async () => {
         downloadResult = await result.current.downloadFile(file, "/test");
       });
@@ -462,7 +462,7 @@ describe("useFileOperations", () => {
         path: "/test-dir",
       };
 
-      let downloadResult: unknown;
+      let downloadResult: any;
       await act(async () => {
         downloadResult = await result.current.downloadFile(
           directoryFile,
@@ -485,7 +485,7 @@ describe("useFileOperations", () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
 
-      let downloadResult: unknown;
+      let downloadResult: any;
       await act(async () => {
         downloadResult = await result.current.downloadFile(file, "/test");
       });
@@ -510,7 +510,7 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file2.txt");
       });
 
-      let downloadResult: unknown;
+      let downloadResult: any;
       await act(async () => {
         downloadResult = await result.current.downloadBulkFiles(
           mockFiles,
@@ -535,7 +535,7 @@ describe("useFileOperations", () => {
     it("should handle bulk download with no files selected", async () => {
       const { result } = renderHook(() => useFileOperations(mockServerId));
 
-      let downloadResult: unknown;
+      let downloadResult: any;
       await act(async () => {
         downloadResult = await result.current.downloadBulkFiles(
           mockFiles,
@@ -562,7 +562,7 @@ describe("useFileOperations", () => {
         result.current.toggleFileSelection("file1.txt");
       });
 
-      let downloadResult: unknown;
+      let downloadResult: any;
       await act(async () => {
         downloadResult = await result.current.downloadBulkFiles(
           mockFiles,

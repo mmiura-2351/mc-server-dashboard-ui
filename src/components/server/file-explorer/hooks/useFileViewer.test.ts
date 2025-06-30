@@ -137,7 +137,7 @@ describe("useFileViewer", () => {
 
     const mockImageFile: FileSystemItem = {
       name: "image.png",
-      type: "image",
+      type: "binary" as any,
       is_directory: false,
       size: 500,
       modified: "2023-01-01T00:00:00Z",
@@ -161,7 +161,7 @@ describe("useFileViewer", () => {
         const { result } = renderHook(() => useFileViewer(mockServerId));
         const nonViewableFile: FileSystemItem = {
           name: "data.zip",
-          type: "archive",
+          type: "binary" as any,
           is_directory: false,
           size: 1000,
           modified: "2023-01-01T00:00:00Z",
@@ -179,7 +179,7 @@ describe("useFileViewer", () => {
 
       it("should open text file successfully", async () => {
         const mockContent = "This is file content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -199,7 +199,7 @@ describe("useFileViewer", () => {
 
       it("should open text file in root directory", async () => {
         const mockContent = "Root file content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -294,7 +294,7 @@ describe("useFileViewer", () => {
     describe("closeFileViewer", () => {
       it("should close viewer and reset state", async () => {
         const mockContent = "Test content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -347,9 +347,9 @@ describe("useFileViewer", () => {
     describe("saveFile", () => {
       it("should save file successfully", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
         mockWriteFile.mockResolvedValue(
-          ok({ success: true, message: "File saved" })
+          ok(undefined as any)
         );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
@@ -365,7 +365,7 @@ describe("useFileViewer", () => {
         });
 
         // Save file
-        let saveResult: unknown;
+        let saveResult: any;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
@@ -389,9 +389,9 @@ describe("useFileViewer", () => {
 
       it("should save file in root directory", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
         mockWriteFile.mockResolvedValue(
-          ok({ success: true, message: "File saved" })
+          ok(undefined as any)
         );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
@@ -422,7 +422,7 @@ describe("useFileViewer", () => {
 
       it("should handle save error", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
         const errorMessage = "Permission denied";
         mockWriteFile.mockResolvedValue(
           err({ status: 403, message: errorMessage, details: "Access denied" })
@@ -441,7 +441,7 @@ describe("useFileViewer", () => {
         });
 
         // Save file
-        let saveResult: unknown;
+        let saveResult: any;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
@@ -455,7 +455,7 @@ describe("useFileViewer", () => {
 
       it("should handle unexpected save error", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
         mockWriteFile.mockImplementation(() => {
           throw new Error("Network error");
         });
@@ -473,7 +473,7 @@ describe("useFileViewer", () => {
         });
 
         // Save file
-        let saveResult: unknown;
+        let saveResult: any;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
@@ -487,7 +487,7 @@ describe("useFileViewer", () => {
       it("should reject save when no file is selected", async () => {
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
-        let saveResult: unknown;
+        let saveResult: any;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
@@ -502,7 +502,7 @@ describe("useFileViewer", () => {
 
       it("should reject save when not in editing mode", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -511,7 +511,7 @@ describe("useFileViewer", () => {
           await result.current.openFileViewer(mockTextFile, "/config");
         });
 
-        let saveResult: unknown;
+        let saveResult: any;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
@@ -529,7 +529,7 @@ describe("useFileViewer", () => {
       it("should download file successfully", async () => {
         const mockBlob = new Blob(["file content"], { type: "text/plain" });
         mockDownloadFile.mockResolvedValue(ok(mockBlob));
-        mockReadTextFile.mockResolvedValue(ok({ content: "File content" }));
+        mockReadTextFile.mockResolvedValue(ok({ content: "File content" } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -539,7 +539,7 @@ describe("useFileViewer", () => {
         });
 
         // Download file
-        let downloadResult: unknown;
+        let downloadResult: any;
         await act(async () => {
           downloadResult =
             await result.current.downloadCurrentFile("/downloads");
@@ -555,7 +555,7 @@ describe("useFileViewer", () => {
       it("should download file from root directory", async () => {
         const mockBlob = new Blob(["file content"], { type: "text/plain" });
         mockDownloadFile.mockResolvedValue(ok(mockBlob));
-        mockReadTextFile.mockResolvedValue(ok({ content: "File content" }));
+        mockReadTextFile.mockResolvedValue(ok({ content: "File content" } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -580,7 +580,7 @@ describe("useFileViewer", () => {
         mockDownloadFile.mockResolvedValue(
           err({ status: 500, message: errorMessage, details: "Server error" })
         );
-        mockReadTextFile.mockResolvedValue(ok({ content: "File content" }));
+        mockReadTextFile.mockResolvedValue(ok({ content: "File content" } as any));
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
@@ -590,7 +590,7 @@ describe("useFileViewer", () => {
         });
 
         // Download file
-        let downloadResult: unknown;
+        let downloadResult: any;
         await act(async () => {
           downloadResult =
             await result.current.downloadCurrentFile("/downloads");
@@ -605,7 +605,7 @@ describe("useFileViewer", () => {
       it("should reject download when no file is selected", async () => {
         const { result } = renderHook(() => useFileViewer(mockServerId));
 
-        let downloadResult: unknown;
+        let downloadResult: any;
         await act(async () => {
           downloadResult =
             await result.current.downloadCurrentFile("/downloads");
@@ -621,9 +621,9 @@ describe("useFileViewer", () => {
     describe("Integration Tests", () => {
       it("should handle complete workflow: open -> edit -> save -> close", async () => {
         const mockContent = "Original content";
-        mockReadTextFile.mockResolvedValue(ok({ content: mockContent }));
+        mockReadTextFile.mockResolvedValue(ok({ content: mockContent } as any));
         mockWriteFile.mockResolvedValue(
-          ok({ success: true, message: "File saved" })
+          ok(undefined as any)
         );
 
         const { result } = renderHook(() => useFileViewer(mockServerId));
@@ -652,7 +652,7 @@ describe("useFileViewer", () => {
         expect(result.current.editedContent).toBe("Modified content");
 
         // Save file
-        let saveResult: unknown;
+        let saveResult: any;
         await act(async () => {
           saveResult = await result.current.saveFile("/config");
         });
