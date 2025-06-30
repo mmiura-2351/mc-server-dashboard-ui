@@ -96,7 +96,8 @@
     "newPasswordsDoNotMatch": "新しいパスワードが一致しません",
     "pleaseTypeDeleteToConfirm": "確認のため DELETE と入力してください",
     "onceYouDeleteYourAccount": "アカウントを削除すると元に戻すことはできません。慎重に行ってください。",
-    "typeDeleteToConfirm": "確認のため DELETE と入力"
+    "typeDeleteToConfirm": "確認のため DELETE と入力",
+    "deleteConfirmationText": "DELETE"
   },
   "admin": {
     "title": "管理",
@@ -174,6 +175,8 @@
     "clickToManage": "クリックしてサーバーを管理",
     "filters": {
       "title": "フィルター",
+      "noMatchingServers": "現在のフィルターに一致するサーバーがありません。",
+      "closeFilters": "フィルターを閉じる",
       "type": {
         "label": "サーバータイプ",
         "all": "すべて (サーバータイプ)",
@@ -404,6 +407,7 @@
     "conflict": "サーバーの状態により操作を実行できません。",
     "serverError": "サーバーエラーが発生しました。しばらく待ってから再試行してください。",
     "failedToLoad": "データの読み込みに失敗しました",
+    "failedToLoadData": "データの読み込みに失敗しました",
     "operationFailed": "サーバーの{action}に失敗しました",
     "boundary": {
       "title": "エラーが発生しました",
@@ -445,6 +449,8 @@
     "blockedFilesMessage": "セキュリティ上の理由により、一部のファイルがブロックされました：",
     "uploadError": "アップロードエラー",
     "noFilesAllowed": "セキュリティ制限により、ファイルをアップロードできませんでした。",
+    "uploadFailed": "アップロードが失敗しました",
+    "uploadFailedWithReason": "アップロードが失敗しました：{reason}",
     "loadingFiles": "ファイル読み込み中...",
     "errorLoadingFiles": "ファイル読み込みエラー",
     "retry": "再試行",

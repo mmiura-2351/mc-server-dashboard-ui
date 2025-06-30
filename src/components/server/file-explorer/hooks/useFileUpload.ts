@@ -61,7 +61,7 @@ export function useFileUpload(serverId: number) {
       if (allowedFiles.length === 0) {
         return {
           success: false,
-          error: "No files allowed",
+          error: "NO_FILES_ALLOWED",
           warnings: securityResult.warnings,
           blocked: securityResult.blocked,
         };

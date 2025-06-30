@@ -32,6 +32,9 @@ export function useStableTranslation() {
       blockedFilesMessage: () => t("files.blockedFilesMessage"),
       uploadError: () => t("files.uploadError"),
       noFilesAllowed: () => t("files.noFilesAllowed"),
+      uploadFailed: () => t("files.uploadFailed"),
+      uploadFailedWithReason: (reason: string) =>
+        t("files.uploadFailedWithReason", { reason }),
     };
   }, [t]); // Only depend on t function
 

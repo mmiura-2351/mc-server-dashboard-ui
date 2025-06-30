@@ -107,7 +107,7 @@ export function AccountSettings() {
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (deleteConfirmation !== "DELETE") {
+    if (deleteConfirmation !== t("account.deleteConfirmationText")) {
       setMessage({
         type: "error",
         text: t("account.pleaseTypeDeleteToConfirm"),
@@ -415,7 +415,8 @@ export function AccountSettings() {
               </div>
               <div className={styles.field}>
                 <label htmlFor="delete_confirmation">
-                  {t("account.typeDeleteToConfirm")} <strong>DELETE</strong>
+                  {t("account.typeDeleteToConfirm")}{" "}
+                  <strong>{t("account.deleteConfirmationText")}</strong>
                 </label>
                 <input
                   id="delete_confirmation"

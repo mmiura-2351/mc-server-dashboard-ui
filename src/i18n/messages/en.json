@@ -96,7 +96,8 @@
     "newPasswordsDoNotMatch": "New passwords do not match",
     "pleaseTypeDeleteToConfirm": "Please type DELETE to confirm",
     "onceYouDeleteYourAccount": "Once you delete your account, there is no going back. Please be certain.",
-    "typeDeleteToConfirm": "Type DELETE to confirm"
+    "typeDeleteToConfirm": "Type DELETE to confirm",
+    "deleteConfirmationText": "DELETE"
   },
   "admin": {
     "title": "Administration",
@@ -174,6 +175,8 @@
     "clickToManage": "Click to manage server",
     "filters": {
       "title": "Filters",
+      "noMatchingServers": "No servers match the current filters.",
+      "closeFilters": "Close filters",
       "type": {
         "label": "Server Type",
         "all": "All (Server Type)",
@@ -522,6 +525,7 @@
     "conflict": "Operation cannot be performed due to server state.",
     "serverError": "A server error occurred. Please wait and try again.",
     "failedToLoad": "Failed to load data",
+    "failedToLoadData": "Failed to load data",
     "operationFailed": "Failed to {action} server",
     "boundary": {
       "title": "Something went wrong",
@@ -563,6 +567,8 @@
     "blockedFilesMessage": "Some files were blocked for security reasons:",
     "uploadError": "Upload Error",
     "noFilesAllowed": "No files could be uploaded due to security restrictions.",
+    "uploadFailed": "Upload failed",
+    "uploadFailedWithReason": "Upload failed: {reason}",
     "loadingFiles": "Loading files...",
     "errorLoadingFiles": "Error loading files",
     "retry": "Retry",

@@ -258,7 +258,7 @@ export function ServerDashboard() {
         }
       } catch {
         if (isMounted) {
-          setError("Failed to load data");
+          setError(t("errors.failedToLoadData"));
         }
       } finally {
         if (isMounted) {
@@ -272,7 +272,7 @@ export function ServerDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [logout]);
+  }, [logout, t]);
 
   // Load supported versions only once on mount
   useEffect(() => {
@@ -583,7 +583,7 @@ export function ServerDashboard() {
                       <button
                         onClick={() => setShowFilters(false)}
                         className={styles.closeFiltersButton}
-                        aria-label="Close filters"
+                        aria-label={t("servers.filters.closeFilters")}
                       >
                         ×
                       </button>
@@ -834,7 +834,7 @@ export function ServerDashboard() {
           ) : filteredServers.length === 0 ? (
             <div className={styles.emptyState}>
               <h3>{t("servers.noServersFound")}</h3>
-              <p>No servers match the current filters.</p>
+              <p>{t("servers.filters.noMatchingServers")}</p>
             </div>
           ) : (
             <>
@@ -1142,9 +1142,15 @@ export function ServerDashboard() {
                       })
                     }
                   >
-                    <option value={ServerType.VANILLA}>Vanilla</option>
-                    <option value={ServerType.PAPER}>Paper</option>
-                    <option value={ServerType.FORGE}>Forge</option>
+                    <option value={ServerType.VANILLA}>
+                      {t("servers.filters.type.vanilla")}
+                    </option>
+                    <option value={ServerType.PAPER}>
+                      {t("servers.filters.type.paper")}
+                    </option>
+                    <option value={ServerType.FORGE}>
+                      {t("servers.filters.type.forge")}
+                    </option>
                   </select>
                 </div>
 
@@ -1162,11 +1168,21 @@ export function ServerDashboard() {
                       })
                     }
                   >
-                    <option value={1024}>1GB (1024MB)</option>
-                    <option value={2048}>2GB (2048MB)</option>
-                    <option value={4096}>4GB (4096MB)</option>
-                    <option value={8192}>8GB (8192MB)</option>
-                    <option value={16384}>16GB (16384MB)</option>
+                    <option value={1024}>
+                      {t("servers.create.memoryOptions.1024")}
+                    </option>
+                    <option value={2048}>
+                      {t("servers.create.memoryOptions.2048")}
+                    </option>
+                    <option value={4096}>
+                      {t("servers.create.memoryOptions.4096")}
+                    </option>
+                    <option value={8192}>
+                      {t("servers.create.memoryOptions.8192")}
+                    </option>
+                    <option value={16384}>
+                      {t("servers.create.memoryOptions.16384")}
+                    </option>
                   </select>
                 </div>
 

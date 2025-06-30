@@ -179,7 +179,7 @@ describe("useFileUpload", () => {
 
       expect(uploadResult).toEqual({
         success: false,
-        error: "No files allowed",
+        error: "NO_FILES_ALLOWED",
         warnings: [],
         blocked: [{ file: testFiles[0]!, reason: "Dangerous file type" }],
       });

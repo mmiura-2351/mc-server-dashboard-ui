@@ -68,6 +68,11 @@ const mockTranslations: Record<string, string> = {
   "servers.create.noVersionsAvailable": "No versions available",
   "servers.create.errors.failedToLoadVersions":
     "Failed to load versions, using fallback list",
+  "servers.create.memoryOptions.1024": "1GB (1024MB)",
+  "servers.create.memoryOptions.2048": "2GB (2048MB)",
+  "servers.create.memoryOptions.4096": "4GB (4096MB)",
+  "servers.create.memoryOptions.8192": "8GB (8192MB)",
+  "servers.create.memoryOptions.16384": "16GB (16384MB)",
   "servers.import.title": "Import Server",
   "servers.filters.type.label": "Server Type",
   "servers.filters.type.all": "All (Server Type)",
@@ -94,6 +99,8 @@ const mockTranslations: Record<string, string> = {
   "servers.filters.reset": "Reset Filters",
   "servers.filters.resultsCount": "Showing {count} of {total} servers",
   "servers.filters.title": "Filters",
+  "servers.filters.noMatchingServers": "No servers match the current filters.",
+  "servers.filters.closeFilters": "Close filters",
   "servers.filters.filterBy": "Filter",
   "servers.filters.sortBy": "Sort",
   "servers.actions.start": "Start Server",
@@ -101,6 +108,7 @@ const mockTranslations: Record<string, string> = {
   "servers.actions.details": "View Details",
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
+  "errors.failedToLoadData": "Failed to load data",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
