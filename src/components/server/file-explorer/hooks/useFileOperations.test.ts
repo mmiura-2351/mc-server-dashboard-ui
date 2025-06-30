@@ -158,9 +158,7 @@ describe("useFileOperations", () => {
 
   describe("Confirm Rename Operations", () => {
     it("should successfully confirm rename operation", async () => {
-      mockRenameFile.mockResolvedValue(
-        ok(undefined as any)
-      );
+      mockRenameFile.mockResolvedValue(ok(undefined as any));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -187,9 +185,7 @@ describe("useFileOperations", () => {
     });
 
     it("should handle rename operation in root directory", async () => {
-      mockRenameFile.mockResolvedValue(
-        ok(undefined as any)
-      );
+      mockRenameFile.mockResolvedValue(ok(undefined as any));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -293,9 +289,7 @@ describe("useFileOperations", () => {
 
   describe("Delete Operations", () => {
     it("should delete single file successfully", async () => {
-      mockDeleteFile.mockResolvedValue(
-        ok(undefined as any)
-      );
+      mockDeleteFile.mockResolvedValue(ok(undefined as any));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -313,9 +307,7 @@ describe("useFileOperations", () => {
     });
 
     it("should delete single file in root directory", async () => {
-      mockDeleteFile.mockResolvedValue(
-        ok(undefined as any)
-      );
+      mockDeleteFile.mockResolvedValue(ok(undefined as any));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
       const file = mockFiles[0]!;
@@ -348,9 +340,7 @@ describe("useFileOperations", () => {
     });
 
     it("should delete multiple files successfully", async () => {
-      mockDeleteFile.mockResolvedValue(
-        ok(undefined as any)
-      );
+      mockDeleteFile.mockResolvedValue(ok(undefined as any));
 
       const { result } = renderHook(() => useFileOperations(mockServerId));
 

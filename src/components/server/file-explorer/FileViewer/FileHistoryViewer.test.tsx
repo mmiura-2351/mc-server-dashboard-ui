@@ -280,7 +280,9 @@ describe("FileHistoryViewer", () => {
   describe("Version Selection", () => {
     beforeEach(async () => {
       mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
-      mockGetFileVersionContent.mockResolvedValue(ok(mockVersionContent as any));
+      mockGetFileVersionContent.mockResolvedValue(
+        ok(mockVersionContent as any)
+      );
     });
 
     it("should load version content when version is selected", async () => {
@@ -348,7 +350,9 @@ describe("FileHistoryViewer", () => {
   describe("Restore Functionality", () => {
     beforeEach(async () => {
       mockGetFileHistory.mockResolvedValue(ok(mockHistory as any));
-      mockGetFileVersionContent.mockResolvedValue(ok(mockVersionContent as any));
+      mockGetFileVersionContent.mockResolvedValue(
+        ok(mockVersionContent as any)
+      );
     });
 
     it("should call onRestore with correct parameters", async () => {
