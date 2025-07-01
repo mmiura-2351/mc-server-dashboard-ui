@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   type ReactNode,
 } from "react";
 import { ok, err, type Result } from "neverthrow";
@@ -187,11 +188,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return result;
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     AuthStorage.clearAuthData();
     tokenManager.clearTokens();
     setUser(null);
-  };
+  }, []);
 
   const updateUserInfo = async (
     userData: UserUpdate
