@@ -110,6 +110,7 @@ function AuthTestComponent() {
     <div>
       <div data-testid="user">{auth.user ? auth.user.username : "null"}</div>
       <div data-testid="isLoading">{auth.isLoading.toString()}</div>
+      <div data-testid="isHydrated">{auth.isHydrated.toString()}</div>
       <div data-testid="isAuthenticated">{auth.isAuthenticated.toString()}</div>
       <button data-testid="login" onClick={() => auth.login(mockLoginRequest)}>
         Login
@@ -223,6 +224,7 @@ describe("AuthContext", () => {
       );
 
       await waitFor(() => {
+        expect(screen.getByTestId("isHydrated")).toHaveTextContent("true");
         expect(screen.getByTestId("user")).toHaveTextContent("null");
         expect(screen.getByTestId("isLoading")).toHaveTextContent("false");
         expect(screen.getByTestId("isAuthenticated")).toHaveTextContent(
@@ -243,10 +245,10 @@ describe("AuthContext", () => {
         </AuthProvider>
       );
 
-      // Should initially show cached user
-      expect(screen.getByTestId("user")).toHaveTextContent("testuser");
-
+      // Wait for hydration and user restoration
       await waitFor(() => {
+        expect(screen.getByTestId("isHydrated")).toHaveTextContent("true");
+        expect(screen.getByTestId("user")).toHaveTextContent("testuser");
         expect(screen.getByTestId("isLoading")).toHaveTextContent("false");
         expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
       });
@@ -272,6 +274,7 @@ describe("AuthContext", () => {
       );
 
       await waitFor(() => {
+        expect(screen.getByTestId("isHydrated")).toHaveTextContent("true");
         expect(screen.getByTestId("user")).toHaveTextContent("null");
         expect(screen.getByTestId("isAuthenticated")).toHaveTextContent(
           "false"
@@ -293,6 +296,7 @@ describe("AuthContext", () => {
       );
 
       await waitFor(() => {
+        expect(screen.getByTestId("isHydrated")).toHaveTextContent("true");
         expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
       });
 
@@ -327,9 +331,12 @@ describe("AuthContext", () => {
         </AuthProvider>
       );
 
-      // With synchronous initialization, user should be immediately available
-      expect(screen.getByTestId("user")).toHaveTextContent("testuser");
-      expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
+      // Wait for hydration and user restoration
+      await waitFor(() => {
+        expect(screen.getByTestId("isHydrated")).toHaveTextContent("true");
+        expect(screen.getByTestId("user")).toHaveTextContent("testuser");
+        expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
+      });
 
       // Simulate auth logout event
       const logoutEvent = new CustomEvent("authLogout");
@@ -595,9 +602,12 @@ describe("AuthContext", () => {
         </AuthProvider>
       );
 
-      // With synchronous initialization, user should be immediately available
-      expect(screen.getByTestId("user")).toHaveTextContent("testuser");
-      expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
+      // Wait for hydration and user restoration
+      await waitFor(() => {
+        expect(screen.getByTestId("isHydrated")).toHaveTextContent("true");
+        expect(screen.getByTestId("user")).toHaveTextContent("testuser");
+        expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
+      });
 
       act(() => {
         screen.getByTestId("logout").click();
@@ -830,8 +840,9 @@ describe("AuthContext", () => {
         wrapper: TestAuthProvider,
       });
 
-      // Wait for initialization
+      // Wait for hydration and authentication
       await waitFor(() => {
+        expect(result.current.isHydrated).toBe(true);
         expect(result.current.isAuthenticated).toBe(true);
       });
 
