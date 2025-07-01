@@ -72,7 +72,7 @@
 .closeButton {
   padding: 8px 24px;
   border: 1px solid var(--primary-color);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--primary-color);
   color: white;
   cursor: pointer;

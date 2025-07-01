@@ -5,7 +5,7 @@
   margin: 0 auto;
   padding: 2rem;
   background: white;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   box-sizing: border-box;
   overflow: visible;
 }
@@ -48,7 +48,7 @@
   min-width: 0;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border-radius: var(--radius-base);
   font-size: 1rem;
   box-sizing: border-box;
   transition:
@@ -80,7 +80,7 @@
   padding: 0.75rem;
   padding-right: 3rem;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border-radius: var(--radius-base);
   font-size: 1rem;
   box-sizing: border-box;
   transition:
@@ -115,7 +115,7 @@
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   transition: color 0.2s;
 }
 
@@ -154,7 +154,7 @@
   background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-base);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -176,7 +176,7 @@
   padding: 0.75rem;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 4px;
+  border-radius: var(--radius-base);
   color: #dc2626;
   font-size: 0.875rem;
   margin-bottom: 1rem;
@@ -191,7 +191,7 @@
   padding: 0.75rem;
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
-  border-radius: 4px;
+  border-radius: var(--radius-base);
   color: #16a34a;
   font-size: 0.875rem;
   margin-bottom: 1rem;
@@ -206,7 +206,7 @@
   padding: 0.75rem;
   background-color: #fffbeb;
   border: 1px solid #fed7aa;
-  border-radius: 4px;
+  border-radius: var(--radius-base);
   color: #ea580c;
   font-size: 0.875rem;
   margin-bottom: 1rem;
