@@ -514,6 +514,59 @@
       "failedToDeleteBackup": "Failed to delete backup"
     }
   },
+  "connection": {
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "checking": "Checking...",
+      "degraded": "Degraded",
+      "reconnecting": "Reconnecting...",
+      "unknown": "Unknown"
+    },
+    "indicator": {
+      "tooltip": {
+        "connected": "Backend API is connected and healthy",
+        "disconnected": "Backend API is disconnected",
+        "checking": "Checking backend API connection...",
+        "degraded": "Backend API connection is degraded but functional",
+        "downtime": "Downtime: {duration}",
+        "lastCheck": "Last check: {time}",
+        "lastSuccess": "Last successful connection: {time}"
+      }
+    },
+    "banner": {
+      "title": "Backend Connection Issue",
+      "description": "The backend server is not responding. Some features may be unavailable.",
+      "degradedDescription": "The backend connection is unstable. Some operations may be slower than usual.",
+      "retry": "Retry Connection",
+      "retrying": "Retrying...",
+      "dismiss": "Dismiss",
+      "details": "Show Details",
+      "hideDetails": "Hide Details"
+    },
+    "error": {
+      "connectionFailed": "Failed to connect to backend server",
+      "connectionTimeout": "Connection to backend server timed out",
+      "healthCheckFailed": "Backend health check failed",
+      "networkError": "Network error while connecting to backend",
+      "retryLimitExceeded": "Maximum connection retry attempts exceeded",
+      "configurationError": "Backend connection configuration error"
+    },
+    "suggestions": {
+      "checkServerRunning": "Verify the backend server is running",
+      "checkNetworkConnection": "Check your network connection",
+      "contactAdministrator": "Contact system administrator if the issue persists",
+      "waitAndRetry": "Wait a moment and try again",
+      "refreshPage": "Try refreshing the page"
+    },
+    "actions": {
+      "retryConnection": "Retry Connection",
+      "checkStatus": "Check Status",
+      "viewDetails": "View Details",
+      "reportIssue": "Report Issue",
+      "refreshPage": "Refresh Page"
+    }
+  },
   "errors": {
     "failedToLoadBackups": "Failed to load backups",
     "generic": "An error occurred",

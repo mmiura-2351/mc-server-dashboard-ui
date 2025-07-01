@@ -150,6 +150,26 @@ export interface AppError extends BaseError {
 }
 
 /**
+ * Backend connection and API health errors
+ */
+export interface ConnectionError extends BaseError {
+  /** Connection status when error occurred */
+  connectionStatus: "checking" | "failed" | "timeout" | "degraded";
+  /** Backend API endpoint being monitored */
+  endpoint?: string;
+  /** Whether the connection can be retried */
+  retryable: boolean;
+  /** Current retry attempt number */
+  retryCount?: number;
+  /** Maximum retry attempts allowed */
+  maxRetries?: number;
+  /** Last successful connection timestamp */
+  lastSuccessfulConnection?: Date;
+  /** Time since last successful connection (ms) */
+  downtime?: number;
+}
+
+/**
  * Union type for all error types
  */
 export type ApplicationError =
@@ -160,7 +180,8 @@ export type ApplicationError =
   | ValidationError
   | PermissionError
   | ConfigError
-  | AppError;
+  | AppError
+  | ConnectionError;
 
 /**
  * Error severity levels

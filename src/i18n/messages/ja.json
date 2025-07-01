@@ -396,6 +396,59 @@
       "failedToDeleteBackup": "バックアップの削除に失敗しました"
     }
   },
+  "connection": {
+    "status": {
+      "connected": "接続済み",
+      "disconnected": "切断済み",
+      "checking": "確認中...",
+      "degraded": "不安定",
+      "reconnecting": "再接続中...",
+      "unknown": "不明"
+    },
+    "indicator": {
+      "tooltip": {
+        "connected": "バックエンドAPIに接続済みで正常です",
+        "disconnected": "バックエンドAPIが切断されています",
+        "checking": "バックエンドAPI接続を確認中...",
+        "degraded": "バックエンドAPI接続が不安定ですが機能しています",
+        "downtime": "ダウンタイム: {duration}",
+        "lastCheck": "最後の確認: {time}",
+        "lastSuccess": "最後の成功接続: {time}"
+      }
+    },
+    "banner": {
+      "title": "バックエンド接続問題",
+      "description": "バックエンドサーバーが応答していません。一部の機能が利用できない可能性があります。",
+      "degradedDescription": "バックエンド接続が不安定です。一部の操作が通常より遅くなる可能性があります。",
+      "retry": "接続を再試行",
+      "retrying": "再試行中...",
+      "dismiss": "閉じる",
+      "details": "詳細を表示",
+      "hideDetails": "詳細を非表示"
+    },
+    "error": {
+      "connectionFailed": "バックエンドサーバーへの接続に失敗しました",
+      "connectionTimeout": "バックエンドサーバーへの接続がタイムアウトしました",
+      "healthCheckFailed": "バックエンドヘルスチェックに失敗しました",
+      "networkError": "バックエンドへの接続中にネットワークエラーが発生しました",
+      "retryLimitExceeded": "最大接続再試行回数を超過しました",
+      "configurationError": "バックエンド接続設定エラー"
+    },
+    "suggestions": {
+      "checkServerRunning": "バックエンドサーバーが起動していることを確認してください",
+      "checkNetworkConnection": "ネットワーク接続を確認してください",
+      "contactAdministrator": "問題が解決しない場合は、システム管理者にお問い合わせください",
+      "waitAndRetry": "しばらく待ってから再試行してください",
+      "refreshPage": "ページを更新してみてください"
+    },
+    "actions": {
+      "retryConnection": "接続を再試行",
+      "checkStatus": "ステータス確認",
+      "viewDetails": "詳細を表示",
+      "reportIssue": "問題を報告",
+      "refreshPage": "ページを更新"
+    }
+  },
   "errors": {
     "failedToLoadBackups": "バックアップの読み込みに失敗しました",
     "generic": "エラーが発生しました",
