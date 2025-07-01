@@ -159,6 +159,8 @@ vi.mock("@/services/server", () => ({
   getServerTemplates: vi.fn(),
   createServer: vi.fn(),
   getSupportedVersions: vi.fn(),
+  startServer: vi.fn(),
+  stopServer: vi.fn(),
 }));
 
 describe("ServerDashboard", () => {
@@ -294,6 +296,8 @@ describe("ServerDashboard", () => {
         "1.20.6",
       ])
     );
+    vi.mocked(serverService.startServer).mockResolvedValue(ok(undefined));
+    vi.mocked(serverService.stopServer).mockResolvedValue(ok(undefined));
   });
 
   describe("Component Rendering", () => {
@@ -2113,6 +2117,117 @@ describe("ServerDashboard", () => {
       expect(getServerNameElement("Test Server 1")).toBeInTheDocument();
       expect(getServerNameElement("Test Server 2")).toBeInTheDocument();
     });
+  });
+
+  describe("Server Polling", () => {
+    test("should not poll servers on initial load", async () => {
+      const mockGetServers = vi.mocked(serverService.getServers);
+      let getServersCallCount = 0;
+
+      // Mock transitional servers - these should NOT trigger automatic polling
+      const transitionalServers: MinecraftServer[] = [
+        {
+          ...mockServers[0],
+          status: ServerStatus.STARTING, // Should not trigger auto-polling
+        } as MinecraftServer,
+        {
+          ...mockServers[1],
+          status: ServerStatus.STOPPING, // Should not trigger auto-polling
+        } as MinecraftServer,
+      ];
+
+      // Track call count and simulate API responses
+      mockGetServers.mockImplementation(() => {
+        getServersCallCount++;
+        return Promise.resolve(ok(transitionalServers));
+      });
+
+      await act(async () => {
+        render(<ServerDashboard />);
+      });
+
+      // Wait for initial load
+      await waitFor(() => {
+        expect(screen.getByText("Starting...")).toBeInTheDocument();
+      });
+
+      // Wait to ensure no automatic polling occurs
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 seconds
+
+      // Should only have the initial load call, no polling
+      expect(getServersCallCount).toBe(1); // Only initial load
+    }, 8000); // Increase timeout for this test
+
+    test("should poll after user starts/stops server and stop when stable", async () => {
+      const mockGetServers = vi.mocked(serverService.getServers);
+      const mockStartServer = vi.mocked(serverService.startServer);
+      let getServersCallCount = 0;
+
+      // Initial server state (stopped)
+      const stoppedServer: MinecraftServer[] = [
+        { ...mockServers[0], status: ServerStatus.STOPPED } as MinecraftServer,
+      ];
+
+      // Transitional state after start command
+      const startingServer: MinecraftServer[] = [
+        { ...mockServers[0], status: ServerStatus.STARTING } as MinecraftServer,
+      ];
+
+      // Final state after transition
+      const runningServer: MinecraftServer[] = [
+        { ...mockServers[0], status: ServerStatus.RUNNING } as MinecraftServer,
+      ];
+
+      mockGetServers.mockImplementation(() => {
+        getServersCallCount++;
+        // Initial call: stopped, after start: starting, then polling calls: running
+        if (getServersCallCount === 1)
+          return Promise.resolve(ok(stoppedServer));
+        if (getServersCallCount === 2)
+          return Promise.resolve(ok(startingServer));
+        return Promise.resolve(ok(runningServer));
+      });
+
+      mockStartServer.mockResolvedValue(ok(undefined));
+
+      await act(async () => {
+        render(<ServerDashboard />);
+      });
+
+      // Wait for initial load
+      await waitFor(() => {
+        expect(screen.getByText("Stopped")).toBeInTheDocument();
+      });
+
+      const initialCallCount = getServersCallCount;
+
+      // Simulate user clicking start button
+      const startButton = screen.getByText("▶");
+      await user.click(startButton);
+
+      // Wait for server to show as starting
+      await waitFor(() => {
+        expect(screen.getByText("Starting...")).toBeInTheDocument();
+      });
+
+      // Wait for polling to complete and server to show as running
+      await waitFor(
+        () => {
+          expect(screen.getByText("Running")).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
+
+      const callsAfterTransition = getServersCallCount;
+
+      // Wait to ensure polling stops after stable state
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3 seconds
+
+      // Should have: initial + refresh after start + polling calls until stable
+      expect(getServersCallCount).toBeGreaterThan(initialCallCount);
+      // Should not continue polling after reaching stable state
+      expect(getServersCallCount).toBeLessThanOrEqual(callsAfterTransition + 1);
+    }, 10000); // Increase timeout for user interaction test
   });
 
   describe("Filter Reset Functionality", () => {

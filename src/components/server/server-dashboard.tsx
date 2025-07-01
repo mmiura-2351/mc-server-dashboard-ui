@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
@@ -340,31 +340,54 @@ export function ServerDashboard() {
     }
   }, [supportedVersions, hasInitializedVersion]);
 
-  // Status polling effect for servers in transitional states
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+  // Server operation polling - only poll when user initiates start/stop operations
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const hasTransitionalServers = servers.some(
-      (server) =>
-        server.status === ServerStatus.STARTING ||
-        server.status === ServerStatus.STOPPING
-    );
-
-    if (hasTransitionalServers) {
-      intervalId = setInterval(async () => {
-        const result = await serverService.getServers();
-        if (result.isOk()) {
-          setServers(result.value);
-        }
-      }, 2000); // Poll every 2 seconds
+  const startPollingForServer = (serverId: number) => {
+    // Clear any existing polling
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
     }
 
+    pollingIntervalRef.current = setInterval(async () => {
+      const result = await serverService.getServers();
+      if (result.isOk()) {
+        setServers(result.value);
+
+        // Check if the specific server has reached a stable state
+        const targetServer = result.value.find((s) => s.id === serverId);
+        if (
+          targetServer &&
+          targetServer.status !== ServerStatus.STARTING &&
+          targetServer.status !== ServerStatus.STOPPING
+        ) {
+          // Server reached stable state, stop polling
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+      }
+    }, 2000);
+
+    // Safety timeout: stop polling after 60 seconds regardless
+    setTimeout(() => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    }, 60000);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
     };
-  }, [servers]);
+  }, []);
 
   const handleCreateServer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -511,6 +534,9 @@ export function ServerDashboard() {
         if (refreshResult.isOk()) {
           setServers(refreshResult.value);
         }
+
+        // Start polling to monitor the server status transition
+        startPollingForServer(serverId);
       } else {
         if (result.error.status === 401) {
           logout();
