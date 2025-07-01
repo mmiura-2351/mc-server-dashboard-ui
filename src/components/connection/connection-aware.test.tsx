@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { ConnectionProvider } from "@/contexts/connection";
 import {
   withConnectionAware,
@@ -177,10 +177,11 @@ describe("Connection-Aware Components", () => {
       allowDegraded?: boolean;
       disableOnChecking?: boolean;
     }) {
-      const { connectionProps, ...buttonProps } = useConnectionAwareButton({
-        allowDegraded,
-        disableOnChecking,
-      });
+      const { connectionProps: _connectionProps, ...buttonProps } =
+        useConnectionAwareButton({
+          allowDegraded,
+          disableOnChecking,
+        });
       return (
         <button {...buttonProps} data-testid="test-button">
           Test Button

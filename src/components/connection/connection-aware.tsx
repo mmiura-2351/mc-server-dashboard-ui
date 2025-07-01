@@ -28,50 +28,49 @@ export function withConnectionAware<P extends object>(
   Component: React.ComponentType<P>,
   options: ConnectionAwareProps = {}
 ) {
-  const ConnectionAwareComponent = forwardRef<any, P & ConnectionAwareProps>(
-    (props, ref) => {
-      const {
-        showDisconnectedMessage = true,
-        disconnectedMessage,
-        allowDegraded = true,
-        disabledClassName = "",
-        disableOnChecking = false,
-        ...componentProps
-      } = { ...options, ...props };
+  const ConnectionAwareComponent = forwardRef<
+    HTMLElement,
+    P & ConnectionAwareProps
+  >((props, ref) => {
+    const {
+      showDisconnectedMessage = true,
+      disconnectedMessage,
+      allowDegraded = true,
+      disabledClassName = "",
+      disableOnChecking = false,
+      ...componentProps
+    } = { ...options, ...props };
 
-      const { isConnected, isDegraded, isChecking } = useConnection();
-      const { t } = useTranslation();
+    const { isConnected, isDegraded, isChecking } = useConnection();
+    const { t } = useTranslation();
 
-      const isDisabled =
-        !isConnected ||
-        (!allowDegraded && isDegraded) ||
-        (disableOnChecking && isChecking);
+    const isDisabled =
+      !isConnected ||
+      (!allowDegraded && isDegraded) ||
+      (disableOnChecking && isChecking);
 
-      if (isDisabled) {
-        const message =
-          disconnectedMessage || t("connection.error.connectionFailed");
+    if (isDisabled) {
+      const message =
+        disconnectedMessage || t("connection.error.connectionFailed");
 
-        if (showDisconnectedMessage) {
-          return (
-            <div
-              className={`${styles.disconnectedWrapper} ${disabledClassName}`}
-            >
-              <div className={styles.disabledOverlay}>
-                <span className={styles.disabledMessage}>{message}</span>
-              </div>
-              <div className={styles.disabledContent}>
-                <Component {...(componentProps as P)} ref={ref} />
-              </div>
+      if (showDisconnectedMessage) {
+        return (
+          <div className={`${styles.disconnectedWrapper} ${disabledClassName}`}>
+            <div className={styles.disabledOverlay}>
+              <span className={styles.disabledMessage}>{message}</span>
             </div>
-          );
-        }
-
-        return null;
+            <div className={styles.disabledContent}>
+              <Component {...(componentProps as P)} ref={ref} />
+            </div>
+          </div>
+        );
       }
 
-      return <Component {...(componentProps as P)} ref={ref} />;
+      return null;
     }
-  );
+
+    return <Component {...(componentProps as P)} ref={ref} />;
+  });
 
   ConnectionAwareComponent.displayName = `ConnectionAware(${Component.displayName || Component.name})`;
 
@@ -105,7 +104,7 @@ export function useConnectionAwareButton(options: ConnectionAwareProps = {}) {
   return {
     disabled: isDisabled,
     "aria-disabled": isDisabled,
-    title: isDisabled ? disabledReason : undefined,
+    title: isDisabled ? disabledReason || undefined : undefined,
     className: isDisabled ? styles.disabledButton : "",
     // Non-DOM props for external use
     connectionProps: {
@@ -213,10 +212,11 @@ export const ConnectionAwareButton = forwardRef<
     },
     ref
   ) => {
-    const { connectionProps, ...domProps } = useConnectionAwareButton({
-      allowDegraded,
-      disableOnChecking,
-    });
+    const { connectionProps: _connectionProps, ...domProps } =
+      useConnectionAwareButton({
+        allowDegraded,
+        disableOnChecking,
+      });
 
     const combinedClassName = `${className} ${domProps.className}`.trim();
 
