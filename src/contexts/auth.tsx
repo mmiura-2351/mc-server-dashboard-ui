@@ -53,23 +53,54 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize user state from localStorage synchronously for immediate auth check
+  const [user, setUser] = useState<User | null>(() => {
+    const cachedUserData = AuthStorage.getUserData();
+    const token = AuthStorage.getAccessToken();
+    // Only return cached user if both user data and token exist
+    return cachedUserData && token ? (cachedUserData as User) : null;
+  });
+
+  // Start with false loading if we have cached auth data
+  const [isLoading, setIsLoading] = useState(() => {
+    const cachedUserData = AuthStorage.getUserData();
+    const token = AuthStorage.getAccessToken();
+    // If we have both cached user and token, we can start with authenticated state
+    return !(cachedUserData && token);
+  });
 
   const isAuthenticated = user !== null;
+
+  // Listen for automatic token refresh events from token manager
+  const handleTokenRefresh = useCallback((event: CustomEvent) => {
+    const { access_token } = event.detail;
+    // Refresh user data with new token
+    authService.getCurrentUser(access_token).then((result) => {
+      if (result.isOk()) {
+        setUser(result.value);
+        AuthStorage.setUserData(result.value);
+      }
+    });
+  }, []);
+
+  // Listen for automatic logout events from token manager
+  const handleAuthLogout = useCallback(() => {
+    setUser(null);
+  }, []);
 
   useEffect(() => {
     const token = AuthStorage.getAccessToken();
     const cachedUserData = AuthStorage.getUserData();
 
     if (!token) {
+      setUser(null);
       setIsLoading(false);
       return;
     }
 
-    // Try to restore user from cache first for better UX
-    if (cachedUserData) {
-      setUser(cachedUserData as User);
+    // If we already have cached user data and started authenticated, skip showing loading
+    if (cachedUserData && user) {
+      setIsLoading(false);
     }
 
     const loadUser = async () => {
@@ -97,23 +128,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     loadUser();
 
-    // Listen for automatic token refresh events from token manager
-    const handleTokenRefresh = (event: CustomEvent) => {
-      const { access_token } = event.detail;
-      // Refresh user data with new token
-      authService.getCurrentUser(access_token).then((result) => {
-        if (result.isOk()) {
-          setUser(result.value);
-          AuthStorage.setUserData(result.value);
-        }
-      });
-    };
-
-    // Listen for automatic logout events from token manager
-    const handleAuthLogout = () => {
-      setUser(null);
-    };
-
     window.addEventListener(
       "tokenRefresh",
       handleTokenRefresh as EventListener
@@ -127,7 +141,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
       window.removeEventListener("authLogout", handleAuthLogout);
     };
-  }, []);
+  }, [handleTokenRefresh, handleAuthLogout]);
 
   const login = async (
     credentials: LoginRequest

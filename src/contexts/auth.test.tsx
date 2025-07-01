@@ -327,9 +327,9 @@ describe("AuthContext", () => {
         </AuthProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
-      });
+      // With synchronous initialization, user should be immediately available
+      expect(screen.getByTestId("user")).toHaveTextContent("testuser");
+      expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
 
       // Simulate auth logout event
       const logoutEvent = new CustomEvent("authLogout");
@@ -595,9 +595,9 @@ describe("AuthContext", () => {
         </AuthProvider>
       );
 
-      await waitFor(() => {
-        expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
-      });
+      // With synchronous initialization, user should be immediately available
+      expect(screen.getByTestId("user")).toHaveTextContent("testuser");
+      expect(screen.getByTestId("isAuthenticated")).toHaveTextContent("true");
 
       act(() => {
         screen.getByTestId("logout").click();

@@ -1270,7 +1270,7 @@ describe("ServerDashboard", () => {
 
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1302,7 +1302,7 @@ describe("ServerDashboard", () => {
 
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1331,7 +1331,7 @@ describe("ServerDashboard", () => {
 
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 

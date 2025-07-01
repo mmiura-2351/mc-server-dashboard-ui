@@ -3,22 +3,27 @@
 import { useAuth } from "@/contexts/auth";
 import { AuthPage } from "@/components/auth/auth-page";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export function App() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && !hasRedirected.current) {
-      hasRedirected.current = true;
-      // Use replace instead of push to avoid back button issues
-      router.replace("/dashboard");
-    }
-  }, [isAuthenticated, isLoading, router]);
+  // Immediate synchronous redirect for authenticated users
+  if (isAuthenticated && !hasRedirected.current) {
+    hasRedirected.current = true;
+    // Use replace to avoid adding to history and setTimeout to ensure DOM is ready
+    setTimeout(() => router.replace("/dashboard"), 0);
+    return null; // Prevent any rendering while redirecting
+  }
 
-  // Show loading state
+  // Early return for authenticated users - completely skip rendering
+  if (isAuthenticated) {
+    return null;
+  }
+
+  // Show minimal loading state only when actually loading
   if (isLoading) {
     return (
       <div
@@ -32,24 +37,6 @@ export function App() {
         }}
       >
         Loading...
-      </div>
-    );
-  }
-
-  // If authenticated, show loading while redirecting to prevent flash
-  if (isAuthenticated) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          fontSize: "1.125rem",
-          color: "#6b7280",
-        }}
-      >
-        Redirecting to dashboard...
       </div>
     );
   }
