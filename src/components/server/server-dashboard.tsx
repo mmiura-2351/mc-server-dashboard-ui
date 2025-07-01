@@ -790,7 +790,7 @@ export function ServerDashboard() {
               className={styles.createButtonHeader}
               disabled={isCreating}
             >
-              + {t("servers.createServer")}
+              {t("servers.createServer")}
             </button>
           </div>
         </div>
