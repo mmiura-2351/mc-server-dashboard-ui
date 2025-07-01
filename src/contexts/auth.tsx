@@ -26,6 +26,7 @@ import { InputSanitizer } from "@/utils/input-sanitizer";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isHydrated: boolean;
   login: (credentials: LoginRequest) => Promise<Result<void, AuthError>>;
   register: (userData: UserCreate) => Promise<Result<User, AuthError>>;
   logout: () => void;
@@ -53,21 +54,10 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  // Initialize user state from localStorage synchronously for immediate auth check
-  const [user, setUser] = useState<User | null>(() => {
-    const cachedUserData = AuthStorage.getUserData();
-    const token = AuthStorage.getAccessToken();
-    // Only return cached user if both user data and token exist
-    return cachedUserData && token ? (cachedUserData as User) : null;
-  });
-
-  // Start with false loading if we have cached auth data
-  const [isLoading, setIsLoading] = useState(() => {
-    const cachedUserData = AuthStorage.getUserData();
-    const token = AuthStorage.getAccessToken();
-    // If we have both cached user and token, we can start with authenticated state
-    return !(cachedUserData && token);
-  });
+  // Initialize with SSR-safe defaults to prevent hydration mismatch
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const isAuthenticated = user !== null;
 
@@ -89,6 +79,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
+    // Mark as hydrated on client-side only
+    setIsHydrated(true);
+
     const token = AuthStorage.getAccessToken();
     const cachedUserData = AuthStorage.getUserData();
 
@@ -98,8 +91,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
-    // If we already have cached user data and started authenticated, skip showing loading
-    if (cachedUserData && user) {
+    // Restore user from cache immediately for better UX
+    if (cachedUserData) {
+      setUser(cachedUserData as User);
       setIsLoading(false);
     }
 
@@ -311,6 +305,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     user,
     isLoading,
+    isHydrated,
     login,
     register,
     logout,

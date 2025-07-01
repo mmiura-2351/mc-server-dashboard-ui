@@ -6,11 +6,29 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 
 export function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isHydrated } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
 
-  // Immediate synchronous redirect for authenticated users
+  // Wait for hydration to complete to prevent SSR mismatch
+  if (!isHydrated) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          fontSize: "1.125rem",
+          color: "#6b7280",
+        }}
+      >
+        Loading...
+      </div>
+    );
+  }
+
+  // Immediate redirect for authenticated users after hydration
   if (isAuthenticated && !hasRedirected.current) {
     hasRedirected.current = true;
     // Use replace to avoid adding to history and setTimeout to ensure DOM is ready
