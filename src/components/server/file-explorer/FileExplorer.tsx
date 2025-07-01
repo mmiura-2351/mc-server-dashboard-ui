@@ -413,7 +413,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
       }
 
       if (result.error) {
-        if (result.error === "No files allowed") {
+        if (result.error === "NO_FILES_ALLOWED") {
           setAlertModal({
             isOpen: true,
             title: translations.uploadError(),
@@ -421,7 +421,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
             type: "error",
           });
         } else {
-          showToast(`Upload failed: ${result.error}`, "error");
+          showToast(translations.uploadFailedWithReason(result.error), "error");
         }
         return;
       }
@@ -454,7 +454,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         }
       } else if (result.error) {
         // Only show error if no files were uploaded successfully
-        showToast("Upload failed", "error");
+        showToast(translations.uploadFailed(), "error");
       }
     },
     [upload, navigation.currentPath, refreshFiles, showToast, translations]

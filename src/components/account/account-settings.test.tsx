@@ -10,6 +10,50 @@ import { Role } from "@/types/auth";
 // Mock the auth context
 vi.mock("@/contexts/auth");
 
+// Mock the language context
+const mockT = vi.fn((key: string) => {
+  const translations: Record<string, string> = {
+    "account.deleteConfirmationText": "DELETE",
+    "account.pleaseTypeDeleteToConfirm": "Please type DELETE to confirm",
+    "account.title": "Account Settings",
+    "account.profile": "Profile",
+    "account.dangerZone": "Danger Zone",
+    "account.deleteAccount": "Delete Account",
+    "account.onceYouDeleteYourAccount":
+      "Once you delete your account, there is no going back. Please be certain.",
+    "account.typeDeleteToConfirm": "Type DELETE to confirm",
+    "account.profileInformation": "Profile Information",
+    "account.changePassword": "Change Password",
+    "account.enterNewUsername": "Enter new username",
+    "account.enterNewEmail": "Enter new email",
+    "account.updateProfile": "Update Profile",
+    "account.updatePassword": "Update Password",
+    "auth.password": "Password",
+    "auth.username": "Username",
+    "auth.email": "Email",
+    "auth.currentPassword": "Current Password",
+    "auth.newPassword": "New Password",
+    "auth.confirmNewPassword": "Confirm New Password",
+    "auth.showPassword": "Show password",
+    "auth.hidePassword": "Hide password",
+    "language.switchLanguage": "Language",
+    "language.languageDescription": "Choose your preferred language",
+    "language.english": "English",
+    "language.japanese": "Japanese",
+    "account.profileUpdatedSuccessfully": "Profile updated successfully",
+    "account.passwordUpdatedSuccessfully": "Password updated successfully",
+    "account.newPasswordsDoNotMatch": "New passwords do not match",
+    "common.saving": "Saving...",
+  };
+  return translations[key] || key;
+});
+
+vi.mock("@/contexts/language", () => ({
+  useTranslation: () => ({ t: mockT, locale: "en" }),
+  useLanguage: () => ({ locale: "en", setLocale: vi.fn() }),
+  LanguageProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const mockUser: User = {
   id: 1,
   username: "testuser",
@@ -53,11 +97,11 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText("account.title")).toBeInTheDocument();
-    expect(screen.getByText("account.profile")).toBeInTheDocument();
-    expect(screen.getByText("auth.password")).toBeInTheDocument();
-    expect(screen.getByText("language.switchLanguage")).toBeInTheDocument();
-    expect(screen.getByText("account.dangerZone")).toBeInTheDocument();
+    expect(screen.getByText("Account Settings")).toBeInTheDocument();
+    expect(screen.getByText("Profile")).toBeInTheDocument();
+    expect(screen.getByText("Password")).toBeInTheDocument();
+    expect(screen.getByText("Language")).toBeInTheDocument();
+    expect(screen.getByText("Danger Zone")).toBeInTheDocument();
   });
 
   it("displays profile tab by default", () => {
@@ -67,7 +111,7 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText("account.profileInformation")).toBeInTheDocument();
+    expect(screen.getByText("Profile Information")).toBeInTheDocument();
     expect(screen.getByDisplayValue("testuser")).toBeInTheDocument();
     expect(screen.getByDisplayValue("test@example.com")).toBeInTheDocument();
   });
@@ -79,14 +123,12 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("auth.password"));
+    fireEvent.click(screen.getByText("Password"));
 
-    expect(screen.getByText("account.changePassword")).toBeInTheDocument();
-    expect(screen.getByLabelText("auth.currentPassword")).toBeInTheDocument();
-    expect(screen.getByLabelText("auth.newPassword")).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("auth.confirmNewPassword")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Change Password")).toBeInTheDocument();
+    expect(screen.getByLabelText("Current Password")).toBeInTheDocument();
+    expect(screen.getByLabelText("New Password")).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirm New Password")).toBeInTheDocument();
   });
 
   it("switches to language tab when clicked", () => {
@@ -96,13 +138,13 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("language.switchLanguage"));
+    fireEvent.click(screen.getByText("Language"));
 
     expect(
-      screen.getByText("language.languageDescription")
+      screen.getByText("Choose your preferred language")
     ).toBeInTheDocument();
-    expect(screen.getByText("language.english")).toBeInTheDocument();
-    expect(screen.getByText("language.japanese")).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Japanese")).toBeInTheDocument();
   });
 
   it("switches to danger zone tab when clicked", () => {
@@ -112,13 +154,15 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("account.dangerZone"));
+    fireEvent.click(screen.getByText("Danger Zone"));
 
     expect(
-      screen.getByRole("heading", { name: "account.deleteAccount" })
+      screen.getByRole("heading", { name: "Delete Account" })
     ).toBeInTheDocument();
     expect(
-      screen.getByText("account.onceYouDeleteYourAccount")
+      screen.getByText(
+        "Once you delete your account, there is no going back. Please be certain."
+      )
     ).toBeInTheDocument();
   });
 
@@ -136,7 +180,7 @@ describe("AccountSettings", () => {
     const usernameInput = screen.getByDisplayValue("testuser");
     fireEvent.change(usernameInput, { target: { value: "newusername" } });
 
-    fireEvent.click(screen.getByText("account.updateProfile"));
+    fireEvent.click(screen.getByText("Update Profile"));
 
     await waitFor(() => {
       expect(mockUpdateUserInfo).toHaveBeenCalledWith({
@@ -147,7 +191,7 @@ describe("AccountSettings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.profileUpdatedSuccessfully")
+        screen.getByText("Profile updated successfully")
       ).toBeInTheDocument();
     });
   });
@@ -166,7 +210,7 @@ describe("AccountSettings", () => {
     const usernameInput = screen.getByDisplayValue("testuser");
     fireEvent.change(usernameInput, { target: { value: "existinguser" } });
 
-    fireEvent.click(screen.getByText("account.updateProfile"));
+    fireEvent.click(screen.getByText("Update Profile"));
 
     await waitFor(() => {
       expect(screen.getByText("Username already exists")).toBeInTheDocument();
@@ -182,19 +226,19 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("auth.password"));
+    fireEvent.click(screen.getByText("Password"));
 
-    fireEvent.change(screen.getByLabelText("auth.currentPassword"), {
+    fireEvent.change(screen.getByLabelText("Current Password"), {
       target: { value: "currentpass" },
     });
-    fireEvent.change(screen.getByLabelText("auth.newPassword"), {
+    fireEvent.change(screen.getByLabelText("New Password"), {
       target: { value: "newpass123" },
     });
-    fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
+    fireEvent.change(screen.getByLabelText("Confirm New Password"), {
       target: { value: "newpass123" },
     });
 
-    fireEvent.click(screen.getByText("account.updatePassword"));
+    fireEvent.click(screen.getByText("Update Password"));
 
     await waitFor(() => {
       expect(mockUpdatePassword).toHaveBeenCalledWith({
@@ -205,7 +249,7 @@ describe("AccountSettings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.passwordUpdatedSuccessfully")
+        screen.getByText("Password updated successfully")
       ).toBeInTheDocument();
     });
   });
@@ -217,23 +261,23 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("auth.password"));
+    fireEvent.click(screen.getByText("Password"));
 
-    fireEvent.change(screen.getByLabelText("auth.currentPassword"), {
+    fireEvent.change(screen.getByLabelText("Current Password"), {
       target: { value: "currentpass" },
     });
-    fireEvent.change(screen.getByLabelText("auth.newPassword"), {
+    fireEvent.change(screen.getByLabelText("New Password"), {
       target: { value: "newpass123" },
     });
-    fireEvent.change(screen.getByLabelText("auth.confirmNewPassword"), {
+    fireEvent.change(screen.getByLabelText("Confirm New Password"), {
       target: { value: "differentpass" },
     });
 
-    fireEvent.click(screen.getByText("account.updatePassword"));
+    fireEvent.click(screen.getByText("Update Password"));
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.newPasswordsDoNotMatch")
+        screen.getByText("New passwords do not match")
       ).toBeInTheDocument();
     });
 
@@ -249,18 +293,16 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("account.dangerZone"));
+    fireEvent.click(screen.getByText("Danger Zone"));
 
-    fireEvent.change(screen.getByLabelText("auth.password"), {
+    fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByLabelText(/account.typeDeleteToConfirm/), {
+    fireEvent.change(screen.getByLabelText(/Type DELETE to confirm/), {
       target: { value: "DELETE" },
     });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "account.deleteAccount" })
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Account" }));
 
     await waitFor(() => {
       expect(mockDeleteAccount).toHaveBeenCalledWith({
@@ -276,22 +318,20 @@ describe("AccountSettings", () => {
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByText("account.dangerZone"));
+    fireEvent.click(screen.getByText("Danger Zone"));
 
-    fireEvent.change(screen.getByLabelText("auth.password"), {
+    fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
     });
-    fireEvent.change(screen.getByLabelText(/account.typeDeleteToConfirm/), {
+    fireEvent.change(screen.getByLabelText(/Type DELETE to confirm/), {
       target: { value: "delete" },
     });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "account.deleteAccount" })
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete Account" }));
 
     await waitFor(() => {
       expect(
-        screen.getByText("account.pleaseTypeDeleteToConfirm")
+        screen.getByText("Please type DELETE to confirm")
       ).toBeInTheDocument();
     });
 
