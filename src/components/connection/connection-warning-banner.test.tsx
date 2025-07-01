@@ -14,8 +14,10 @@ import { ErrorHandler } from "@/utils/error-handler";
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
   const translations: Record<string, string> = {
     "connection.banner.title": "Backend Connection Issue",
-    "connection.banner.description": "The backend server is not responding. Some features may be unavailable.",
-    "connection.banner.degradedDescription": "The backend connection is unstable. Some operations may be slower than usual.",
+    "connection.banner.description":
+      "The backend server is not responding. Some features may be unavailable.",
+    "connection.banner.degradedDescription":
+      "The backend connection is unstable. Some operations may be slower than usual.",
     "connection.banner.retry": "Retry Connection",
     "connection.banner.retrying": "Retrying...",
     "connection.banner.dismiss": "Dismiss",
@@ -29,7 +31,7 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "errors.boundary.retryCount": "Retry Attempts",
     "connection.suggestions.checkServerRunning": "Suggestions",
   };
-  
+
   let translation = translations[key] || key;
   if (params) {
     Object.entries(params).forEach(([paramKey, paramValue]) => {
@@ -71,7 +73,9 @@ describe("ConnectionWarningBanner", () => {
     vi.clearAllMocks();
     mockMonitor.getState = vi.fn().mockReturnValue(baseState);
     mockMonitor.subscribe = vi.fn().mockReturnValue(() => {});
-    mockMonitor.checkConnection = vi.fn().mockResolvedValue({ isOk: () => true });
+    mockMonitor.checkConnection = vi
+      .fn()
+      .mockResolvedValue({ isOk: () => true });
     mockMonitor.isHealthy = vi.fn().mockReturnValue(true);
     mockMonitor.isDegraded = vi.fn().mockReturnValue(false);
     mockMonitor.isDown = vi.fn().mockReturnValue(false);
@@ -88,7 +92,7 @@ describe("ConnectionWarningBanner", () => {
   describe("visibility", () => {
     it("should not render when connection is healthy", () => {
       renderWithProvider();
-      
+
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
 
@@ -99,13 +103,13 @@ describe("ConnectionWarningBanner", () => {
         isConnected: false,
         downtime: 30000,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(false);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByRole("alert")).toBeInTheDocument();
       expect(screen.getByText("Backend Connection Issue")).toBeInTheDocument();
       expect(screen.getByText("❌")).toBeInTheDocument();
@@ -116,13 +120,13 @@ describe("ConnectionWarningBanner", () => {
         ...baseState,
         status: "degraded",
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(degradedState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(false);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showOnDegraded: true });
-      
+
       expect(screen.getByRole("alert")).toBeInTheDocument();
       expect(screen.getByText("⚠️")).toBeInTheDocument();
     });
@@ -132,12 +136,12 @@ describe("ConnectionWarningBanner", () => {
         ...baseState,
         status: "degraded",
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(degradedState);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showOnDegraded: false });
-      
+
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
 
@@ -147,17 +151,17 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ dismissible: true });
-      
+
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      
+
       const dismissButton = screen.getByText("✕");
       fireEvent.click(dismissButton);
-      
+
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       });
@@ -171,14 +175,18 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByText("Backend Connection Issue")).toBeInTheDocument();
-      expect(screen.getByText("The backend server is not responding. Some features may be unavailable.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "The backend server is not responding. Some features may be unavailable."
+        )
+      ).toBeInTheDocument();
     });
 
     it("should show appropriate message for degraded state", () => {
@@ -186,13 +194,17 @@ describe("ConnectionWarningBanner", () => {
         ...baseState,
         status: "degraded",
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(degradedState);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showOnDegraded: true });
-      
-      expect(screen.getByText("The backend connection is unstable. Some operations may be slower than usual.")).toBeInTheDocument();
+
+      expect(
+        screen.getByText(
+          "The backend connection is unstable. Some operations may be slower than usual."
+        )
+      ).toBeInTheDocument();
     });
 
     it("should show downtime when available", () => {
@@ -202,12 +214,12 @@ describe("ConnectionWarningBanner", () => {
         isConnected: false,
         downtime: 65000, // 1 minute 5 seconds
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByText("Downtime: 1m 5s")).toBeInTheDocument();
     });
   });
@@ -219,15 +231,15 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       const retryButton = screen.getByText("Retry Connection");
       fireEvent.click(retryButton);
-      
+
       expect(mockMonitor.checkConnection).toHaveBeenCalled();
     });
 
@@ -237,21 +249,23 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      mockMonitor.checkConnection = vi.fn().mockImplementation(() => 
-        new Promise(resolve => setTimeout(resolve, 100))
-      );
-      
+      mockMonitor.checkConnection = vi
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(resolve, 100))
+        );
+
       renderWithProvider();
-      
+
       const retryButton = screen.getByText("Retry Connection");
       fireEvent.click(retryButton);
-      
+
       expect(screen.getByText("Retrying...")).toBeInTheDocument();
       expect(retryButton).toBeDisabled();
-      
+
       await waitFor(() => {
         expect(screen.getByText("Retry Connection")).toBeInTheDocument();
       });
@@ -264,12 +278,12 @@ describe("ConnectionWarningBanner", () => {
         isConnected: false,
         isChecking: true,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(checkingState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       const retryButton = screen.getByText("Retry Connection");
       expect(retryButton).toBeDisabled();
     });
@@ -280,12 +294,12 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ dismissible: true });
-      
+
       expect(screen.getByText("✕")).toBeInTheDocument();
     });
 
@@ -295,12 +309,12 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ dismissible: false });
-      
+
       expect(screen.queryByText("✕")).not.toBeInTheDocument();
     });
   });
@@ -325,48 +339,48 @@ describe("ConnectionWarningBanner", () => {
     it("should show details button when showDetails is true", () => {
       mockMonitor.getState = vi.fn().mockReturnValue(errorState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: true });
-      
+
       expect(screen.getByText("Show Details")).toBeInTheDocument();
     });
 
     it("should not show details button when showDetails is false", () => {
       mockMonitor.getState = vi.fn().mockReturnValue(errorState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: false });
-      
+
       expect(screen.queryByText("Show Details")).not.toBeInTheDocument();
     });
 
     it("should toggle details section when details button is clicked", async () => {
       mockMonitor.getState = vi.fn().mockReturnValue(errorState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: true });
-      
+
       const detailsButton = screen.getByText("Show Details");
-      
+
       // Details should not be visible initially
       expect(screen.queryByText("Technical Details")).not.toBeInTheDocument();
-      
+
       // Click to show details
       fireEvent.click(detailsButton);
-      
+
       await waitFor(() => {
         expect(screen.getByText("Technical Details")).toBeInTheDocument();
         expect(screen.getByText("Hide Details")).toBeInTheDocument();
       });
-      
+
       // Details should show error information
       expect(screen.getByText("Connection failed")).toBeInTheDocument();
       expect(screen.getByText("/api/v1/health")).toBeInTheDocument();
-      
+
       // Click to hide details
       const hideButton = screen.getByText("Hide Details");
       fireEvent.click(hideButton);
-      
+
       await waitFor(() => {
         expect(screen.queryByText("Technical Details")).not.toBeInTheDocument();
         expect(screen.getByText("Show Details")).toBeInTheDocument();
@@ -376,12 +390,12 @@ describe("ConnectionWarningBanner", () => {
     it("should show error suggestions in details", () => {
       mockMonitor.getState = vi.fn().mockReturnValue(errorState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: true });
-      
+
       const detailsButton = screen.getByText("Show Details");
       fireEvent.click(detailsButton);
-      
+
       expect(screen.getByText("Check server status")).toBeInTheDocument();
       expect(screen.getByText("Verify network connection")).toBeInTheDocument();
     });
@@ -394,18 +408,18 @@ describe("ConnectionWarningBanner", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: true });
-      
+
       const banner = screen.getByRole("alert");
       expect(banner).toHaveAttribute("aria-live", "polite");
-      
+
       const retryButton = screen.getByText("Retry Connection");
       expect(retryButton).toHaveAttribute("aria-label");
-      
+
       const detailsButton = screen.getByText("Show Details");
       expect(detailsButton).toHaveAttribute("aria-expanded", "false");
     });
@@ -415,19 +429,23 @@ describe("ConnectionWarningBanner", () => {
         ...baseState,
         status: "disconnected",
         isConnected: false,
-        error: ErrorHandler.createConnectionError("Connection failed", "health_check", "failed"),
+        error: ErrorHandler.createConnectionError(
+          "Connection failed",
+          "health_check",
+          "failed"
+        ),
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: true });
-      
+
       const detailsButton = screen.getByText("Show Details");
       expect(detailsButton).toHaveAttribute("aria-expanded", "false");
-      
+
       fireEvent.click(detailsButton);
-      
+
       const hideButton = screen.getByText("Hide Details");
       expect(hideButton).toHaveAttribute("aria-expanded", "true");
     });

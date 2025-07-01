@@ -16,13 +16,15 @@ const mockT = vi.fn((key: string, params?: Record<string, string>) => {
     "connection.status.disconnected": "Disconnected",
     "connection.status.checking": "Checking...",
     "connection.status.degraded": "Degraded",
-    "connection.indicator.tooltip.connected": "Backend API is connected and healthy",
+    "connection.indicator.tooltip.connected":
+      "Backend API is connected and healthy",
     "connection.indicator.tooltip.downtime": "Downtime: {duration}",
     "connection.indicator.tooltip.lastCheck": "Last check: {time}",
-    "connection.indicator.tooltip.lastSuccess": "Last successful connection: {time}",
+    "connection.indicator.tooltip.lastSuccess":
+      "Last successful connection: {time}",
     "common.unknown": "Unknown",
   };
-  
+
   let translation = translations[key] || key;
   if (params) {
     Object.entries(params).forEach(([paramKey, paramValue]) => {
@@ -79,7 +81,7 @@ describe("ConnectionStatusIndicator", () => {
   describe("rendering", () => {
     it("should render with default props", () => {
       renderWithProvider();
-      
+
       expect(screen.getByRole("status")).toBeInTheDocument();
       expect(screen.getByText("Connected")).toBeInTheDocument();
       expect(screen.getByText("🟢")).toBeInTheDocument();
@@ -87,7 +89,7 @@ describe("ConnectionStatusIndicator", () => {
 
     it("should render small size variant", () => {
       renderWithProvider({ size: "small" });
-      
+
       const container = screen.getByRole("status");
       expect(container.className).toMatch(/size-small/);
       // Text should be hidden in small size
@@ -97,7 +99,7 @@ describe("ConnectionStatusIndicator", () => {
 
     it("should render large size variant", () => {
       renderWithProvider({ size: "large" });
-      
+
       const container = screen.getByRole("status");
       expect(container.className).toMatch(/size-large/);
       expect(screen.getByText("Connected")).toBeInTheDocument();
@@ -105,14 +107,14 @@ describe("ConnectionStatusIndicator", () => {
 
     it("should render fixed position variant", () => {
       renderWithProvider({ position: "fixed" });
-      
+
       const container = screen.getByRole("status");
       expect(container.className).toMatch(/position-fixed/);
     });
 
     it("should apply custom className", () => {
       renderWithProvider({ className: "custom-class" });
-      
+
       const container = screen.getByRole("status");
       expect(container).toHaveClass("custom-class");
     });
@@ -123,12 +125,14 @@ describe("ConnectionStatusIndicator", () => {
       mockMonitor.isHealthy = vi.fn().mockReturnValue(true);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(false);
       mockMonitor.isDown = vi.fn().mockReturnValue(false);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByText("🟢")).toBeInTheDocument();
       expect(screen.getByText("Connected")).toBeInTheDocument();
-      const indicator = screen.getByRole("status").querySelector('[class*="indicator"]');
+      const indicator = screen
+        .getByRole("status")
+        .querySelector('[class*="indicator"]');
       expect(indicator?.className).toMatch(/status-green/);
     });
 
@@ -137,17 +141,19 @@ describe("ConnectionStatusIndicator", () => {
         ...baseState,
         status: "degraded",
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(degradedState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(false);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
       mockMonitor.isDown = vi.fn().mockReturnValue(false);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByText("🟡")).toBeInTheDocument();
       expect(screen.getByText("Degraded")).toBeInTheDocument();
-      const indicator = screen.getByRole("status").querySelector('[class*="indicator"]');
+      const indicator = screen
+        .getByRole("status")
+        .querySelector('[class*="indicator"]');
       expect(indicator?.className).toMatch(/status-yellow/);
     });
 
@@ -158,17 +164,19 @@ describe("ConnectionStatusIndicator", () => {
         isConnected: false,
         downtime: 30000, // 30 seconds
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(false);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(false);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByText("🔴")).toBeInTheDocument();
       expect(screen.getByText("Disconnected")).toBeInTheDocument();
-      const indicator = screen.getByRole("status").querySelector('[class*="indicator"]');
+      const indicator = screen
+        .getByRole("status")
+        .querySelector('[class*="indicator"]');
       expect(indicator?.className).toMatch(/status-red/);
     });
 
@@ -178,17 +186,19 @@ describe("ConnectionStatusIndicator", () => {
         status: "checking",
         isChecking: true,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(checkingState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(false);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(false);
       mockMonitor.isDown = vi.fn().mockReturnValue(false);
-      
+
       renderWithProvider();
-      
+
       expect(screen.getByText("⚪")).toBeInTheDocument();
       expect(screen.getByText("Checking...")).toBeInTheDocument();
-      const indicator = screen.getByRole("status").querySelector('[class*="indicator"]');
+      const indicator = screen
+        .getByRole("status")
+        .querySelector('[class*="indicator"]');
       expect(indicator?.className).toMatch(/status-gray/);
     });
   });
@@ -201,12 +211,12 @@ describe("ConnectionStatusIndicator", () => {
         isConnected: false,
         downtime: 65000, // 1 minute 5 seconds
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: true });
-      
+
       expect(screen.getByText("1m 5s")).toBeInTheDocument();
     });
 
@@ -217,18 +227,18 @@ describe("ConnectionStatusIndicator", () => {
         isConnected: false,
         downtime: 65000,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider({ showDetails: false });
-      
+
       expect(screen.queryByText("1m 5s")).not.toBeInTheDocument();
     });
 
     it("should not show downtime when there is no downtime", () => {
       renderWithProvider({ showDetails: true });
-      
+
       expect(screen.queryByText(/m|s/)).not.toBeInTheDocument();
     });
   });
@@ -236,9 +246,12 @@ describe("ConnectionStatusIndicator", () => {
   describe("tooltip", () => {
     it("should build correct tooltip for connected state", () => {
       renderWithProvider();
-      
+
       const indicator = screen.getByRole("status");
-      expect(indicator).toHaveAttribute("title", expect.stringContaining("Connected"));
+      expect(indicator).toHaveAttribute(
+        "title",
+        expect.stringContaining("Connected")
+      );
     });
 
     it("should include downtime in tooltip", () => {
@@ -248,26 +261,32 @@ describe("ConnectionStatusIndicator", () => {
         isConnected: false,
         downtime: 30000,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
-      
+
       renderWithProvider();
-      
+
       const indicator = screen.getByRole("status");
-      expect(indicator).toHaveAttribute("title", expect.stringContaining("Downtime:"));
+      expect(indicator).toHaveAttribute(
+        "title",
+        expect.stringContaining("Downtime:")
+      );
     });
 
     it("should include last check time when showDetails is true", () => {
       renderWithProvider({ showDetails: true });
-      
+
       const indicator = screen.getByRole("status");
-      expect(indicator).toHaveAttribute("title", expect.stringContaining("Last check:"));
+      expect(indicator).toHaveAttribute(
+        "title",
+        expect.stringContaining("Last check:")
+      );
     });
 
     it("should not include detailed information when showDetails is false", () => {
       renderWithProvider({ showDetails: false });
-      
+
       const indicator = screen.getByRole("status");
       const title = indicator.getAttribute("title");
       expect(title).not.toContain("Last check:");
@@ -277,7 +296,7 @@ describe("ConnectionStatusIndicator", () => {
   describe("accessibility", () => {
     it("should have proper ARIA attributes", () => {
       renderWithProvider();
-      
+
       const indicator = screen.getByRole("status");
       expect(indicator).toHaveAttribute("aria-label");
       expect(indicator).toHaveAttribute("title");
@@ -285,7 +304,7 @@ describe("ConnectionStatusIndicator", () => {
 
     it("should mark icon as aria-hidden", () => {
       renderWithProvider();
-      
+
       const icon = screen.getByText("🟢");
       expect(icon).toHaveAttribute("aria-hidden", "true");
     });

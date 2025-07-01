@@ -517,7 +517,7 @@
   "connection": {
     "status": {
       "connected": "Connected",
-      "disconnected": "Disconnected", 
+      "disconnected": "Disconnected",
       "checking": "Checking...",
       "degraded": "Degraded",
       "reconnecting": "Reconnecting...",
@@ -561,7 +561,7 @@
     },
     "actions": {
       "retryConnection": "Retry Connection",
-      "checkStatus": "Check Status", 
+      "checkStatus": "Check Status",
       "viewDetails": "View Details",
       "reportIssue": "Report Issue",
       "refreshPage": "Refresh Page"

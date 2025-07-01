@@ -28,49 +28,53 @@ export function withConnectionAware<P extends object>(
   Component: React.ComponentType<P>,
   options: ConnectionAwareProps = {}
 ) {
-  const ConnectionAwareComponent = forwardRef<any, P & ConnectionAwareProps>((props, ref) => {
-    const { 
-      showDisconnectedMessage = true,
-      disconnectedMessage,
-      allowDegraded = true,
-      disabledClassName = "",
-      disableOnChecking = false,
-      ...componentProps 
-    } = { ...options, ...props };
-    
-    const { isConnected, isDegraded, isChecking } = useConnection();
-    const { t } = useTranslation();
+  const ConnectionAwareComponent = forwardRef<any, P & ConnectionAwareProps>(
+    (props, ref) => {
+      const {
+        showDisconnectedMessage = true,
+        disconnectedMessage,
+        allowDegraded = true,
+        disabledClassName = "",
+        disableOnChecking = false,
+        ...componentProps
+      } = { ...options, ...props };
 
-    const isDisabled = !isConnected || 
-                      (!allowDegraded && isDegraded) || 
-                      (disableOnChecking && isChecking);
+      const { isConnected, isDegraded, isChecking } = useConnection();
+      const { t } = useTranslation();
 
-    if (isDisabled) {
-      const message = disconnectedMessage || t("connection.error.connectionFailed");
-      
-      if (showDisconnectedMessage) {
-        return (
-          <div className={`${styles.disconnectedWrapper} ${disabledClassName}`}>
-            <div className={styles.disabledOverlay}>
-              <span className={styles.disabledMessage}>
-                {message}
-              </span>
+      const isDisabled =
+        !isConnected ||
+        (!allowDegraded && isDegraded) ||
+        (disableOnChecking && isChecking);
+
+      if (isDisabled) {
+        const message =
+          disconnectedMessage || t("connection.error.connectionFailed");
+
+        if (showDisconnectedMessage) {
+          return (
+            <div
+              className={`${styles.disconnectedWrapper} ${disabledClassName}`}
+            >
+              <div className={styles.disabledOverlay}>
+                <span className={styles.disabledMessage}>{message}</span>
+              </div>
+              <div className={styles.disabledContent}>
+                <Component {...(componentProps as P)} ref={ref} />
+              </div>
             </div>
-            <div className={styles.disabledContent}>
-              <Component {...(componentProps as P)} ref={ref} />
-            </div>
-          </div>
-        );
+          );
+        }
+
+        return null;
       }
-      
-      return null;
-    }
 
-    return <Component {...(componentProps as P)} ref={ref} />;
-  });
+      return <Component {...(componentProps as P)} ref={ref} />;
+    }
+  );
 
   ConnectionAwareComponent.displayName = `ConnectionAware(${Component.displayName || Component.name})`;
-  
+
   return ConnectionAwareComponent;
 }
 
@@ -78,27 +82,26 @@ export function withConnectionAware<P extends object>(
  * Hook to get connection-aware button props
  */
 export function useConnectionAwareButton(options: ConnectionAwareProps = {}) {
-  const { 
-    allowDegraded = true,
-    disableOnChecking = false 
-  } = options;
-  
+  const { allowDegraded = true, disableOnChecking = false } = options;
+
   const { isConnected, isDegraded, isChecking } = useConnection();
   const { t } = useTranslation();
 
-  const isDisabled = !isConnected || 
-                    (!allowDegraded && isDegraded) || 
-                    (disableOnChecking && isChecking);
+  const isDisabled =
+    !isConnected ||
+    (!allowDegraded && isDegraded) ||
+    (disableOnChecking && isChecking);
 
   const getDisabledReason = (): string | null => {
     if (!isConnected) return t("connection.error.connectionFailed");
-    if (!allowDegraded && isDegraded) return t("connection.error.connectionTimeout");
+    if (!allowDegraded && isDegraded)
+      return t("connection.error.connectionTimeout");
     if (disableOnChecking && isChecking) return t("connection.status.checking");
     return null;
   };
 
   const disabledReason = getDisabledReason();
-  
+
   return {
     disabled: isDisabled,
     "aria-disabled": isDisabled,
@@ -118,20 +121,19 @@ export function useConnectionAwareButton(options: ConnectionAwareProps = {}) {
  * Hook to conditionally render API-dependent content
  */
 export function useConnectionAwareRender(options: ConnectionAwareProps = {}) {
-  const { 
-    allowDegraded = true,
-    disableOnChecking = false 
-  } = options;
-  
+  const { allowDegraded = true, disableOnChecking = false } = options;
+
   const { isConnected, isDegraded, isChecking } = useConnection();
 
-  const shouldRender = isConnected && 
-                      (allowDegraded || !isDegraded) && 
-                      (!disableOnChecking || !isChecking);
+  const shouldRender =
+    isConnected &&
+    (allowDegraded || !isDegraded) &&
+    (!disableOnChecking || !isChecking);
 
-  const shouldDisable = !isConnected || 
-                       (!allowDegraded && isDegraded) || 
-                       (disableOnChecking && isChecking);
+  const shouldDisable =
+    !isConnected ||
+    (!allowDegraded && isDegraded) ||
+    (disableOnChecking && isChecking);
 
   return {
     shouldRender,
@@ -168,9 +170,10 @@ export function ConnectionGuard({
     if (fallback) {
       return <>{fallback}</>;
     }
-    
+
     if (showDisconnectedMessage) {
-      const message = disconnectedMessage || t("connection.error.connectionFailed");
+      const message =
+        disconnectedMessage || t("connection.error.connectionFailed");
       return (
         <div className={styles.guardMessage}>
           <span className={styles.guardIcon}>🔌</span>
@@ -178,7 +181,7 @@ export function ConnectionGuard({
         </div>
       );
     }
-    
+
     return null;
   }
 
@@ -188,23 +191,31 @@ export function ConnectionGuard({
 /**
  * Button component that automatically disables when API is disconnected
  */
-interface ConnectionAwareButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, ConnectionAwareProps {
+interface ConnectionAwareButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ConnectionAwareProps {
   children: ReactNode;
   showTooltip?: boolean;
 }
 
-export const ConnectionAwareButton = forwardRef<HTMLButtonElement, ConnectionAwareButtonProps>(
-  ({ 
-    children, 
-    showTooltip = true,
-    allowDegraded = true,
-    disableOnChecking = false,
-    className = "",
-    ...buttonProps 
-  }, ref) => {
-    const { connectionProps, ...domProps } = useConnectionAwareButton({ 
-      allowDegraded, 
-      disableOnChecking 
+export const ConnectionAwareButton = forwardRef<
+  HTMLButtonElement,
+  ConnectionAwareButtonProps
+>(
+  (
+    {
+      children,
+      showTooltip = true,
+      allowDegraded = true,
+      disableOnChecking = false,
+      className = "",
+      ...buttonProps
+    },
+    ref
+  ) => {
+    const { connectionProps, ...domProps } = useConnectionAwareButton({
+      allowDegraded,
+      disableOnChecking,
     });
 
     const combinedClassName = `${className} ${domProps.className}`.trim();
@@ -215,7 +226,9 @@ export const ConnectionAwareButton = forwardRef<HTMLButtonElement, ConnectionAwa
         {...domProps}
         className={combinedClassName}
         ref={ref}
-        title={showTooltip ? (domProps.title || buttonProps.title) : buttonProps.title}
+        title={
+          showTooltip ? domProps.title || buttonProps.title : buttonProps.title
+        }
       >
         {children}
       </button>
@@ -228,23 +241,31 @@ ConnectionAwareButton.displayName = "ConnectionAwareButton";
 /**
  * Form wrapper that disables submission when API is disconnected
  */
-interface ConnectionAwareFormProps extends React.FormHTMLAttributes<HTMLFormElement>, ConnectionAwareProps {
+interface ConnectionAwareFormProps
+  extends React.FormHTMLAttributes<HTMLFormElement>,
+    ConnectionAwareProps {
   children: ReactNode;
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
-export const ConnectionAwareForm = forwardRef<HTMLFormElement, ConnectionAwareFormProps>(
-  ({ 
-    children, 
-    onSubmit,
-    allowDegraded = true,
-    disableOnChecking = false,
-    className = "",
-    ...formProps 
-  }, ref) => {
-    const { shouldDisable } = useConnectionAwareRender({ 
-      allowDegraded, 
-      disableOnChecking 
+export const ConnectionAwareForm = forwardRef<
+  HTMLFormElement,
+  ConnectionAwareFormProps
+>(
+  (
+    {
+      children,
+      onSubmit,
+      allowDegraded = true,
+      disableOnChecking = false,
+      className = "",
+      ...formProps
+    },
+    ref
+  ) => {
+    const { shouldDisable } = useConnectionAwareRender({
+      allowDegraded,
+      disableOnChecking,
     });
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -255,7 +276,7 @@ export const ConnectionAwareForm = forwardRef<HTMLFormElement, ConnectionAwareFo
       onSubmit?.(event);
     };
 
-    const combinedClassName = shouldDisable 
+    const combinedClassName = shouldDisable
       ? `${className} ${styles.disabledForm}`.trim()
       : className;
 

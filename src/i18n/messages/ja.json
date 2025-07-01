@@ -399,7 +399,7 @@
   "connection": {
     "status": {
       "connected": "接続済み",
-      "disconnected": "切断済み", 
+      "disconnected": "切断済み",
       "checking": "確認中...",
       "degraded": "不安定",
       "reconnecting": "再接続中...",
@@ -443,7 +443,7 @@
     },
     "actions": {
       "retryConnection": "接続を再試行",
-      "checkStatus": "ステータス確認", 
+      "checkStatus": "ステータス確認",
       "viewDetails": "詳細を表示",
       "reportIssue": "問題を報告",
       "refreshPage": "ページを更新"

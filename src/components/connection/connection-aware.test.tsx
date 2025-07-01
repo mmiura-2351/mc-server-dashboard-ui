@@ -5,13 +5,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ConnectionProvider } from "@/contexts/connection";
-import { 
+import {
   withConnectionAware,
   useConnectionAwareButton,
   useConnectionAwareRender,
   ConnectionGuard,
   ConnectionAwareButton,
-  ConnectionAwareForm
+  ConnectionAwareForm,
 } from "./connection-aware";
 import { ConnectionMonitorService } from "@/services/connection-monitor";
 import type { ConnectionState } from "@/services/connection-monitor";
@@ -67,14 +67,23 @@ describe("Connection-Aware Components", () => {
     mockMonitor.isDown = vi.fn().mockReturnValue(false);
   });
 
-  const renderWithProvider = (component: React.ReactElement, state?: Partial<ConnectionState>) => {
+  const renderWithProvider = (
+    component: React.ReactElement,
+    state?: Partial<ConnectionState>
+  ) => {
     if (state) {
-      mockMonitor.getState = vi.fn().mockReturnValue({ ...baseState, ...state });
-      mockMonitor.isHealthy = vi.fn().mockReturnValue(state.status === "connected");
-      mockMonitor.isDegraded = vi.fn().mockReturnValue(state.status === "degraded");
+      mockMonitor.getState = vi
+        .fn()
+        .mockReturnValue({ ...baseState, ...state });
+      mockMonitor.isHealthy = vi
+        .fn()
+        .mockReturnValue(state.status === "connected");
+      mockMonitor.isDegraded = vi
+        .fn()
+        .mockReturnValue(state.status === "degraded");
       mockMonitor.isDown = vi.fn().mockReturnValue(!state.isConnected);
     }
-    
+
     return render(
       <ConnectionProvider monitor={mockMonitor} autoStart={false}>
         {component}
@@ -86,79 +95,92 @@ describe("Connection-Aware Components", () => {
     it("should render component when connected", () => {
       const WrappedComponent = withConnectionAware(TestComponent);
       renderWithProvider(<WrappedComponent />);
-      
+
       expect(screen.getByTestId("test-component")).toBeInTheDocument();
       expect(screen.getByText("Test Component")).toBeInTheDocument();
     });
 
     it("should show disabled overlay when disconnected", () => {
       const WrappedComponent = withConnectionAware(TestComponent);
-      renderWithProvider(
-        <WrappedComponent />, 
-        { status: "disconnected", isConnected: false }
-      );
-      
+      renderWithProvider(<WrappedComponent />, {
+        status: "disconnected",
+        isConnected: false,
+      });
+
       expect(screen.getByText("Backend connection failed")).toBeInTheDocument();
       expect(screen.getByTestId("test-component")).toBeInTheDocument();
     });
 
     it("should render normally when degraded and allowDegraded is true", () => {
-      const WrappedComponent = withConnectionAware(TestComponent, { allowDegraded: true });
-      renderWithProvider(
-        <WrappedComponent />, 
-        { status: "degraded", isConnected: true }
-      );
-      
+      const WrappedComponent = withConnectionAware(TestComponent, {
+        allowDegraded: true,
+      });
+      renderWithProvider(<WrappedComponent />, {
+        status: "degraded",
+        isConnected: true,
+      });
+
       expect(screen.getByTestId("test-component")).toBeInTheDocument();
-      expect(screen.queryByText("Backend connection failed")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Backend connection failed")
+      ).not.toBeInTheDocument();
     });
 
     it("should show disabled overlay when degraded and allowDegraded is false", () => {
-      const WrappedComponent = withConnectionAware(TestComponent, { allowDegraded: false });
+      const WrappedComponent = withConnectionAware(TestComponent, {
+        allowDegraded: false,
+      });
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
-      
-      renderWithProvider(
-        <WrappedComponent />, 
-        { status: "degraded", isConnected: true }
-      );
-      
+
+      renderWithProvider(<WrappedComponent />, {
+        status: "degraded",
+        isConnected: true,
+      });
+
       expect(screen.getByText("Backend connection failed")).toBeInTheDocument();
     });
 
     it("should not render when showDisconnectedMessage is false and disconnected", () => {
-      const WrappedComponent = withConnectionAware(TestComponent, { showDisconnectedMessage: false });
-      renderWithProvider(
-        <WrappedComponent />, 
-        { status: "disconnected", isConnected: false }
-      );
-      
+      const WrappedComponent = withConnectionAware(TestComponent, {
+        showDisconnectedMessage: false,
+      });
+      renderWithProvider(<WrappedComponent />, {
+        status: "disconnected",
+        isConnected: false,
+      });
+
       expect(screen.queryByTestId("test-component")).not.toBeInTheDocument();
-      expect(screen.queryByText("Backend connection failed")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Backend connection failed")
+      ).not.toBeInTheDocument();
     });
 
     it("should show custom disconnected message", () => {
       const customMessage = "Custom offline message";
-      const WrappedComponent = withConnectionAware(TestComponent, { 
-        disconnectedMessage: customMessage 
+      const WrappedComponent = withConnectionAware(TestComponent, {
+        disconnectedMessage: customMessage,
       });
-      renderWithProvider(
-        <WrappedComponent />, 
-        { status: "disconnected", isConnected: false }
-      );
-      
+      renderWithProvider(<WrappedComponent />, {
+        status: "disconnected",
+        isConnected: false,
+      });
+
       expect(screen.getByText(customMessage)).toBeInTheDocument();
     });
   });
 
   describe("useConnectionAwareButton hook", () => {
-    function TestButtonComponent({ 
-      allowDegraded = true, 
-      disableOnChecking = false 
-    }: { 
-      allowDegraded?: boolean; 
-      disableOnChecking?: boolean; 
+    function TestButtonComponent({
+      allowDegraded = true,
+      disableOnChecking = false,
+    }: {
+      allowDegraded?: boolean;
+      disableOnChecking?: boolean;
     }) {
-      const { connectionProps, ...buttonProps } = useConnectionAwareButton({ allowDegraded, disableOnChecking });
+      const { connectionProps, ...buttonProps } = useConnectionAwareButton({
+        allowDegraded,
+        disableOnChecking,
+      });
       return (
         <button {...buttonProps} data-testid="test-button">
           Test Button
@@ -168,18 +190,18 @@ describe("Connection-Aware Components", () => {
 
     it("should return enabled state when connected", () => {
       renderWithProvider(<TestButtonComponent />);
-      
+
       const button = screen.getByTestId("test-button");
       expect(button).not.toBeDisabled();
       expect(button).not.toHaveAttribute("aria-disabled", "true");
     });
 
     it("should return disabled state when disconnected", () => {
-      renderWithProvider(
-        <TestButtonComponent />, 
-        { status: "disconnected", isConnected: false }
-      );
-      
+      renderWithProvider(<TestButtonComponent />, {
+        status: "disconnected",
+        isConnected: false,
+      });
+
       const button = screen.getByTestId("test-button");
       expect(button).toBeDisabled();
       expect(button).toHaveAttribute("aria-disabled", "true");
@@ -187,33 +209,33 @@ describe("Connection-Aware Components", () => {
     });
 
     it("should be enabled when degraded and allowDegraded is true", () => {
-      renderWithProvider(
-        <TestButtonComponent allowDegraded={true} />, 
-        { status: "degraded", isConnected: true }
-      );
-      
+      renderWithProvider(<TestButtonComponent allowDegraded={true} />, {
+        status: "degraded",
+        isConnected: true,
+      });
+
       const button = screen.getByTestId("test-button");
       expect(button).not.toBeDisabled();
     });
 
     it("should be disabled when degraded and allowDegraded is false", () => {
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
-      
-      renderWithProvider(
-        <TestButtonComponent allowDegraded={false} />, 
-        { status: "degraded", isConnected: true }
-      );
-      
+
+      renderWithProvider(<TestButtonComponent allowDegraded={false} />, {
+        status: "degraded",
+        isConnected: true,
+      });
+
       const button = screen.getByTestId("test-button");
       expect(button).toBeDisabled();
     });
 
     it("should be disabled when checking and disableOnChecking is true", () => {
-      renderWithProvider(
-        <TestButtonComponent disableOnChecking={true} />, 
-        { status: "checking", isChecking: true }
-      );
-      
+      renderWithProvider(<TestButtonComponent disableOnChecking={true} />, {
+        status: "checking",
+        isChecking: true,
+      });
+
       const button = screen.getByTestId("test-button");
       expect(button).toBeDisabled();
       expect(button).toHaveAttribute("title", "Checking connection...");
@@ -221,18 +243,18 @@ describe("Connection-Aware Components", () => {
   });
 
   describe("useConnectionAwareRender hook", () => {
-    function TestRenderComponent({ 
-      allowDegraded = true, 
-      disableOnChecking = false 
-    }: { 
-      allowDegraded?: boolean; 
-      disableOnChecking?: boolean; 
+    function TestRenderComponent({
+      allowDegraded = true,
+      disableOnChecking = false,
+    }: {
+      allowDegraded?: boolean;
+      disableOnChecking?: boolean;
     }) {
-      const { shouldRender, shouldDisable } = useConnectionAwareRender({ 
-        allowDegraded, 
-        disableOnChecking 
+      const { shouldRender, shouldDisable } = useConnectionAwareRender({
+        allowDegraded,
+        disableOnChecking,
       });
-      
+
       return (
         <div>
           <span data-testid="should-render">{shouldRender.toString()}</span>
@@ -243,17 +265,17 @@ describe("Connection-Aware Components", () => {
 
     it("should return correct states when connected", () => {
       renderWithProvider(<TestRenderComponent />);
-      
+
       expect(screen.getByTestId("should-render")).toHaveTextContent("true");
       expect(screen.getByTestId("should-disable")).toHaveTextContent("false");
     });
 
     it("should return correct states when disconnected", () => {
-      renderWithProvider(
-        <TestRenderComponent />, 
-        { status: "disconnected", isConnected: false }
-      );
-      
+      renderWithProvider(<TestRenderComponent />, {
+        status: "disconnected",
+        isConnected: false,
+      });
+
       expect(screen.getByTestId("should-render")).toHaveTextContent("false");
       expect(screen.getByTestId("should-disable")).toHaveTextContent("true");
     });
@@ -266,7 +288,7 @@ describe("Connection-Aware Components", () => {
           <div data-testid="guarded-content">Protected Content</div>
         </ConnectionGuard>
       );
-      
+
       expect(screen.getByTestId("guarded-content")).toBeInTheDocument();
     });
 
@@ -277,21 +299,23 @@ describe("Connection-Aware Components", () => {
         </ConnectionGuard>,
         { status: "disconnected", isConnected: false }
       );
-      
+
       expect(screen.queryByTestId("guarded-content")).not.toBeInTheDocument();
       expect(screen.getByText("Backend connection failed")).toBeInTheDocument();
     });
 
     it("should render custom fallback when provided", () => {
-      const customFallback = <div data-testid="custom-fallback">Custom Fallback</div>;
-      
+      const customFallback = (
+        <div data-testid="custom-fallback">Custom Fallback</div>
+      );
+
       renderWithProvider(
         <ConnectionGuard fallback={customFallback}>
           <div data-testid="guarded-content">Protected Content</div>
         </ConnectionGuard>,
         { status: "disconnected", isConnected: false }
       );
-      
+
       expect(screen.queryByTestId("guarded-content")).not.toBeInTheDocument();
       expect(screen.getByTestId("custom-fallback")).toBeInTheDocument();
     });
@@ -303,9 +327,11 @@ describe("Connection-Aware Components", () => {
         </ConnectionGuard>,
         { status: "disconnected", isConnected: false }
       );
-      
+
       expect(screen.queryByTestId("guarded-content")).not.toBeInTheDocument();
-      expect(screen.queryByText("Backend connection failed")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Backend connection failed")
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -316,7 +342,7 @@ describe("Connection-Aware Components", () => {
           Click Me
         </ConnectionAwareButton>
       );
-      
+
       const button = screen.getByTestId("aware-button");
       expect(button).not.toBeDisabled();
       expect(button).toHaveTextContent("Click Me");
@@ -329,7 +355,7 @@ describe("Connection-Aware Components", () => {
         </ConnectionAwareButton>,
         { status: "disconnected", isConnected: false }
       );
-      
+
       const button = screen.getByTestId("aware-button");
       expect(button).toBeDisabled();
       expect(button).toHaveAttribute("title", "Backend connection failed");
@@ -342,7 +368,7 @@ describe("Connection-Aware Components", () => {
         </ConnectionAwareButton>,
         { status: "disconnected", isConnected: false }
       );
-      
+
       const button = screen.getByTestId("aware-button");
       expect(button).toBeDisabled();
       expect(button).not.toHaveAttribute("title");
@@ -352,43 +378,47 @@ describe("Connection-Aware Components", () => {
   describe("ConnectionAwareForm component", () => {
     it("should allow form submission when connected", () => {
       const handleSubmit = vi.fn((e) => e.preventDefault());
-      
+
       renderWithProvider(
         <ConnectionAwareForm onSubmit={handleSubmit} data-testid="aware-form">
           <input type="text" data-testid="form-input" />
-          <button type="submit" data-testid="submit-button">Submit</button>
+          <button type="submit" data-testid="submit-button">
+            Submit
+          </button>
         </ConnectionAwareForm>
       );
-      
+
       const form = screen.getByTestId("aware-form");
       const input = screen.getByTestId("form-input");
       const button = screen.getByTestId("submit-button");
-      
+
       expect(input).not.toBeDisabled();
       expect(button).not.toBeDisabled();
-      
+
       fireEvent.submit(form);
       expect(handleSubmit).toHaveBeenCalled();
     });
 
     it("should prevent form submission when disconnected", () => {
       const handleSubmit = vi.fn();
-      
+
       renderWithProvider(
         <ConnectionAwareForm onSubmit={handleSubmit} data-testid="aware-form">
           <input type="text" data-testid="form-input" />
-          <button type="submit" data-testid="submit-button">Submit</button>
+          <button type="submit" data-testid="submit-button">
+            Submit
+          </button>
         </ConnectionAwareForm>,
         { status: "disconnected", isConnected: false }
       );
-      
+
       const form = screen.getByTestId("aware-form");
       const input = screen.getByTestId("form-input");
       const button = screen.getByTestId("submit-button");
-      
+
       expect(input).toBeDisabled();
       expect(button).toBeDisabled();
-      
+
       fireEvent.submit(form);
       expect(handleSubmit).not.toHaveBeenCalled();
     });

@@ -8,12 +8,12 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { 
-  ConnectionMonitorService, 
+import {
+  ConnectionMonitorService,
   connectionMonitor,
   type ConnectionState,
   type ConnectionMonitorConfig,
-  type HealthCheckResponse 
+  type HealthCheckResponse,
 } from "@/services/connection-monitor";
 import type { ConnectionError } from "@/types/errors";
 import { Result } from "neverthrow";
@@ -46,7 +46,9 @@ interface ConnectionContextType {
 /**
  * Create the connection context
  */
-const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
+const ConnectionContext = createContext<ConnectionContextType | undefined>(
+  undefined
+);
 
 /**
  * Hook to use connection context
@@ -75,11 +77,11 @@ interface ConnectionProviderProps {
 /**
  * Connection monitoring context provider
  */
-export function ConnectionProvider({ 
-  children, 
+export function ConnectionProvider({
+  children,
   monitor = connectionMonitor,
   autoStart = true,
-  config 
+  config,
 }: ConnectionProviderProps) {
   const [state, setState] = useState<ConnectionState>(monitor.getState());
 
@@ -128,9 +130,12 @@ export function ConnectionProvider({
     monitor.stop();
   }, [monitor]);
 
-  const updateConfig = useCallback((newConfig: Partial<ConnectionMonitorConfig>) => {
-    monitor.updateConfig(newConfig);
-  }, [monitor]);
+  const updateConfig = useCallback(
+    (newConfig: Partial<ConnectionMonitorConfig>) => {
+      monitor.updateConfig(newConfig);
+    },
+    [monitor]
+  );
 
   // Derived state
   const isConnected = state.isConnected;
@@ -174,7 +179,7 @@ export function withConnectionMonitoring<P extends object>(
 ) {
   return function WrappedComponent(props: P) {
     return (
-      <ConnectionProvider 
+      <ConnectionProvider
         autoStart={options?.autoStart}
         config={options?.config}
       >
@@ -197,7 +202,7 @@ export function useAPIOperationsDisabled(): boolean {
  */
 export function useConnectionStatus() {
   const { state, isHealthy, isDegraded, isDown } = useConnection();
-  
+
   const getStatusColor = (): string => {
     if (isHealthy) return "green";
     if (isDegraded) return "yellow";
@@ -215,11 +220,11 @@ export function useConnectionStatus() {
 
   const getDowntimeText = (): string | null => {
     if (!state.downtime || state.downtime === 0) return null;
-    
+
     const seconds = Math.floor(state.downtime / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) return `${hours}h ${minutes % 60}m`;
     if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
     return `${seconds}s`;

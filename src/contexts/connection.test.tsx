@@ -4,7 +4,12 @@
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, act, waitFor } from "@testing-library/react";
-import { ConnectionProvider, useConnection, useConnectionStatus, useAPIOperationsDisabled } from "./connection";
+import {
+  ConnectionProvider,
+  useConnection,
+  useConnectionStatus,
+  useAPIOperationsDisabled,
+} from "./connection";
 import { ConnectionMonitorService } from "@/services/connection-monitor";
 import type { ConnectionState } from "@/services/connection-monitor";
 
@@ -60,8 +65,8 @@ function TestComponent() {
       <button onClick={stopMonitoring} data-testid="stop-monitoring">
         Stop Monitoring
       </button>
-      <button 
-        onClick={() => updateConfig({ timeout: 5000 })} 
+      <button
+        onClick={() => updateConfig({ timeout: 5000 })}
         data-testid="update-config"
       >
         Update Config
@@ -73,7 +78,7 @@ function TestComponent() {
 // Test component for connection status hook
 function ConnectionStatusComponent() {
   const { color, text, downtime, error } = useConnectionStatus();
-  
+
   return (
     <div>
       <div data-testid="status-color">{color}</div>
@@ -87,7 +92,7 @@ function ConnectionStatusComponent() {
 // Test component for API operations disabled hook
 function APIOperationsComponent() {
   const isDisabled = useAPIOperationsDisabled();
-  
+
   return (
     <div>
       <div data-testid="api-disabled">{isDisabled.toString()}</div>
@@ -124,7 +129,9 @@ describe("Connection Context", () => {
         </ConnectionProvider>
       );
 
-      expect(screen.getByTestId("connection-status")).toHaveTextContent("checking");
+      expect(screen.getByTestId("connection-status")).toHaveTextContent(
+        "checking"
+      );
       expect(mockMonitor.getState).toHaveBeenCalled();
     });
 
@@ -150,9 +157,13 @@ describe("Connection Context", () => {
 
     it("should update config when provided", () => {
       const config = { timeout: 5000, maxRetries: 5 };
-      
+
       render(
-        <ConnectionProvider monitor={mockMonitor} config={config} autoStart={false}>
+        <ConnectionProvider
+          monitor={mockMonitor}
+          config={config}
+          autoStart={false}
+        >
           <TestComponent />
         </ConnectionProvider>
       );
@@ -201,7 +212,7 @@ describe("Connection Context", () => {
         status: "connected",
         isConnected: true,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(connectedState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(true);
       mockMonitor.isDown = vi.fn().mockReturnValue(false);
@@ -276,7 +287,9 @@ describe("Connection Context", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId("connection-status")).toHaveTextContent("connected");
+        expect(screen.getByTestId("connection-status")).toHaveTextContent(
+          "connected"
+        );
         expect(screen.getByTestId("is-connected")).toHaveTextContent("true");
       });
     });
@@ -290,7 +303,7 @@ describe("Connection Context", () => {
         isConnected: true,
         isChecking: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(healthyState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(true);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(false);
@@ -314,7 +327,7 @@ describe("Connection Context", () => {
         isConnected: true,
         isChecking: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(degradedState);
       mockMonitor.isHealthy = vi.fn().mockReturnValue(false);
       mockMonitor.isDegraded = vi.fn().mockReturnValue(true);
@@ -337,7 +350,7 @@ describe("Connection Context", () => {
         isConnected: false,
         downtime: 65000, // 1 minute 5 seconds
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
       mockMonitor.isDown = vi.fn().mockReturnValue(true);
 
@@ -348,7 +361,9 @@ describe("Connection Context", () => {
       );
 
       expect(screen.getByTestId("status-color")).toHaveTextContent("red");
-      expect(screen.getByTestId("status-text")).toHaveTextContent("Disconnected");
+      expect(screen.getByTestId("status-text")).toHaveTextContent(
+        "Disconnected"
+      );
       expect(screen.getByTestId("status-downtime")).toHaveTextContent("1m 5s");
     });
 
@@ -359,7 +374,7 @@ describe("Connection Context", () => {
         isConnected: false,
         downtime: 3665000, // 1 hour 1 minute 5 seconds
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
 
       render(
@@ -377,7 +392,7 @@ describe("Connection Context", () => {
         status: "checking",
         isChecking: true,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(checkingState);
 
       render(
@@ -386,7 +401,9 @@ describe("Connection Context", () => {
         </ConnectionProvider>
       );
 
-      expect(screen.getByTestId("status-text")).toHaveTextContent("Checking...");
+      expect(screen.getByTestId("status-text")).toHaveTextContent(
+        "Checking..."
+      );
     });
   });
 
@@ -397,7 +414,7 @@ describe("Connection Context", () => {
         status: "disconnected",
         isConnected: false,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(disconnectedState);
 
       render(
@@ -415,7 +432,7 @@ describe("Connection Context", () => {
         status: "connected",
         isConnected: true,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(connectedState);
 
       render(
@@ -433,7 +450,7 @@ describe("Connection Context", () => {
         status: "degraded",
         isConnected: true,
       };
-      
+
       mockMonitor.getState = vi.fn().mockReturnValue(degradedState);
 
       render(
