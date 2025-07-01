@@ -4,6 +4,8 @@ import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
+import type { Result } from "neverthrow";
+import type { AuthError } from "@/types/auth";
 import type {
   MinecraftServer,
   CreateServerRequest,
@@ -13,10 +15,15 @@ import type {
 export interface UseServerActionsReturn {
   isCreating: boolean;
   isImporting: boolean;
+  isSubmitting: boolean;
   actioningServers: Set<number>;
   error: string | null;
-  createServer: (data: CreateServerRequest) => Promise<MinecraftServer | null>;
-  importServer: (data: ServerImportRequest) => Promise<MinecraftServer | null>;
+  createServer: (
+    data: CreateServerRequest
+  ) => Promise<Result<MinecraftServer, AuthError>>;
+  importServer: (
+    data: ServerImportRequest
+  ) => Promise<Result<MinecraftServer, AuthError>>;
   startServer: (serverId: number) => Promise<boolean>;
   stopServer: (serverId: number) => Promise<boolean>;
   clearError: () => void;
@@ -57,7 +64,9 @@ export function useServerActions(): UseServerActionsReturn {
   }, []);
 
   const createServer = useCallback(
-    async (data: CreateServerRequest): Promise<MinecraftServer | null> => {
+    async (
+      data: CreateServerRequest
+    ): Promise<Result<MinecraftServer, AuthError>> => {
       setIsCreating(true);
       setError(null);
 
@@ -65,17 +74,22 @@ export function useServerActions(): UseServerActionsReturn {
         const result = await serverService.createServer(data);
 
         if (result.isOk()) {
-          return result.value;
+          return result;
         } else {
           if (handleAuthError(result.error.status ?? 500)) {
-            return null;
+            return result;
           }
           setError(result.error.message);
-          return null;
+          return result;
         }
       } catch {
-        setError(t("errors.failedToCreateServer"));
-        return null;
+        const errorMsg = t("errors.failedToCreateServer");
+        setError(errorMsg);
+        return {
+          isOk: () => false,
+          isErr: () => true,
+          error: { message: errorMsg },
+        } as Result<MinecraftServer, AuthError>;
       } finally {
         setIsCreating(false);
       }
@@ -84,7 +98,9 @@ export function useServerActions(): UseServerActionsReturn {
   );
 
   const importServer = useCallback(
-    async (data: ServerImportRequest): Promise<MinecraftServer | null> => {
+    async (
+      data: ServerImportRequest
+    ): Promise<Result<MinecraftServer, AuthError>> => {
       setIsImporting(true);
       setError(null);
 
@@ -92,17 +108,22 @@ export function useServerActions(): UseServerActionsReturn {
         const result = await serverService.importServer(data);
 
         if (result.isOk()) {
-          return result.value;
+          return result;
         } else {
           if (handleAuthError(result.error.status ?? 500)) {
-            return null;
+            return result;
           }
           setError(result.error.message);
-          return null;
+          return result;
         }
       } catch {
-        setError(t("errors.failedToImportServer"));
-        return null;
+        const errorMsg = t("errors.failedToImportServer");
+        setError(errorMsg);
+        return {
+          isOk: () => false,
+          isErr: () => true,
+          error: { message: errorMsg },
+        } as Result<MinecraftServer, AuthError>;
       } finally {
         setIsImporting(false);
       }
@@ -171,6 +192,7 @@ export function useServerActions(): UseServerActionsReturn {
   return {
     isCreating,
     isImporting,
+    isSubmitting: isCreating || isImporting,
     actioningServers,
     error,
     createServer,
