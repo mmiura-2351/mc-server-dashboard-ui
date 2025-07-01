@@ -1,4 +1,4 @@
-import { ServerDashboard } from "@/components/server/server-dashboard";
+import { ServerDashboard } from "@/components/server/dashboard/ServerDashboard";
 
 export default function DashboardPage() {
   return <ServerDashboard />;
