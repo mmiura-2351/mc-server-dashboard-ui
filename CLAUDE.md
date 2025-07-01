@@ -558,3 +558,92 @@ These endpoints are available when the backend development server is running and
 9. **WebSocket auth** - Include JWT token in WebSocket connections
 10. **Error boundaries** - Handle API connection failures gracefully
 11. **Internationalization** - Always use `useTranslation()` hook and `t('key')` for user-facing text - never hardcode strings
+
+### Rule 12: Context Function Stability
+
+**Always use useCallback for functions in React Contexts to prevent infinite re-render loops.**
+
+This project has experienced multiple instances of infinite API request loops caused by unstable context functions. When context functions are recreated on every render, components using these functions in useEffect dependency arrays will continuously re-execute.
+
+**Problem Pattern:**
+
+```typescript
+// ❌ BAD: Functions recreated on every render
+export function SomeContext() {
+  const someFunction = () => {
+    /* ... */
+  };
+  const anotherFunction = (param: string) => {
+    /* ... */
+  };
+
+  return { someFunction, anotherFunction };
+}
+
+// Component using the context
+function MyComponent() {
+  const { someFunction } = useSomeContext();
+
+  useEffect(() => {
+    // This will run on every render because someFunction changes
+    someApiCall();
+  }, [someFunction]); // ← Causes infinite loop
+}
+```
+
+**Solution Pattern:**
+
+```typescript
+// ✅ GOOD: Stable functions with useCallback
+export function SomeContext() {
+  const someFunction = useCallback(() => {
+    /* ... */
+  }, []); // Empty deps if no dependencies
+
+  const anotherFunction = useCallback((param: string) => {
+    /* ... */
+  }, []); // Add dependencies as needed
+
+  return { someFunction, anotherFunction };
+}
+```
+
+**Mandatory useCallback Usage:**
+
+1. **All functions returned from Contexts must use useCallback**
+2. **Functions passed as props to components should use useCallback**
+3. **Functions used in useEffect dependency arrays must be stable**
+
+**Common Context Functions to Stabilize:**
+
+- Authentication functions: `login`, `logout`, `register`
+- Translation functions: `t` (translation function)
+- API service functions: `fetchData`, `updateData`, `deleteData`
+- Navigation functions: `navigateToPage`, `goBack`
+
+**Historical Issues:**
+
+- Issue #129: Infinite `/api/v1/servers` requests (191 calls/second) caused by unstable `logout` and `t` functions
+- Multiple similar incidents in AuthContext and LanguageContext
+
+**Detection:**
+
+- Symptoms: Infinite API calls, browser performance degradation, rapid console log generation
+- Monitoring: Check browser network tab for repeated identical requests
+- Debug: Add logging to useEffect to identify which dependencies are changing
+
+**Testing:**
+
+```typescript
+// Test that functions are stable across renders
+test("context functions should be stable", () => {
+  const { result, rerender } = renderHook(() => useMyContext());
+  const initialFunction = result.current.myFunction;
+
+  rerender();
+
+  expect(result.current.myFunction).toBe(initialFunction);
+});
+```
+
+This rule is critical for maintaining application performance and preventing resource exhaustion.
