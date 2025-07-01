@@ -1,0 +1,181 @@
+/* Connection-Aware Component Styles */
+
+.disconnectedWrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.disabledOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 0.375rem;
+}
+
+.disabledMessage {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #fecaca;
+}
+
+.disabledContent {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.disabledButton {
+  opacity: 0.6;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.disabledButton:hover {
+  opacity: 0.6;
+}
+
+.disabledButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.guardMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  color: #92400e;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.guardIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.guardText {
+  flex: 1;
+}
+
+.disabledForm {
+  position: relative;
+}
+
+.formFieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.formFieldset:disabled {
+  opacity: 0.6;
+}
+
+.formFieldset:disabled .disabledOverlay {
+  display: flex;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .disabledOverlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .disabledMessage {
+    background: #450a0a;
+    color: #fca5a5;
+    border-color: #7f1d1d;
+  }
+  
+  .guardMessage {
+    background: #451a03;
+    border-color: #f59e0b;
+    color: #fbbf24;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .disabledMessage {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .guardMessage {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .guardIcon {
+    font-size: 1rem;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .disabledOverlay {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none;
+  }
+  
+  .disabledMessage {
+    border-width: 2px;
+    background: #ffffff;
+    color: #000000;
+    border-color: #ef4444;
+  }
+  
+  .guardMessage {
+    border-width: 2px;
+    background: #ffffff;
+    color: #000000;
+    border-color: #f59e0b;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .disabledOverlay {
+    backdrop-filter: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .disabledOverlay {
+    display: none;
+  }
+  
+  .disabledContent {
+    opacity: 1;
+  }
+  
+  .guardMessage::before {
+    content: "⚠️ ";
+  }
+}

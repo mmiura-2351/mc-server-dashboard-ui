@@ -5,6 +5,9 @@ import { useTranslation } from "@/contexts/language";
 import { useRouter, usePathname } from "next/navigation";
 import { Role } from "@/types/auth";
 import { useState, useEffect } from "react";
+import { ConnectionProvider } from "@/contexts/connection";
+import { ConnectionStatusIndicator } from "@/components/connection/connection-status-indicator";
+import { ConnectionWarningBanner } from "@/components/connection/connection-warning-banner";
 import styles from "./main-layout.module.css";
 
 interface MainLayoutProps {
@@ -126,15 +129,21 @@ export function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <div className={styles.layout}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.brand}>
-            <h1 className={styles.brandTitle}>{t("layout.brandTitle")}</h1>
-            <span className={styles.brandSubtitle}>
-              {t("layout.brandSubtitle")}
-            </span>
-          </div>
+    <ConnectionProvider autoStart={true}>
+      <div className={styles.layout}>
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <div className={styles.brand}>
+              <h1 className={styles.brandTitle}>{t("layout.brandTitle")}</h1>
+              <span className={styles.brandSubtitle}>
+                {t("layout.brandSubtitle")}
+              </span>
+            </div>
+            
+            {/* Connection Status Indicator */}
+            <div className={styles.connectionStatus}>
+              <ConnectionStatusIndicator size="small" />
+            </div>
 
           {/* Mobile menu button */}
           <button
@@ -317,6 +326,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
 
       <main className={styles.main}>
+        {/* Connection Warning Banner */}
+        <ConnectionWarningBanner 
+          showOnDegraded={true}
+          dismissible={true}
+          showDetails={true}
+        />
+        
         {!user.is_approved ? (
           <div className={styles.approvalNotice}>
             <div className={styles.approvalCard}>
@@ -330,5 +346,6 @@ export function MainLayout({ children }: MainLayoutProps) {
         )}
       </main>
     </div>
+    </ConnectionProvider>
   );
 }
