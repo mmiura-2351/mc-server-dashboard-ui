@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   type ReactNode,
 } from "react";
 import type { Locale } from "@/i18n/config";
@@ -76,27 +77,30 @@ export function useLanguage() {
 export function useTranslation() {
   const { messages } = useLanguage();
 
-  const t = (key: string, params?: Record<string, string>) => {
-    const keys = key.split(".");
-    let value: unknown = messages;
+  const t = useCallback(
+    (key: string, params?: Record<string, string>) => {
+      const keys = key.split(".");
+      let value: unknown = messages;
 
-    for (const k of keys) {
-      if (value && typeof value === "object" && k in value) {
-        value = (value as Record<string, unknown>)[k];
-      } else {
-        return key; // Return key if translation not found
+      for (const k of keys) {
+        if (value && typeof value === "object" && k in value) {
+          value = (value as Record<string, unknown>)[k];
+        } else {
+          return key; // Return key if translation not found
+        }
       }
-    }
 
-    if (typeof value === "string" && params) {
-      // Replace parameters in the string
-      return Object.entries(params).reduce((str, [param, replacement]) => {
-        return str.replace(`{${param}}`, replacement);
-      }, value);
-    }
+      if (typeof value === "string" && params) {
+        // Replace parameters in the string
+        return Object.entries(params).reduce((str, [param, replacement]) => {
+          return str.replace(`{${param}}`, replacement);
+        }, value);
+      }
 
-    return typeof value === "string" ? value : key;
-  };
+      return typeof value === "string" ? value : key;
+    },
+    [messages]
+  );
 
   return { t };
 }
