@@ -114,18 +114,14 @@ export function ServerDashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.titleSection}>
-          <h1 className={styles.title}>{t("servers.dashboard.title")}</h1>
-          <p className={styles.subtitle}>{t("servers.dashboard.subtitle")}</p>
-        </div>
-
+        <h1 className={styles.title}>{t("servers.title")}</h1>
+        
         <div className={styles.actions}>
           <button
             onClick={() => setShowCreateModal(true)}
             className={`${styles.actionButton} ${styles.createButton}`}
             disabled={isSubmitting}
           >
-            <span className={styles.buttonIcon}>➕</span>
             {t("servers.actions.create")}
           </button>
 
@@ -134,7 +130,6 @@ export function ServerDashboard() {
             className={`${styles.actionButton} ${styles.importButton}`}
             disabled={isSubmitting}
           >
-            <span className={styles.buttonIcon}>📁</span>
             {t("servers.actions.import")}
           </button>
         </div>

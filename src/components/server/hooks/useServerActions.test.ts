@@ -4,7 +4,8 @@ import { useServerActions } from "./useServerActions";
 import * as serverService from "@/services/server";
 import { ServerType, ServerStatus } from "@/types/server";
 import type { MinecraftServer } from "@/types/server";
-import { ok, err } from "neverthrow";
+import { ok, err, type Result } from "neverthrow";
+import type { AuthError } from "@/types/auth";
 
 // Mock the server service
 vi.mock("@/services/server", () => ({
@@ -70,13 +71,16 @@ describe("useServerActions", () => {
       description: "Test server",
     };
 
-    let serverResult: MinecraftServer | null = null;
+    let serverResult!: Result<MinecraftServer, AuthError>;
 
     await act(async () => {
       serverResult = await result.current.createServer(createData);
     });
 
-    expect(serverResult).toEqual(mockServer);
+    expect(serverResult.isOk()).toBe(true);
+    if (serverResult.isOk()) {
+      expect(serverResult.value).toEqual(mockServer);
+    }
     expect(result.current.isCreating).toBe(false);
     expect(result.current.error).toBe(null);
   });
@@ -96,13 +100,16 @@ describe("useServerActions", () => {
       max_memory: 2048,
     };
 
-    let serverResult: MinecraftServer | null = null;
+    let serverResult!: Result<MinecraftServer, AuthError>;
 
     await act(async () => {
       serverResult = await result.current.createServer(createData);
     });
 
-    expect(serverResult).toBe(null);
+    expect(serverResult.isErr()).toBe(true);
+    if (serverResult.isErr()) {
+      expect(serverResult.error.message).toBe(errorMessage);
+    }
     expect(result.current.error).toBe(errorMessage);
   });
 
@@ -117,13 +124,16 @@ describe("useServerActions", () => {
       file: new File(["test"], "server.zip", { type: "application/zip" }),
     };
 
-    let serverResult: MinecraftServer | null = null;
+    let serverResult!: Result<MinecraftServer, AuthError>;
 
     await act(async () => {
       serverResult = await result.current.importServer(importData);
     });
 
-    expect(serverResult).toEqual(mockServer);
+    expect(serverResult.isOk()).toBe(true);
+    if (serverResult.isOk()) {
+      expect(serverResult.value).toEqual(mockServer);
+    }
     expect(result.current.isImporting).toBe(false);
     expect(result.current.error).toBe(null);
   });
