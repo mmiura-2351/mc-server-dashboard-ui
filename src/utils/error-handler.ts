@@ -12,6 +12,7 @@ import {
   NetworkError,
   ValidationError,
   AppError,
+  ConnectionError,
   ErrorSeverity,
   TrackedError,
   ErrorRecoveryStrategy,
@@ -258,6 +259,54 @@ export class ErrorHandler {
   }
 
   /**
+   * Create a backend connection error
+   */
+  static createConnectionError(
+    message: string,
+    operation: string,
+    connectionStatus: ConnectionError["connectionStatus"],
+    options: Partial<
+      Pick<
+        ConnectionError,
+        | "endpoint"
+        | "retryable"
+        | "retryCount"
+        | "maxRetries"
+        | "lastSuccessfulConnection"
+        | "downtime"
+        | "suggestions"
+      >
+    > & {
+      context?: { data?: Record<string, unknown> };
+    } = {}
+  ): ConnectionError {
+    return {
+      message,
+      code: "CONNECTION_ERROR",
+      timestamp: new Date(),
+      context: {
+        operation,
+        data: {
+          endpoint: options.endpoint,
+          connectionStatus,
+          downtime: options.downtime,
+          ...options.context?.data,
+        },
+      },
+      connectionStatus,
+      endpoint: options.endpoint,
+      retryable: options.retryable ?? true,
+      retryCount: options.retryCount ?? 0,
+      maxRetries: options.maxRetries ?? this.config.defaultMaxRetries,
+      lastSuccessfulConnection: options.lastSuccessfulConnection,
+      downtime: options.downtime,
+      suggestions:
+        options.suggestions ??
+        this.getConnectionErrorSuggestions(connectionStatus),
+    };
+  }
+
+  /**
    * Convert any error to a user-friendly message
    */
   static getUserFriendlyMessage(error: ApplicationError): string {
@@ -325,6 +374,12 @@ export class ErrorHandler {
         return (
           networkError.retryable &&
           (networkError.retryCount ?? 0) < (networkError.maxRetries ?? 3)
+        );
+      case "CONNECTION_ERROR":
+        const connectionError = error as ConnectionError;
+        return (
+          connectionError.retryable &&
+          (connectionError.retryCount ?? 0) < (connectionError.maxRetries ?? 3)
         );
       default:
         return false;
@@ -474,6 +529,33 @@ export class ErrorHandler {
     );
   }
 
+  private static getConnectionErrorSuggestions(
+    connectionStatus: ConnectionError["connectionStatus"]
+  ): string[] {
+    const suggestions: Record<ConnectionError["connectionStatus"], string[]> = {
+      checking: ["Connection check in progress", "Please wait"],
+      failed: [
+        "Backend server may be down",
+        "Check if the API server is running",
+        "Verify network connectivity",
+        "Contact system administrator if issue persists",
+      ],
+      timeout: [
+        "Connection timed out",
+        "Check network latency",
+        "Try again in a few moments",
+        "Verify server is responsive",
+      ],
+      degraded: [
+        "Connection is unstable",
+        "Some features may be limited",
+        "Monitor connection status",
+        "Consider refreshing the page",
+      ],
+    };
+    return suggestions[connectionStatus] || ["Check connection and try again"];
+  }
+
   private static getMaxRetries(error: ApplicationError): number {
     if (error.code === "NETWORK_ERROR") {
       return (
@@ -564,5 +646,6 @@ export function useErrorHandler() {
     createNetworkError: ErrorHandler.createNetworkError,
     createValidationError: ErrorHandler.createValidationError,
     createAppError: ErrorHandler.createAppError,
+    createConnectionError: ErrorHandler.createConnectionError,
   };
 }
