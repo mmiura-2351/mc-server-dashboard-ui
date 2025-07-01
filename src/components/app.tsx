@@ -2,11 +2,19 @@
 
 import { useAuth } from "@/contexts/auth";
 import { AuthPage } from "@/components/auth/auth-page";
-import { MainLayout } from "@/components/layout/main-layout";
-import { ServerDashboard } from "@/components/server/server-dashboard";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function App() {
   const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      // Redirect authenticated users to dashboard instead of rendering here
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -29,9 +37,6 @@ export function App() {
     return <AuthPage />;
   }
 
-  return (
-    <MainLayout>
-      <ServerDashboard />
-    </MainLayout>
-  );
+  // If authenticated, we redirect above, so this should not render
+  return null;
 }
