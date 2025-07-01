@@ -60,7 +60,7 @@
 .cancelButton {
   padding: 8px 16px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--background-secondary);
   color: var(--text-primary);
   cursor: pointer;
@@ -82,7 +82,7 @@
 .confirmButton {
   padding: 8px 16px;
   border: 1px solid var(--primary-color);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--primary-color);
   color: white;
   cursor: pointer;
