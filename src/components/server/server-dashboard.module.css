@@ -736,9 +736,22 @@
 
 /* Keep existing card styles for mobile fallback */
 .serverGrid {
-  display: none; /* Hidden by default on desktop */
+  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+/* Hide grid view on desktop, show on mobile */
+@media (min-width: 768px) {
+  .serverGrid {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .tableContainer {
+    display: none;
+  }
 }
 
 .serverCard {

@@ -1,42 +1,26 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  // Get the pathname
-  const pathname = request.nextUrl.pathname;
-
-  // For performance optimization, handle static assets early
-  if (
-    pathname.startsWith("/_next/") ||
-    pathname.startsWith("/api/") ||
-    pathname.includes(".")
-  ) {
-    return NextResponse.next();
-  }
-
-  // Add cache headers for better performance
+export function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
-  // Add performance headers for app routes
-  if (pathname === "/" || pathname === "/dashboard") {
-    response.headers.set("Cache-Control", "private, no-cache");
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-  }
+  // Add optimized cache headers for app routes
+  // Allow caching but require revalidation for dynamic content
+  response.headers.set("Cache-Control", "private, max-age=0, must-revalidate");
 
   return response;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Target specific routes that need middleware processing
+    "/",
+    "/dashboard/:path*",
+    "/auth/:path*",
+    "/account/:path*",
+    "/admin/:path*",
+    "/groups/:path*",
+    "/servers/:path*",
+    "/docs/:path*",
   ],
 };

@@ -3,15 +3,21 @@
 import { useAuth } from "@/contexts/auth";
 import { AuthPage } from "@/components/auth/auth-page";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useEffect } from "react";
 
 export function App() {
   const { isAuthenticated, isLoading, isHydrated } = useAuth();
   const router = useRouter();
-  const hasRedirected = useRef(false);
 
-  // Wait for hydration to complete to prevent SSR mismatch
-  if (!isHydrated) {
+  // Handle authenticated user redirect after hydration
+  useEffect(() => {
+    if (isHydrated && isAuthenticated && !isLoading) {
+      router.replace("/dashboard");
+    }
+  }, [isHydrated, isAuthenticated, isLoading, router]);
+
+  // Show loading while hydrating or while authenticated user is being redirected
+  if (!isHydrated || (isAuthenticated && !isLoading)) {
     return (
       <div
         style={{
@@ -26,19 +32,6 @@ export function App() {
         Loading...
       </div>
     );
-  }
-
-  // Immediate redirect for authenticated users after hydration
-  if (isAuthenticated && !hasRedirected.current) {
-    hasRedirected.current = true;
-    // Use replace to avoid adding to history and setTimeout to ensure DOM is ready
-    setTimeout(() => router.replace("/dashboard"), 0);
-    return null; // Prevent any rendering while redirecting
-  }
-
-  // Early return for authenticated users - completely skip rendering
-  if (isAuthenticated) {
-    return null;
   }
 
   // Show minimal loading state only when actually loading
