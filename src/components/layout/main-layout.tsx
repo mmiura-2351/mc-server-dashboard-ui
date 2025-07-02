@@ -89,7 +89,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const navigationItems = [
     {
       label: t("navigation.servers"),
-      path: "/",
+      path: "/dashboard",
       icon: "🖥️",
       active: pathname === "/" || pathname === "/dashboard",
     },
@@ -170,7 +170,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                       key={item.path}
                       onClick={() => router.push(item.path)}
                       className={`${styles.navItem} ${item.active ? styles.navItemActive : ""}`}
-                      disabled={!user.is_approved && item.path !== "/"}
+                      disabled={!user.is_approved && item.path !== "/dashboard"}
                     >
                       <span className={styles.navIcon}>{item.icon}</span>
                       <span className={styles.navLabel}>{item.label}</span>
