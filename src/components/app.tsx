@@ -6,16 +6,35 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isHydrated } = useAuth();
   const router = useRouter();
 
+  // Handle authenticated user redirect after hydration
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      // Redirect authenticated users to dashboard instead of rendering here
-      router.push("/dashboard");
+    if (isHydrated && isAuthenticated && !isLoading) {
+      router.replace("/dashboard");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isHydrated, isAuthenticated, isLoading, router]);
 
+  // Show loading while hydrating or while authenticated user is being redirected
+  if (!isHydrated || (isAuthenticated && !isLoading)) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          fontSize: "1.125rem",
+          color: "#6b7280",
+        }}
+      >
+        Loading...
+      </div>
+    );
+  }
+
+  // Show minimal loading state only when actually loading
   if (isLoading) {
     return (
       <div
@@ -33,10 +52,6 @@ export function App() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
-
-  // If authenticated, we redirect above, so this should not render
-  return null;
+  // Show login page for unauthenticated users
+  return <AuthPage />;
 }

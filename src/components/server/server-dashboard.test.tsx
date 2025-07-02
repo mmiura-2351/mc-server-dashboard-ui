@@ -310,7 +310,7 @@ describe("ServerDashboard", () => {
 
       // Now check for Create Server button in fixed header bar (only visible when servers.length > 0)
       expect(
-        screen.getByRole("button", { name: "+ Create Server" })
+        screen.getByRole("button", { name: "Create Server" })
       ).toBeInTheDocument();
 
       expect(getServerNameElement("Test Server 2")).toBeInTheDocument();
@@ -536,7 +536,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -577,7 +577,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -598,7 +598,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -619,7 +619,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
     });
@@ -741,7 +741,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
     });
@@ -868,7 +868,7 @@ describe("ServerDashboard", () => {
 
       // Open modal again to check form reset
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -928,7 +928,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -977,7 +977,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1017,7 +1017,7 @@ describe("ServerDashboard", () => {
 
       // First, open the modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1196,7 +1196,7 @@ describe("ServerDashboard", () => {
       });
 
       const headerCreateButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       expect(headerCreateButton).not.toBeDisabled();
 
@@ -1215,7 +1215,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
 
       // Rapidly open and close modal
@@ -1240,7 +1240,7 @@ describe("ServerDashboard", () => {
       });
 
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1270,7 +1270,7 @@ describe("ServerDashboard", () => {
 
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1302,7 +1302,7 @@ describe("ServerDashboard", () => {
 
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 
@@ -1331,7 +1331,7 @@ describe("ServerDashboard", () => {
 
       // Open create modal
       const createButton = screen.getByRole("button", {
-        name: "+ Create Server",
+        name: "Create Server",
       });
       await user.click(createButton);
 

@@ -26,6 +26,7 @@ import { InputSanitizer } from "@/utils/input-sanitizer";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isHydrated: boolean;
   login: (credentials: LoginRequest) => Promise<Result<void, AuthError>>;
   register: (userData: UserCreate) => Promise<Result<User, AuthError>>;
   logout: () => void;
@@ -53,23 +54,47 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  // Initialize with SSR-safe defaults to prevent hydration mismatch
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const isAuthenticated = user !== null;
 
+  // Listen for automatic token refresh events from token manager
+  const handleTokenRefresh = useCallback((event: CustomEvent) => {
+    const { access_token } = event.detail;
+    // Refresh user data with new token
+    authService.getCurrentUser(access_token).then((result) => {
+      if (result.isOk()) {
+        setUser(result.value);
+        AuthStorage.setUserData(result.value);
+      }
+    });
+  }, []);
+
+  // Listen for automatic logout events from token manager
+  const handleAuthLogout = useCallback(() => {
+    setUser(null);
+  }, []);
+
   useEffect(() => {
+    // Mark as hydrated on client-side only
+    setIsHydrated(true);
+
     const token = AuthStorage.getAccessToken();
     const cachedUserData = AuthStorage.getUserData();
 
     if (!token) {
+      setUser(null);
       setIsLoading(false);
       return;
     }
 
-    // Try to restore user from cache first for better UX
+    // Restore user from cache immediately for better UX
     if (cachedUserData) {
       setUser(cachedUserData as User);
+      setIsLoading(false);
     }
 
     const loadUser = async () => {
@@ -97,23 +122,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     loadUser();
 
-    // Listen for automatic token refresh events from token manager
-    const handleTokenRefresh = (event: CustomEvent) => {
-      const { access_token } = event.detail;
-      // Refresh user data with new token
-      authService.getCurrentUser(access_token).then((result) => {
-        if (result.isOk()) {
-          setUser(result.value);
-          AuthStorage.setUserData(result.value);
-        }
-      });
-    };
-
-    // Listen for automatic logout events from token manager
-    const handleAuthLogout = () => {
-      setUser(null);
-    };
-
     window.addEventListener(
       "tokenRefresh",
       handleTokenRefresh as EventListener
@@ -127,7 +135,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
       window.removeEventListener("authLogout", handleAuthLogout);
     };
-  }, []);
+  }, [handleTokenRefresh, handleAuthLogout]);
 
   const login = async (
     credentials: LoginRequest
@@ -297,6 +305,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     user,
     isLoading,
+    isHydrated,
     login,
     register,
     logout,

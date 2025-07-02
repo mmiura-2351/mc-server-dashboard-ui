@@ -2,6 +2,7 @@
   "common": {
     "loading": "読み込み中...",
     "refresh": "更新",
+    "retry": "再試行",
     "save": "保存",
     "saving": "保存中...",
     "cancel": "キャンセル",
@@ -168,13 +169,57 @@
   },
   "servers": {
     "title": "Minecraftサーバー",
+    "dashboard": {
+      "title": "サーバーダッシュボード",
+      "subtitle": "Minecraftサーバーを管理"
+    },
     "createServer": "サーバー作成",
     "loadingServers": "サーバー読み込み中...",
     "noServersFound": "サーバーが見つかりません",
     "createFirstServer": "最初のMinecraftサーバーを作成して始めましょう！",
     "clickToManage": "クリックしてサーバーを管理",
+    "list": {
+      "title": "サーバー"
+    },
+    "emptyState": {
+      "title": "サーバーが見つかりません",
+      "description": "最初のMinecraftサーバーを作成して始めましょう！"
+    },
+    "details": {
+      "version": "バージョン:",
+      "type": "タイプ:",
+      "memory": "メモリ:",
+      "players": "プレイヤー:"
+    },
+    "types": {
+      "vanilla": "Vanilla",
+      "paper": "Paper",
+      "forge": "Forge"
+    },
+    "sort": {
+      "name": "名前",
+      "status": "ステータス",
+      "created": "作成日",
+      "version": "バージョン",
+      "asc": "昇順",
+      "desc": "降順"
+    },
     "filters": {
       "title": "フィルター",
+      "toggle": "フィルター",
+      "totalCount": "{count}台のサーバー",
+      "filteredCount": "{total}台中{filtered}台のサーバー",
+      "search": "検索",
+      "searchPlaceholder": "サーバー名で検索...",
+      "type": "サーバータイプ",
+      "status": "サーバーステータス",
+      "version": "Minecraftバージョン",
+      "sortBy": "並び順",
+      "sortOrder": "ソート順序",
+      "reset": "フィルターリセット",
+      "allTypes": "すべてのタイプ",
+      "allStatuses": "すべてのステータス",
+      "allVersions": "すべてのバージョン",
       "noMatchingServers": "現在のフィルターに一致するサーバーがありません。",
       "closeFilters": "フィルターを閉じる",
       "type": {
@@ -234,6 +279,8 @@
       "unknown": "不明"
     },
     "actions": {
+      "create": "サーバー作成",
+      "import": "サーバーインポート",
       "start": "サーバー開始",
       "stop": "サーバー停止",
       "restart": "サーバー再起動",

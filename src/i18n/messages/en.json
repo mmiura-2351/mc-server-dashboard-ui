@@ -2,6 +2,7 @@
   "common": {
     "loading": "Loading...",
     "refresh": "Refresh",
+    "retry": "Retry",
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",
@@ -168,13 +169,57 @@
   },
   "servers": {
     "title": "Minecraft Servers",
+    "dashboard": {
+      "title": "Server Dashboard",
+      "subtitle": "Manage your Minecraft servers"
+    },
     "createServer": "Create Server",
     "loadingServers": "Loading servers...",
     "noServersFound": "No servers found",
     "createFirstServer": "Create your first Minecraft server to get started!",
     "clickToManage": "Click to manage server",
+    "list": {
+      "title": "Servers"
+    },
+    "emptyState": {
+      "title": "No Servers Found",
+      "description": "Create your first Minecraft server to get started!"
+    },
+    "details": {
+      "version": "Version:",
+      "type": "Type:",
+      "memory": "Memory:",
+      "players": "Players:"
+    },
+    "types": {
+      "vanilla": "Vanilla",
+      "paper": "Paper",
+      "forge": "Forge"
+    },
+    "sort": {
+      "name": "Name",
+      "status": "Status",
+      "created": "Created",
+      "version": "Version",
+      "asc": "Ascending",
+      "desc": "Descending"
+    },
     "filters": {
       "title": "Filters",
+      "toggle": "Filters",
+      "totalCount": "{count} servers",
+      "filteredCount": "{filtered} of {total} servers",
+      "search": "Search",
+      "searchPlaceholder": "Search by server name...",
+      "type": "Server Type",
+      "status": "Server Status",
+      "version": "Minecraft Version",
+      "sortBy": "Sort By",
+      "sortOrder": "Sort Order",
+      "reset": "Reset Filters",
+      "allTypes": "All Types",
+      "allStatuses": "All Statuses",
+      "allVersions": "All Versions",
       "noMatchingServers": "No servers match the current filters.",
       "closeFilters": "Close filters",
       "type": {
@@ -234,6 +279,8 @@
       "unknown": "Unknown"
     },
     "actions": {
+      "create": "Create Server",
+      "import": "Import Server",
       "start": "Start Server",
       "stop": "Stop Server",
       "restart": "Restart Server",
