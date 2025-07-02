@@ -44,6 +44,8 @@ const mockT = vi.fn((key: string) => {
     "account.passwordUpdatedSuccessfully": "Password updated successfully",
     "account.newPasswordsDoNotMatch": "New passwords do not match",
     "common.saving": "Saving...",
+    "errors.generic": "An error occurred",
+    "errors.conflict": "Username already exists",
   };
   return translations[key] || key;
 });
@@ -198,7 +200,7 @@ describe("AccountSettings", () => {
 
   it("shows error when profile update fails", async () => {
     mockUpdateUserInfo.mockResolvedValue(
-      err({ message: "Username already exists" })
+      err({ message: "Username already exists", status: 409 })
     );
 
     render(

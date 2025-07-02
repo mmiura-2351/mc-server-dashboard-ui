@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import { LanguageSwitcher } from "@/components/language/language-switcher";
+import { translateError } from "@/utils/error-translation";
 import type { UserUpdate, PasswordUpdate, UserDelete } from "@/types/auth";
 import styles from "./account-settings.module.css";
 
@@ -76,7 +77,7 @@ export function AccountSettings() {
         text: t("account.profileUpdatedSuccessfully"),
       });
     } else {
-      setMessage({ type: "error", text: result.error.message });
+      setMessage({ type: "error", text: translateError(result.error, t) });
     }
     setIsLoading(false);
   };
@@ -100,7 +101,7 @@ export function AccountSettings() {
       setPasswordForm({ current_password: "", new_password: "" });
       setConfirmPassword("");
     } else {
-      setMessage({ type: "error", text: result.error.message });
+      setMessage({ type: "error", text: translateError(result.error, t) });
     }
     setIsLoading(false);
   };

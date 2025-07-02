@@ -49,6 +49,9 @@ const translations: Record<string, string> = {
   "auth.errors.tooManyAttempts":
     "Too many login attempts. Please try again later.",
   "auth.errors.loginFailed": "Login failed. Please try again.",
+  "errors.invalidCredentials": "Invalid username or password",
+  "errors.pendingApproval": "Your account is pending approval",
+  "errors.generic": "An error occurred",
 };
 
 const mockT = vi.fn((key: string) => translations[key] || key);

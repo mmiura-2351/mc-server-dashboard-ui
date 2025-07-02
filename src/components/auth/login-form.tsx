@@ -7,6 +7,7 @@ import { useTranslation } from "@/contexts/language";
 import type { LoginRequest } from "@/types/auth";
 import { InputSanitizer } from "@/utils/input-sanitizer";
 import { LanguageDropdown } from "@/components/language/language-dropdown";
+import { translateError } from "@/utils/error-translation";
 import styles from "./auth-form.module.css";
 
 interface LoginFormProps {
@@ -64,19 +65,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     setIsLoading(false);
 
     if (result.isErr()) {
-      // Handle specific error cases
-      if (
-        result.error.status === 403 &&
-        result.error.message.includes("pending approval")
-      ) {
-        setError(t("auth.errors.pendingApproval"));
-      } else if (result.error.status === 401) {
-        setError(t("auth.errors.invalidCredentials"));
-      } else if (result.error.status === 429) {
-        setError(t("auth.errors.tooManyAttempts"));
-      } else {
-        setError(t("auth.errors.loginFailed"));
-      }
+      setError(translateError(result.error, t, { context: "auth" }));
       return;
     }
 

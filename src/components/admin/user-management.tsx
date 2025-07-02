@@ -8,6 +8,7 @@ import * as authService from "@/services/auth";
 import type { User, Role, RoleUpdate } from "@/types/auth";
 import { Role as RoleEnum } from "@/types/auth";
 import { AuthStorage } from "@/utils/secure-storage";
+import { translateError } from "@/utils/error-translation";
 import styles from "./user-management.module.css";
 
 export function UserManagement() {
@@ -44,11 +45,7 @@ export function UserManagement() {
     if (result.isOk()) {
       setUsers(result.value);
     } else {
-      const errorMessage =
-        typeof result.error.message === "string"
-          ? result.error.message
-          : t("userManagement.errors.loadingUsers");
-      setMessage({ type: "error", text: errorMessage });
+      setMessage({ type: "error", text: translateError(result.error, t) });
     }
     setIsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,11 +69,7 @@ export function UserManagement() {
       });
       loadUsers();
     } else {
-      const errorMessage =
-        typeof result.error.message === "string"
-          ? result.error.message
-          : t("userManagement.errors.approvingUser");
-      setMessage({ type: "error", text: errorMessage });
+      setMessage({ type: "error", text: translateError(result.error, t) });
     }
   };
 
@@ -95,11 +88,7 @@ export function UserManagement() {
       });
       loadUsers();
     } else {
-      const errorMessage =
-        typeof result.error.message === "string"
-          ? result.error.message
-          : t("userManagement.errors.updatingUserRole");
-      setMessage({ type: "error", text: errorMessage });
+      setMessage({ type: "error", text: translateError(result.error, t) });
     }
   };
 
@@ -116,11 +105,7 @@ export function UserManagement() {
         });
         loadUsers();
       } else {
-        const errorMessage =
-          typeof result.error.message === "string"
-            ? result.error.message
-            : t("userManagement.errors.deletingUser");
-        setMessage({ type: "error", text: errorMessage });
+        setMessage({ type: "error", text: translateError(result.error, t) });
       }
 
       setConfirmModal({
