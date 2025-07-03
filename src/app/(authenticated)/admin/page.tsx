@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
-import { UserManagement } from "@/components/admin/user-management";
+import { LazyAdminPanel } from "@/components/admin/LazyAdminPanel";
 import { Role } from "@/types/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -39,5 +39,5 @@ export default function AdminPage() {
     return null; // Will redirect
   }
 
-  return <UserManagement />;
+  return <LazyAdminPanel />;
 }
