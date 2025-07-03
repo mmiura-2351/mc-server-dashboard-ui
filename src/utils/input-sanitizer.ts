@@ -270,15 +270,3 @@ export class InputSanitizer {
       .replace(/on\w+\s*=/gi, "");
   }
 }
-
-/**
- * Common sanitization rules for form fields
- */
-export const sanitizationRules = {
-  username: InputSanitizer.sanitizeUsername,
-  email: InputSanitizer.sanitizeEmail,
-  serverName: InputSanitizer.sanitizeServerName,
-  text: InputSanitizer.sanitizeText,
-  html: InputSanitizer.sanitizeHTML,
-  filePath: InputSanitizer.sanitizeFilePath,
-};
