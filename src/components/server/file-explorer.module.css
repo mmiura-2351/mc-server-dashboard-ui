@@ -50,6 +50,11 @@
   background: #1565c0;
 }
 
+.retryButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -98,6 +103,11 @@
   background: none;
 }
 
+.breadcrumbItem:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .breadcrumbSeparator {
   margin: 0 4px;
   color: #666;
@@ -137,6 +147,11 @@
 
 .actionButton:hover:not(:disabled) {
   background: #f0f0f0;
+}
+
+.actionButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .actionButton:disabled {
@@ -242,6 +257,12 @@
 }
 
 .fileItem.clickable:hover {
+  background: #f9f9f9;
+}
+
+.fileItem:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
   background: #f9f9f9;
 }
 

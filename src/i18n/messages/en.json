@@ -206,6 +206,12 @@
       "asc": "Ascending",
       "desc": "Descending"
     },
+    "sorting": {
+      "clickToSort": "Click to sort",
+      "sortedBy": "Sorted by {order}",
+      "asc": "ascending",
+      "desc": "descending"
+    },
     "filters": {
       "title": "Filters",
       "toggle": "Filters",
@@ -259,7 +265,8 @@
       "filterBy": "Filter",
       "sortBy": "Sort",
       "reset": "Reset Filters",
-      "resultsCount": "Showing {count} of {total} servers"
+      "resultsCount": "Showing {count} of {total} servers",
+      "filtersActive": "filters active"
     },
     "serverNotFound": "Server not found",
     "backToDashboard": "← Back to Dashboard",

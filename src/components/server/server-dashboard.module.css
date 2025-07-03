@@ -50,9 +50,8 @@
 }
 
 .filterToggleButton:focus {
-  outline: none;
-  border-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .activeIndicator {
@@ -123,6 +122,11 @@
 .closeFiltersButton:hover {
   background-color: #f3f4f6;
   color: #374151;
+}
+
+.closeFiltersButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .searchSection {
@@ -563,6 +567,12 @@
 }
 
 .sortableHeader:hover {
+  background-color: #f3f4f6;
+}
+
+.sortableHeader:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
   background-color: #f3f4f6;
 }
 
