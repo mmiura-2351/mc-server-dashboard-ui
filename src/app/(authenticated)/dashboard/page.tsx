@@ -1,5 +1,5 @@
-import { ServerDashboard } from "@/components/server/server-dashboard";
+import { LazyServerDashboard } from "@/components/server/LazyServerDashboard";
 
 export default function DashboardPage() {
-  return <ServerDashboard />;
+  return <LazyServerDashboard />;
 }
