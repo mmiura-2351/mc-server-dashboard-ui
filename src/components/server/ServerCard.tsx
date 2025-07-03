@@ -102,13 +102,25 @@ export const ServerCard = React.memo<ServerCardProps>(function ServerCard({
     server.status === ServerStatus.STARTING ||
     server.status === ServerStatus.STOPPING;
 
+  const serverCardLabel = `Server ${server.name} - ${getStatusText(server.status)}`;
+  const statusId = `server-${server.id}-status`;
+
   return (
-    <div key={server.id} className={styles.serverCard}>
+    <div
+      key={server.id}
+      className={styles.serverCard}
+      role="article"
+      aria-label={serverCardLabel}
+    >
       <div className={styles.serverCardHeader}>
         <div className={styles.serverCardName}>
           <strong>{server.name}</strong>
         </div>
-        <div className={styles.serverCardStatus}>
+        <div
+          className={styles.serverCardStatus}
+          id={statusId}
+          aria-live="polite"
+        >
           <span className={styles.statusIcon}>
             {getStatusIcon(server.status)}
           </span>
@@ -139,6 +151,8 @@ export const ServerCard = React.memo<ServerCardProps>(function ServerCard({
             onClick={() => onStart(server.id)}
             className={`${styles.actionButton} ${styles.start}`}
             disabled={isTransitioning}
+            aria-label={`${t("servers.start")} server ${server.name}`}
+            aria-describedby={statusId}
           >
             {t("servers.start")}
           </button>
@@ -148,6 +162,8 @@ export const ServerCard = React.memo<ServerCardProps>(function ServerCard({
             onClick={() => onStop(server.id)}
             className={`${styles.actionButton} ${styles.stop}`}
             disabled={isTransitioning}
+            aria-label={`${t("servers.stop")} server ${server.name}`}
+            aria-describedby={statusId}
           >
             {t("servers.stop")}
           </button>
@@ -157,6 +173,8 @@ export const ServerCard = React.memo<ServerCardProps>(function ServerCard({
             onClick={() => onRestart(server.id)}
             className={`${styles.actionButton} ${styles.restart}`}
             disabled={isTransitioning}
+            aria-label={`${t("servers.restart")} server ${server.name}`}
+            aria-describedby={statusId}
           >
             {t("servers.restart")}
           </button>
@@ -164,12 +182,14 @@ export const ServerCard = React.memo<ServerCardProps>(function ServerCard({
         <button
           onClick={() => onManage(server.id)}
           className={`${styles.actionButton} ${styles.manage}`}
+          aria-label={`${t("servers.manage")} server ${server.name}`}
         >
           {t("servers.manage")}
         </button>
         <button
           onClick={() => onDelete(server.id)}
           className={`${styles.actionButton} ${styles.delete}`}
+          aria-label={`${t("servers.delete")} server ${server.name}`}
         >
           {t("servers.delete")}
         </button>

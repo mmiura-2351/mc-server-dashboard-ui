@@ -307,5 +307,86 @@ describe("ServerCard", () => {
       // Should still be functional with keyboard
       expect(manageButton).toBeInTheDocument();
     });
+
+    it("should have proper ARIA labels for action buttons", () => {
+      const runningServer = { ...mockServer, status: ServerStatus.RUNNING };
+      render(<ServerCard {...mockProps} server={runningServer} />);
+
+      const stopButton = screen.getByText("Stop");
+      expect(stopButton).toHaveAttribute(
+        "aria-label",
+        "Stop server Test Server"
+      );
+
+      const restartButton = screen.getByText("Restart");
+      expect(restartButton).toHaveAttribute(
+        "aria-label",
+        "Restart server Test Server"
+      );
+
+      const manageButton = screen.getByText("Manage");
+      expect(manageButton).toHaveAttribute(
+        "aria-label",
+        "Manage server Test Server"
+      );
+
+      const deleteButton = screen.getByText("Delete");
+      expect(deleteButton).toHaveAttribute(
+        "aria-label",
+        "Delete server Test Server"
+      );
+    });
+
+    it("should have proper ARIA labels for different server states", () => {
+      const stoppedServer = { ...mockServer, status: ServerStatus.STOPPED };
+      render(<ServerCard {...mockProps} server={stoppedServer} />);
+
+      const startButton = screen.getByText("Start");
+      expect(startButton).toHaveAttribute(
+        "aria-label",
+        "Start server Test Server"
+      );
+    });
+
+    it("should have server card with proper role and aria-label", () => {
+      render(<ServerCard {...mockProps} />);
+
+      const serverCard = screen.getByRole("article");
+      expect(serverCard).toHaveAttribute(
+        "aria-label",
+        "Server Test Server - Running"
+      );
+    });
+
+    it("should have status with aria-live for dynamic updates", () => {
+      render(<ServerCard {...mockProps} />);
+
+      const statusElement = screen.getByText("Running");
+      expect(statusElement.closest("[aria-live]")).toHaveAttribute(
+        "aria-live",
+        "polite"
+      );
+    });
+
+    it("should have proper aria-describedby for button states", () => {
+      const runningServer = { ...mockServer, status: ServerStatus.RUNNING };
+      render(<ServerCard {...mockProps} server={runningServer} />);
+
+      const stopButton = screen.getByText("Stop");
+      expect(stopButton).toHaveAttribute(
+        "aria-describedby",
+        expect.stringContaining("status")
+      );
+    });
+
+    it("should indicate disabled state properly", () => {
+      const startingServer = { ...mockServer, status: ServerStatus.STARTING };
+      render(<ServerCard {...mockProps} server={startingServer} />);
+
+      // Manage and Delete buttons should still be enabled during transitional states
+      const manageButton = screen.getByText("Manage");
+      expect(manageButton).not.toHaveAttribute("disabled");
+      expect(manageButton).not.toHaveAttribute("aria-disabled", "true");
+    });
   });
 });
