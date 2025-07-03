@@ -25,6 +25,7 @@
     "creating": "Creating...",
     "add": "Add",
     "adding": "Adding...",
+    "close": "Close",
     "true": "true",
     "false": "false"
   },
@@ -743,6 +744,8 @@
     "file": "File",
     "newNameFor": "New name for",
     "renaming": "✏️ Renaming...",
+    "renameInstructions": "Enter a new name and press Enter to confirm, or Escape to cancel",
+    "uploadInstructions": "File upload progress and status information",
     "itemsSelected": "item(s) selected",
     "downloadAsZip": "📥 Download as ZIP",
     "deleteSelected": "🗑️ Delete Selected",

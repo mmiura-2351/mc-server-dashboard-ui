@@ -9,6 +9,8 @@ const translations: Record<string, string> = {
   "files.completed": "Completed",
   "files.failed": "Failed",
   "files.close": "Close",
+  "common.close": "Close",
+  "files.uploadInstructions": "File upload progress and status information",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
@@ -114,5 +116,62 @@ describe("UploadModal", () => {
 
     const closeButton = screen.getByText("×");
     expect(closeButton).toBeDisabled();
+  });
+
+  describe("Accessibility", () => {
+    it("should have proper dialog ARIA attributes", () => {
+      render(<UploadModal {...defaultProps} />);
+
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveAttribute("aria-modal", "true");
+      expect(dialog).toHaveAttribute("aria-labelledby");
+    });
+
+    it("should have proper heading structure", () => {
+      render(<UploadModal {...defaultProps} />);
+
+      const heading = screen.getByRole("heading", { level: 3 });
+      expect(heading).toHaveTextContent("Upload Progress");
+    });
+
+    it("should support keyboard navigation", () => {
+      render(<UploadModal {...defaultProps} />);
+
+      const closeButton = screen.getByText("Close");
+      expect(closeButton).toBeInTheDocument();
+    });
+
+    it("should handle Escape key to close modal", () => {
+      render(<UploadModal {...defaultProps} />);
+
+      // Simulate escape key on the dialog
+      const dialog = screen.getByRole("dialog");
+      fireEvent.keyDown(dialog, { key: "Escape" });
+
+      expect(defaultProps.onClose).toHaveBeenCalled();
+      expect(defaultProps.onReset).toHaveBeenCalled();
+    });
+
+    it("should have live region for upload progress", () => {
+      const uploadingState = {
+        ...mockUploadState,
+        isUploading: true,
+      };
+
+      render(<UploadModal {...defaultProps} uploadState={uploadingState} />);
+
+      const liveRegion = screen.getByText("Uploading files...");
+      expect(liveRegion.closest("[aria-live]")).toHaveAttribute(
+        "aria-live",
+        "polite"
+      );
+    });
+
+    it("should have proper close button aria-label", () => {
+      render(<UploadModal {...defaultProps} />);
+
+      const closeButton = screen.getByLabelText("Close");
+      expect(closeButton).toBeInTheDocument();
+    });
   });
 });

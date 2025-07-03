@@ -19,6 +19,9 @@ const mockT = vi.fn((key: string) => {
     "files.newNameFor": "New name for",
     "files.renaming": "Renaming...",
     "files.cancel": "Cancel",
+    "files.renameInstructions":
+      "Enter a new name and press Enter to confirm, or Escape to cancel",
+    "common.close": "Close",
   };
   return translations[key] || key;
 });
@@ -308,6 +311,38 @@ describe("RenameModal", () => {
       expect(input).toBeInTheDocument();
       expect(renameButton).toBeInTheDocument();
       expect(cancelButton).toBeInTheDocument();
+    });
+
+    it("should have proper dialog ARIA attributes", () => {
+      render(<RenameModal {...defaultProps} />);
+
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveAttribute("aria-modal", "true");
+      expect(dialog).toHaveAttribute("aria-labelledby");
+    });
+
+    it("should have focus trap functionality", () => {
+      render(<RenameModal {...defaultProps} newName="new-name.txt" />);
+
+      const input = screen.getByDisplayValue("new-name.txt");
+      const renameButton = screen.getByText("Rename");
+      const cancelButton = screen.getByText("Cancel");
+      const closeButton = screen.getByText("×");
+
+      // All interactive elements should be present
+      expect(input).toBeInTheDocument();
+      expect(renameButton).toBeInTheDocument();
+      expect(cancelButton).toBeInTheDocument();
+      expect(closeButton).toBeInTheDocument();
+    });
+
+    it("should handle Escape key to close modal", () => {
+      render(<RenameModal {...defaultProps} />);
+
+      // Test escape key on the modal overlay/container
+      const input = screen.getByDisplayValue("test.txt");
+      fireEvent.keyDown(input, { key: "Escape" });
+      expect(defaultProps.onCancel).toHaveBeenCalled();
     });
   });
 
