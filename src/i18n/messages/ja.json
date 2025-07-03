@@ -548,6 +548,10 @@
   },
   "files": {
     "loading": "ファイルエクスプローラー読み込み中...",
+    "fileList": "ファイルリスト",
+    "selectAll": "すべて選択",
+    "goUpDirectory": "上位ディレクトリへ移動",
+    "refreshFileList": "ファイルリストを更新",
     "deleteFile": "ファイルを削除",
     "deleteFiles": "ファイルを削除",
     "deleteFileConfirmation": "\"{name}\"を削除してもよろしいですか？この操作は元に戻すことができません。",

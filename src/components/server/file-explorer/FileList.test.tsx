@@ -13,6 +13,10 @@ const translations: Record<string, string> = {
   "files.clear": "Clear",
   "files.up": "Up",
   "files.refresh": "Refresh",
+  "files.fileList": "File List",
+  "files.selectAll": "Select All",
+  "files.goUpDirectory": "Go Up One Directory",
+  "files.refreshFileList": "Refresh File List",
   "files.columns.name": "Name",
   "files.columns.size": "Size",
   "files.columns.modified": "Modified",
@@ -115,5 +119,69 @@ describe("FileList", () => {
 
     expect(screen.getByText("1 selected")).toBeInTheDocument();
     expect(screen.getByText("Clear")).toBeInTheDocument();
+  });
+
+  // Accessibility tests
+  describe("Accessibility", () => {
+    it("has proper table structure with roles", () => {
+      render(<FileList {...defaultProps} />);
+
+      const table = screen.getByRole("table");
+      expect(table).toBeInTheDocument();
+
+      const columnHeaders = screen.getAllByRole("columnheader");
+      expect(columnHeaders).toHaveLength(4); // checkbox, name, size, modified
+
+      const rows = screen.getAllByRole("row");
+      expect(rows.length).toBeGreaterThan(0);
+    });
+
+    it("has proper ARIA labels for file items", () => {
+      render(<FileList {...defaultProps} />);
+
+      const fileRow = screen.getByRole("row", { name: /test-file\.txt/i });
+      expect(fileRow).toHaveAttribute("aria-label", "File: test-file.txt");
+
+      const folderRow = screen.getByRole("row", { name: /test-folder/i });
+      expect(folderRow).toHaveAttribute("aria-label", "Directory: test-folder");
+    });
+
+    it("supports keyboard navigation on file items", () => {
+      render(<FileList {...defaultProps} />);
+
+      const fileRows = screen.getAllByRole("row");
+      const firstFileRow = fileRows[1]; // Skip header row
+
+      // Should be focusable
+      expect(firstFileRow).toHaveAttribute("tabindex", "0");
+
+      // Should handle keyboard events
+      if (firstFileRow) {
+        fireEvent.keyDown(firstFileRow, { key: "Enter" });
+        expect(defaultProps.onFileClick).toHaveBeenCalled();
+      }
+    });
+
+    it("has proper aria-describedby for error states", () => {
+      render(<FileList {...defaultProps} error="Test error" />);
+
+      const errorElement = screen.getByText("Test error");
+      expect(errorElement).toHaveAttribute("role", "alert");
+      expect(errorElement).toHaveAttribute("aria-live", "polite");
+    });
+
+    it("has proper aria-labels for toolbar buttons", () => {
+      render(<FileList {...defaultProps} />);
+
+      const refreshButton = screen.getByRole("button", {
+        name: "Refresh File List",
+      });
+      expect(refreshButton).toHaveAttribute("aria-label", "Refresh File List");
+
+      const upButton = screen.getByRole("button", {
+        name: "Go Up One Directory",
+      });
+      expect(upButton).toHaveAttribute("aria-label", "Go Up One Directory");
+    });
   });
 });

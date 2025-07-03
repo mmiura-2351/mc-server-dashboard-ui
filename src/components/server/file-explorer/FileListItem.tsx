@@ -93,6 +93,13 @@ export const FileListItem = React.memo<FileListItemProps>(
       }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onFileClick(file);
+      }
+    };
+
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       e.stopPropagation();
       onFileSelect(file.name);
@@ -102,6 +109,9 @@ export const FileListItem = React.memo<FileListItemProps>(
       e.stopPropagation();
     };
 
+    const fileType = file.is_directory ? "Directory" : "File";
+    const ariaLabel = `${fileType}: ${file.name}`;
+
     return (
       <div
         role="row"
@@ -110,24 +120,28 @@ export const FileListItem = React.memo<FileListItemProps>(
         } ${styles.clickable} ${isSelected ? styles.selected : ""}`}
         onClick={handleClick}
         onContextMenu={(e) => onContextMenu(e, file)}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        aria-label={ariaLabel}
         style={{ cursor: "pointer" }}
       >
-        <div className={styles.columnCheckbox}>
+        <div className={styles.columnCheckbox} role="cell">
           <input
             type="checkbox"
             checked={isSelected}
             onChange={handleCheckboxChange}
             onClick={handleCheckboxClick}
+            aria-label={`Select ${file.name}`}
           />
         </div>
-        <div className={styles.fileName}>
+        <div className={styles.fileName} role="cell">
           <span className={styles.fileIcon}>{getFileIcon(file)}</span>
           <span className={styles.fileNameText}>{file.name}</span>
         </div>
-        <div className={styles.fileSize}>
+        <div className={styles.fileSize} role="cell">
           {!file.is_directory ? formatFileSize(file.size || 0) : "—"}
         </div>
-        <div className={styles.fileDate}>
+        <div className={styles.fileDate} role="cell">
           {file.modified && file.modified.trim()
             ? formatDateTime(file.modified)
             : "—"}
