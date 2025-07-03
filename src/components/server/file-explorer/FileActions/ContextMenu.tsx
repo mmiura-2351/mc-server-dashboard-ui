@@ -84,9 +84,39 @@ export function ContextMenu({
     selectedFiles.size > 1 ||
     (selectedFiles.size > 0 && selectedFiles.has(contextMenu.file.name));
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+  };
+
+  const handleMenuItemKeyDown = (
+    e: React.KeyboardEvent,
+    action: () => void
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      action();
+      onClose();
+    }
+  };
+
+  const getMenuAriaLabel = () => {
+    if (showBulkActions) {
+      return `Bulk actions menu - ${selectedFiles.size} items selected`;
+    }
+    if (contextMenu.file?.is_directory) {
+      return "Directory actions menu";
+    }
+    return "File actions menu";
+  };
+
   return (
     <div
       className={styles.contextMenu}
+      role="menu"
+      aria-label={getMenuAriaLabel()}
+      onKeyDown={handleKeyDown}
       style={{
         position: "fixed",
         top: contextMenu.position.y,
@@ -101,20 +131,26 @@ export function ContextMenu({
           </div>
           <button
             className={styles.contextMenuItem}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => {
               onClose();
               onBulkDownload();
             }}
+            onKeyDown={(e) => handleMenuItemKeyDown(e, onBulkDownload)}
           >
             {t("files.downloadAsZip")} ({selectedFiles.size})
           </button>
           <hr className={styles.contextMenuSeparator} />
           <button
             className={`${styles.contextMenuItem} ${styles.danger}`}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => {
               onClose();
               onBulkDelete();
             }}
+            onKeyDown={(e) => handleMenuItemKeyDown(e, onBulkDelete)}
           >
             {t("files.deleteSelected")} ({selectedFiles.size})
           </button>
@@ -123,26 +159,48 @@ export function ContextMenu({
         <>
           <button
             className={styles.contextMenuItem}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onOpenFolder(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () => onOpenFolder(contextMenu.file!))
+            }
           >
             {t("files.openFolder")}
           </button>
           <button
             className={styles.contextMenuItem}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onDownloadFolderAsZip(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () =>
+                onDownloadFolderAsZip(contextMenu.file!)
+              )
+            }
           >
             {t("files.downloadAsZip")}
           </button>
           <button
             className={styles.contextMenuItem}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onRenameFile(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () => onRenameFile(contextMenu.file!))
+            }
           >
             {t("files.renameFolder")}
           </button>
           <hr className={styles.contextMenuSeparator} />
           <button
             className={`${styles.contextMenuItem} ${styles.danger}`}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onDeleteFile(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () => onDeleteFile(contextMenu.file!))
+            }
           >
             {t("files.deleteFolder")}
           </button>
@@ -152,27 +210,47 @@ export function ContextMenu({
           {isFileViewable(contextMenu.file.name) && (
             <button
               className={styles.contextMenuItem}
+              role="menuitem"
+              tabIndex={-1}
               onClick={() => onViewFile(contextMenu.file!)}
+              onKeyDown={(e) =>
+                handleMenuItemKeyDown(e, () => onViewFile(contextMenu.file!))
+              }
             >
               {t("files.viewFile")}
             </button>
           )}
           <button
             className={styles.contextMenuItem}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onDownloadFile(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () => onDownloadFile(contextMenu.file!))
+            }
           >
             {t("files.download")}
           </button>
           <button
             className={styles.contextMenuItem}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onRenameFile(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () => onRenameFile(contextMenu.file!))
+            }
           >
             {t("files.renameFile")}
           </button>
           <hr className={styles.contextMenuSeparator} />
           <button
             className={`${styles.contextMenuItem} ${styles.danger}`}
+            role="menuitem"
+            tabIndex={-1}
             onClick={() => onDeleteFile(contextMenu.file!)}
+            onKeyDown={(e) =>
+              handleMenuItemKeyDown(e, () => onDeleteFile(contextMenu.file!))
+            }
           >
             {t("common.delete")}
           </button>

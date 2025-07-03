@@ -457,4 +457,112 @@ describe("ContextMenu", () => {
       expect(separators).toHaveLength(1);
     });
   });
+
+  describe("Accessibility", () => {
+    it("should have proper menu ARIA attributes", () => {
+      render(
+        <ContextMenu
+          contextMenu={defaultContextMenu}
+          selectedFiles={new Set()}
+          {...mockHandlers}
+        />
+      );
+
+      const menu = screen.getByRole("menu");
+      expect(menu).toHaveAttribute("aria-label", "File actions menu");
+    });
+
+    it("should have proper menuitem roles", () => {
+      render(
+        <ContextMenu
+          contextMenu={defaultContextMenu}
+          selectedFiles={new Set()}
+          {...mockHandlers}
+        />
+      );
+
+      const menuItems = screen.getAllByRole("menuitem");
+      expect(menuItems.length).toBeGreaterThan(0);
+
+      menuItems.forEach((item) => {
+        expect(item).toHaveAttribute("tabindex", "-1");
+      });
+    });
+
+    it("should support keyboard navigation", () => {
+      render(
+        <ContextMenu
+          contextMenu={defaultContextMenu}
+          selectedFiles={new Set()}
+          {...mockHandlers}
+        />
+      );
+
+      const firstMenuItem = screen.getByRole("menuitem", {
+        name: /view file/i,
+      });
+
+      // Should handle Enter key
+      fireEvent.keyDown(firstMenuItem, { key: "Enter" });
+      expect(mockHandlers.onViewFile).toHaveBeenCalledWith(mockFile);
+    });
+
+    it("should handle Escape key to close menu", () => {
+      render(
+        <ContextMenu
+          contextMenu={defaultContextMenu}
+          selectedFiles={new Set()}
+          {...mockHandlers}
+        />
+      );
+
+      const menu = screen.getByRole("menu");
+      fireEvent.keyDown(menu, { key: "Escape" });
+      expect(mockHandlers.onClose).toHaveBeenCalled();
+    });
+
+    it("should have proper aria-label for bulk operations", () => {
+      const selectedFiles = new Set(["file1.txt", "file2.txt"]);
+
+      render(
+        <ContextMenu
+          contextMenu={defaultContextMenu}
+          selectedFiles={selectedFiles}
+          {...mockHandlers}
+        />
+      );
+
+      const menu = screen.getByRole("menu");
+      expect(menu).toHaveAttribute(
+        "aria-label",
+        "Bulk actions menu - 2 items selected"
+      );
+    });
+
+    it("should have proper aria-label for single file operations", () => {
+      render(
+        <ContextMenu
+          contextMenu={defaultContextMenu}
+          selectedFiles={new Set()}
+          {...mockHandlers}
+        />
+      );
+
+      const menu = screen.getByRole("menu");
+      expect(menu).toHaveAttribute("aria-label", "File actions menu");
+    });
+
+    it("should have proper aria-label for directory operations", () => {
+      render(
+        <ContextMenu
+          contextMenu={{ ...defaultContextMenu, file: mockFolder }}
+          selectedFiles={new Set()}
+          {...mockHandlers}
+        />
+      );
+
+      const menu = screen.getByRole("menu");
+      expect(menu).toHaveAttribute("aria-label", "Directory actions menu");
+    });
+  });
 });
