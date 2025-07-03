@@ -617,5 +617,182 @@ describe("useFileOperations", () => {
         mockProgressCallback
       );
     });
+
+    it("should handle bulk download error scenarios", async () => {
+      const errorMessage = "Network connection failed";
+      mockDownloadAsZip.mockResolvedValue(err({ message: errorMessage }));
+
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+      const mockProgressCallback = vi.fn();
+
+      // Select files
+      act(() => {
+        result.current.toggleFileSelection("file1.txt");
+        result.current.toggleFileSelection("file2.txt");
+      });
+
+      const downloadResult = await act(async () => {
+        return await result.current.downloadBulkFiles(
+          mockFiles,
+          "/test",
+          mockProgressCallback
+        );
+      });
+
+      expect(downloadResult.isErr()).toBe(true);
+      if (downloadResult.isErr()) {
+        expect(downloadResult.error).toBe(errorMessage);
+      }
+    });
+
+    it("should handle empty file selection for bulk download", async () => {
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+      const mockProgressCallback = vi.fn();
+
+      const downloadResult = await act(async () => {
+        return await result.current.downloadBulkFiles(
+          [],
+          "/test",
+          mockProgressCallback
+        );
+      });
+
+      expect(downloadResult.isErr()).toBe(true);
+      if (downloadResult.isErr()) {
+        expect(downloadResult.error).toContain("No files selected");
+      }
+    });
+  });
+
+  // Note: DOM manipulation tests are skipped due to testing environment limitations
+  // The download functionality is already tested through the integration tests
+  // where the downloadFile method is called and verified to return correct results
+
+  describe("Bulk Delete Operations", () => {
+    it("should handle bulk delete with mixed success/failure results", async () => {
+      // Mock deleteFile to succeed for file1 and fail for file2
+      mockDeleteFile
+        .mockResolvedValueOnce(ok(undefined)) // file1.txt succeeds
+        .mockResolvedValueOnce(err({ message: "Permission denied" })); // file2.txt fails
+
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+
+      // Select files for deletion
+      act(() => {
+        result.current.toggleFileSelection("file1.txt");
+        result.current.toggleFileSelection("file2.txt");
+      });
+
+      const deleteResult = await act(async () => {
+        return await result.current.deleteBulkFiles(mockFiles, "/test");
+      });
+
+      expect(deleteResult.isOk()).toBe(true);
+      if (deleteResult.isOk()) {
+        expect(deleteResult.value.successCount).toBe(1);
+        expect(deleteResult.value.failCount).toBe(1);
+        expect(deleteResult.value.deletedFileNames).toContain("file1.txt");
+        expect(deleteResult.value.deletedFileNames).not.toContain("file2.txt");
+      }
+    });
+
+    it("should handle bulk delete with all failures", async () => {
+      // Mock deleteFile to fail for all files
+      mockDeleteFile.mockResolvedValue(err({ message: "Permission denied" }));
+
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+
+      // Select files for deletion
+      act(() => {
+        result.current.toggleFileSelection("file1.txt");
+        result.current.toggleFileSelection("file2.txt");
+      });
+
+      const deleteResult = await act(async () => {
+        return await result.current.deleteBulkFiles(mockFiles, "/test");
+      });
+
+      expect(deleteResult.isOk()).toBe(true);
+      if (deleteResult.isOk()) {
+        expect(deleteResult.value.successCount).toBe(0);
+        expect(deleteResult.value.failCount).toBe(2);
+        expect(deleteResult.value.deletedFileNames).toHaveLength(0);
+      }
+    });
+
+    it("should handle empty selection for bulk delete", async () => {
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+
+      const deleteResult = await act(async () => {
+        return await result.current.deleteBulkFiles(mockFiles, "/test");
+      });
+
+      expect(deleteResult.isOk()).toBe(true);
+      if (deleteResult.isOk()) {
+        expect(deleteResult.value.successCount).toBe(0);
+        expect(deleteResult.value.failCount).toBe(0);
+        expect(deleteResult.value.deletedFileNames).toHaveLength(0);
+      }
+    });
+  });
+
+  describe("Edge Cases and Validation", () => {
+    it("should handle rename with empty new name", async () => {
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+      const testFile = mockFiles[0]!; // Assert non-null
+
+      // Start rename
+      act(() => {
+        result.current.startRename(testFile);
+        result.current.setNewName("");
+      });
+
+      const renameResult = await act(async () => {
+        return await result.current.confirmRename("/test");
+      });
+
+      expect(renameResult.isErr()).toBe(true);
+      if (renameResult.isErr()) {
+        expect(renameResult.error).toBe("Invalid rename parameters");
+      }
+    });
+
+    it("should handle rename with same name", async () => {
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+      const testFile = mockFiles[0]!; // Assert non-null
+
+      // Start rename with same name
+      act(() => {
+        result.current.startRename(testFile);
+        result.current.setNewName(testFile.name);
+      });
+
+      const renameResult = await act(async () => {
+        return await result.current.confirmRename("/test");
+      });
+
+      expect(renameResult.isErr()).toBe(true);
+      if (renameResult.isErr()) {
+        expect(renameResult.error).toBe("Invalid rename parameters");
+      }
+    });
+
+    it("should handle rename when no file is selected", async () => {
+      const { result } = renderHook(() => useFileOperations(mockServerId));
+
+      // Try to rename without selecting a file
+      act(() => {
+        result.current.setNewName("newname.txt");
+      });
+
+      const renameResult = await act(async () => {
+        return await result.current.confirmRename("/test");
+      });
+
+      expect(renameResult.isErr()).toBe(true);
+      if (renameResult.isErr()) {
+        expect(renameResult.error).toBe("Invalid rename parameters");
+      }
+    });
   });
 });
