@@ -234,4 +234,21 @@ export class AuthStorage {
     const refreshSuccess = this.setRefreshToken(refreshToken);
     return accessSuccess && refreshSuccess;
   }
+
+  /**
+   * Get and parse JSON from localStorage with validation for any key
+   */
+  static getJSON<T>(
+    key: string,
+    validator?: (value: unknown) => value is T
+  ): T | null {
+    return SecureStorage.getJSON(key, validator);
+  }
+
+  /**
+   * Set JSON data in localStorage for any key
+   */
+  static setJSON<T>(key: string, value: T): boolean {
+    return SecureStorage.setJSON(key, value);
+  }
 }
