@@ -811,11 +811,12 @@ export function ServerDashboard() {
       )}
 
       {error && (
-        <div className={styles.error}>
+        <div className={styles.error} role="alert" aria-live="polite">
           {error}
           <button
             onClick={() => setError(null)}
             className={styles.dismissButton}
+            aria-label={t("common.dismiss")}
           >
             ×
           </button>

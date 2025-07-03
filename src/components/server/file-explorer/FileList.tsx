@@ -112,14 +112,26 @@ export function FileList({
   }
 
   if (error) {
+    const errorId = "file-list-error";
+    const errorTitleId = "file-list-error-title";
+
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <h3>{t("files.errorLoadingFiles")}</h3>
-          <p role="alert" aria-live="polite">
+          <h3 id={errorTitleId}>{t("files.errorLoadingFiles")}</h3>
+          <p
+            id={errorId}
+            role="alert"
+            aria-live="polite"
+            aria-labelledby={errorTitleId}
+          >
             {error}
           </p>
-          <button onClick={onRefresh} className={styles.retryButton}>
+          <button
+            onClick={onRefresh}
+            className={styles.retryButton}
+            aria-describedby={errorId}
+          >
             {t("files.retry")}
           </button>
         </div>

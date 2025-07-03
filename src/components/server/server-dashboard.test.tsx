@@ -107,6 +107,7 @@ const mockTranslations: Record<string, string> = {
   "servers.actions.stop": "Stop Server",
   "servers.actions.details": "View Details",
   "common.cancel": "Cancel",
+  "common.dismiss": "Dismiss",
   "errors.generic": "Failed to load data",
   "errors.failedToLoadData": "Failed to load data",
   "errors.serverError": "Failed to load servers",
@@ -909,7 +910,7 @@ describe("ServerDashboard", () => {
       });
 
       // Error should be dismissible
-      const dismissButton = screen.getByRole("button", { name: "×" });
+      const dismissButton = screen.getByRole("button", { name: "Dismiss" });
       await user.click(dismissButton);
 
       expect(
