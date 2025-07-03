@@ -17,9 +17,6 @@ export interface BlobResponse {
   data: Blob;
 }
 
-// HTTP method types that typically return empty responses
-export type EmptyResponseMethod = "DELETE" | "PUT" | "PATCH";
-
 // HTTP method types that typically return JSON responses
 export type JsonResponseMethod = "GET" | "POST";
 

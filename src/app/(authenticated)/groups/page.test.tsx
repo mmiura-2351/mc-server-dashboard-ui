@@ -132,10 +132,21 @@ vi.mock("@/services/auth", () => ({
   register: vi.fn(),
 }));
 
+// Mock AuthStorage
+vi.mock("@/utils/secure-storage", () => ({
+  AuthStorage: {
+    getAccessToken: vi.fn(() => "mock-token"),
+    getJSON: vi.fn(),
+    setJSON: vi.fn(),
+  },
+}));
+
 import * as authService from "@/services/auth";
 import type { User, Role } from "@/types/auth";
+import { AuthStorage } from "@/utils/secure-storage";
 
 const mockGetAllUsers = vi.mocked(authService.getAllUsers);
+const mockAuthStorage = vi.mocked(AuthStorage);
 
 describe("GroupsPage", () => {
   const mockGroups: Group[] = [
@@ -676,6 +687,89 @@ describe("GroupsPage", () => {
           expect(screen.getByText("Template Group")).toBeInTheDocument();
         });
       }
+    });
+  });
+
+  describe("Filter Storage with AuthStorage", () => {
+    it("should use AuthStorage instead of localStorage for filter persistence", async () => {
+      const testFilters = {
+        searchQuery: "test",
+        selectedOwnerId: 1,
+        playerCountMin: 5,
+        playerCountMax: 10,
+        sortBy: "name",
+        sortOrder: "asc",
+        dateFrom: "2024-01-01",
+        dateTo: "2024-12-31",
+      };
+
+      // Set test filters in AuthStorage
+      mockAuthStorage.getJSON.mockReturnValueOnce(testFilters);
+
+      render(<GroupsPage />);
+
+      // Wait for component to load
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+      });
+
+      // Verify AuthStorage.getJSON was called
+      expect(mockAuthStorage.getJSON).toHaveBeenCalledWith(
+        "groupFilters",
+        expect.any(Function)
+      );
+    });
+
+    it("should save filters to AuthStorage when filters change", async () => {
+      render(<GroupsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+      });
+
+      // Open filters
+      const filterButton = screen.getByRole("button", { name: /Filters/i });
+      fireEvent.click(filterButton);
+
+      // Change search query
+      const searchInput = screen.getByPlaceholderText(
+        "groups.filters.search.placeholder"
+      );
+      fireEvent.change(searchInput, { target: { value: "test search" } });
+
+      // Verify AuthStorage.setJSON was called with updated filters
+      await waitFor(() => {
+        expect(mockAuthStorage.setJSON).toHaveBeenCalledWith(
+          "groupFilters",
+          expect.objectContaining({
+            searchQuery: "test search",
+          })
+        );
+      });
+    });
+
+    it("should handle invalid filter data gracefully", async () => {
+      // Set invalid JSON in storage
+      mockAuthStorage.getJSON.mockReturnValueOnce(null);
+
+      render(<GroupsPage />);
+
+      // Component should render without errors
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+      });
+    });
+
+    it("should NOT use localStorage directly", async () => {
+      render(<GroupsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+      });
+
+      // Verify localStorage methods were NOT called
+      expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+      expect(mockLocalStorage.setItem).not.toHaveBeenCalled();
     });
   });
 });

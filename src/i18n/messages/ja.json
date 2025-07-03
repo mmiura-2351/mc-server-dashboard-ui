@@ -509,6 +509,10 @@
     "failedToLoad": "データの読み込みに失敗しました",
     "failedToLoadData": "データの読み込みに失敗しました",
     "operationFailed": "サーバーの{action}に失敗しました",
+    "timeout": "リクエストタイムアウト",
+    "pendingApproval": "アカウントは承認待ちです",
+    "invalidCredentials": "ユーザー名またはパスワードが無効です",
+    "tooManyAttempts": "ログイン試行回数が多すぎます。しばらく待ってから再試行してください",
     "boundary": {
       "title": "エラーが発生しました",
       "message": "予期しないエラーが発生しました。ページを再読み込みするか、問題が解決しない場合はサポートにお問い合わせください。",

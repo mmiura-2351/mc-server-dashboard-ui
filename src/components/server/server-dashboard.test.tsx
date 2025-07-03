@@ -109,6 +109,8 @@ const mockTranslations: Record<string, string> = {
   "common.cancel": "Cancel",
   "errors.generic": "Failed to load data",
   "errors.failedToLoadData": "Failed to load data",
+  "errors.serverError": "Failed to load servers",
+  "errors.operationFailed": "Failed to {action}",
 };
 
 const mockT = vi.fn((key: string, params?: Record<string, string>) => {
@@ -942,7 +944,7 @@ describe("ServerDashboard", () => {
       await user.click(formSubmitButton!);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to create server")).toBeInTheDocument();
+        expect(screen.getByText("Failed to load servers")).toBeInTheDocument();
       });
 
       // Modal should remain open (check for tab which is only visible when modal is open)

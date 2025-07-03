@@ -7,6 +7,7 @@ import { useTranslation } from "@/contexts/language";
 import * as serverService from "@/services/server";
 import type { MinecraftServer, ServerTemplate } from "@/types/server";
 import { ServerType, ServerStatus } from "@/types/server";
+import { translateError } from "@/utils/error-translation";
 import styles from "./server-dashboard.module.css";
 
 // Fallback versions if API call fails
@@ -250,7 +251,7 @@ export function ServerDashboard() {
             logout();
             return;
           }
-          setError(serversResult.error.message);
+          setError(translateError(serversResult.error, t));
         }
 
         if (templatesResult.isOk()) {
@@ -292,16 +293,11 @@ export function ServerDashboard() {
         setSupportedVersions(result.value);
       } else {
         setSupportedVersions(FALLBACK_VERSIONS);
-        // Check if this is a timeout error for better user feedback
-        if (
-          result.error.status === 408 ||
-          result.error.message.includes("timeout")
-        ) {
-          setVersionError("TIMEOUT_ERROR");
-        } else {
-          // Set a flag for general error message translation later
-          setVersionError("TRANSLATION_NEEDED");
-        }
+        // Translate error message directly
+        const errorMessage = translateError(result.error, t, {
+          context: "version-loading",
+        });
+        setVersionError(errorMessage);
       }
       setIsLoadingVersions(false);
     };
@@ -311,16 +307,7 @@ export function ServerDashboard() {
     return () => {
       isMounted = false;
     };
-  }, []); // Empty dependency array - only run on mount
-
-  // Translate error message when needed
-  useEffect(() => {
-    if (versionError === "TRANSLATION_NEEDED") {
-      setVersionError(t("servers.create.errors.failedToLoadVersions"));
-    } else if (versionError === "TIMEOUT_ERROR") {
-      setVersionError(t("servers.create.errors.versionLoadTimeout"));
-    }
-  }, [versionError, t]);
+  }, [t]); // Include t in dependency array
 
   // Initialize form with first available version when versions are loaded
   useEffect(() => {
@@ -388,7 +375,7 @@ export function ServerDashboard() {
         logout();
         return;
       }
-      setError(result.error.message);
+      setError(translateError(result.error, t));
     }
     setIsCreating(false);
   };
@@ -413,7 +400,7 @@ export function ServerDashboard() {
         logout();
         return;
       }
-      setError(result.error.message);
+      setError(translateError(result.error, t));
     }
     setIsImporting(false);
   };
@@ -516,10 +503,10 @@ export function ServerDashboard() {
           logout();
           return;
         }
-        setError(result.error.message);
+        setError(translateError(result.error, t));
       }
-    } catch {
-      setError(t("errors.operationFailed", { action }));
+    } catch (error) {
+      setError(translateError(error as Error, t, { action }));
     } finally {
       // Remove server from actioning set
       setActioningServers((prev) => {

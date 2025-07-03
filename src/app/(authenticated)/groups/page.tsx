@@ -18,6 +18,57 @@ import { AuthStorage } from "@/utils/secure-storage";
 import { ConfirmationModal } from "@/components/modal";
 import styles from "./groups.module.css";
 
+// Type for group filters
+interface GroupFilters {
+  searchQuery?: string;
+  selectedOwnerId?: number | "all";
+  playerCountMin?: number | "";
+  playerCountMax?: number | "";
+  sortBy?: "name" | "created" | "playerCount";
+  sortOrder?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+// Type guard for group filters
+function isGroupFilters(value: unknown): value is GroupFilters {
+  if (typeof value !== "object" || value === null) return false;
+
+  const obj = value as Record<string, unknown>;
+
+  // Check optional properties have correct types if present
+  if ("searchQuery" in obj && typeof obj.searchQuery !== "string") return false;
+  if (
+    "selectedOwnerId" in obj &&
+    typeof obj.selectedOwnerId !== "number" &&
+    obj.selectedOwnerId !== "all"
+  )
+    return false;
+  if (
+    "playerCountMin" in obj &&
+    typeof obj.playerCountMin !== "number" &&
+    obj.playerCountMin !== ""
+  )
+    return false;
+  if (
+    "playerCountMax" in obj &&
+    typeof obj.playerCountMax !== "number" &&
+    obj.playerCountMax !== ""
+  )
+    return false;
+  if (
+    "sortBy" in obj &&
+    !["name", "created", "playerCount"].includes(obj.sortBy as string)
+  )
+    return false;
+  if ("sortOrder" in obj && !["asc", "desc"].includes(obj.sortOrder as string))
+    return false;
+  if ("dateFrom" in obj && typeof obj.dateFrom !== "string") return false;
+  if ("dateTo" in obj && typeof obj.dateTo !== "string") return false;
+
+  return true;
+}
+
 export default function GroupsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -89,27 +140,25 @@ export default function GroupsPage() {
     loadUsers();
   }, [loadGroups, loadUsers]);
 
-  // Load filter state from localStorage
+  // Load filter state from AuthStorage
   useEffect(() => {
-    const savedFilters = localStorage.getItem("groupFilters");
+    const savedFilters = AuthStorage.getJSON<GroupFilters>(
+      "groupFilters",
+      isGroupFilters
+    );
     if (savedFilters) {
-      try {
-        const filters = JSON.parse(savedFilters);
-        setSearchQuery(filters.searchQuery || "");
-        setSelectedOwnerId(filters.selectedOwnerId || "all");
-        setPlayerCountMin(filters.playerCountMin || "");
-        setPlayerCountMax(filters.playerCountMax || "");
-        setSortBy(filters.sortBy || "created");
-        setSortOrder(filters.sortOrder || "desc");
-        setDateFrom(filters.dateFrom || "");
-        setDateTo(filters.dateTo || "");
-      } catch {
-        // Ignore invalid saved filters
-      }
+      setSearchQuery(savedFilters.searchQuery || "");
+      setSelectedOwnerId(savedFilters.selectedOwnerId || "all");
+      setPlayerCountMin(savedFilters.playerCountMin || "");
+      setPlayerCountMax(savedFilters.playerCountMax || "");
+      setSortBy(savedFilters.sortBy || "created");
+      setSortOrder(savedFilters.sortOrder || "desc");
+      setDateFrom(savedFilters.dateFrom || "");
+      setDateTo(savedFilters.dateTo || "");
     }
   }, []);
 
-  // Save filter state to localStorage
+  // Save filter state to AuthStorage
   useEffect(() => {
     const filters = {
       searchQuery,
@@ -121,7 +170,7 @@ export default function GroupsPage() {
       dateFrom,
       dateTo,
     };
-    localStorage.setItem("groupFilters", JSON.stringify(filters));
+    AuthStorage.setJSON("groupFilters", filters);
   }, [
     searchQuery,
     selectedOwnerId,

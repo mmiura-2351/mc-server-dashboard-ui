@@ -420,11 +420,4 @@ export async function fetchEmpty(
   return result.map(() => undefined);
 }
 
-export async function fetchBlob(
-  url: string,
-  config: Omit<ApiRequestConfig, "expectEmpty" | "expectBlob"> = {}
-): Promise<Result<Blob, AuthError>> {
-  return fetchWithErrorHandling<Blob>(url, { ...config, expectBlob: true });
-}
-
 export { fetchWithErrorHandlingInternal };

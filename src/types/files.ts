@@ -1,4 +1,4 @@
-export type FileType = "text" | "directory" | "binary" | "other";
+type FileType = "text" | "directory" | "binary" | "other";
 
 export interface FileSystemItem {
   name: string;
@@ -34,12 +34,6 @@ export interface FileUploadRequest {
   content: string;
   encoding?: string;
   create_backup?: boolean;
-}
-
-export interface DirectoryListResponse {
-  files: FileSystemItem[];
-  current_path: string;
-  parent_path?: string;
 }
 
 export interface FileError {
