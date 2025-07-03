@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
+    "loadingComponent": "Loading component...",
     "refresh": "Refresh",
     "retry": "Retry",
     "save": "Save",
@@ -102,7 +103,7 @@
   },
   "admin": {
     "title": "Administration",
-    "loading": "Loading..."
+    "loading": "Loading admin panel..."
   },
   "userManagement": {
     "title": "User Management",
@@ -171,7 +172,8 @@
     "title": "Minecraft Servers",
     "dashboard": {
       "title": "Server Dashboard",
-      "subtitle": "Manage your Minecraft servers"
+      "subtitle": "Manage your Minecraft servers",
+      "loading": "Loading server dashboard..."
     },
     "createServer": "Create Server",
     "loadingServers": "Loading servers...",
@@ -663,6 +665,7 @@
     "loginHere": "Login here"
   },
   "files": {
+    "loading": "Loading file explorer...",
     "deleteFile": "Delete File",
     "deleteFiles": "Delete Files",
     "deleteFileConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",

@@ -39,18 +39,28 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   useEffect(() => {
     // Load messages for current locale
+    let isCancelled = false;
+
     const loadMessages = async () => {
       try {
         const messageModule = await import(`@/i18n/messages/${locale}.json`);
-        setMessages(messageModule.default);
+        if (!isCancelled) {
+          setMessages(messageModule.default);
+        }
       } catch {
         // Silently fallback to English on message loading error
         const fallbackModule = await import(`@/i18n/messages/en.json`);
-        setMessages(fallbackModule.default);
+        if (!isCancelled) {
+          setMessages(fallbackModule.default);
+        }
       }
     };
 
     loadMessages();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [locale]);
 
   const setLocale = (newLocale: Locale) => {

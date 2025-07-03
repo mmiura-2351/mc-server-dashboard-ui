@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/auth";
 import { ConfirmationModal, AlertModal } from "@/components/modal";
 
 // Components
-import { FileList } from "./FileList";
+import { VirtualFileList } from "./VirtualFileList";
 import { FileViewer } from "./FileViewer/FileViewer";
 import { UploadModal } from "./FileUpload/UploadModal";
 import { DragDropZone, useDragDropZone } from "./FileUpload/DragDropZone";
@@ -522,7 +522,7 @@ export function FileExplorer({ serverId }: FileExplorerProps) {
         </div>
       </div>
 
-      <FileList
+      <VirtualFileList
         files={navigation.files}
         currentPath={navigation.currentPath}
         selectedFiles={operations.selectedFiles}

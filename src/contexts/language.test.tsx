@@ -38,6 +38,23 @@ const mockEnMessages = {
       },
     },
   },
+  deepNullTest: {
+    level1: {
+      level2: {
+        nullValue: null,
+        undefinedValue: undefined,
+        validValue: "Valid",
+      },
+    },
+  },
+  arrayTest: {
+    arrayValue: ["item1", "item2", "item3"],
+  },
+  primitiveTest: {
+    validKey: "Valid value",
+    numberValue: 42,
+    booleanValue: true,
+  },
 };
 
 const mockJaMessages = {
@@ -573,18 +590,6 @@ describe("useTranslation hook", () => {
     });
 
     it("should handle arrays in nested paths safely", async () => {
-      const mockMessagesWithArray = {
-        ...mockEnMessages,
-        arrayTest: {
-          validKey: "Valid value",
-          arrayValue: ["item1", "item2", "item3"],
-        },
-      };
-
-      vi.doMock("@/i18n/messages/en.json", () => ({
-        default: mockMessagesWithArray,
-      }));
-
       const { result } = renderHook(() => useTranslation(), {
         wrapper: createWrapper(),
       });
@@ -601,19 +606,6 @@ describe("useTranslation hook", () => {
     });
 
     it("should handle primitive values in nested paths safely", async () => {
-      const mockMessagesWithPrimitives = {
-        ...mockEnMessages,
-        primitiveTest: {
-          validKey: "Valid value",
-          numberValue: 42,
-          booleanValue: true,
-        },
-      };
-
-      vi.doMock("@/i18n/messages/en.json", () => ({
-        default: mockMessagesWithPrimitives,
-      }));
-
       const { result } = renderHook(() => useTranslation(), {
         wrapper: createWrapper(),
       });
@@ -630,23 +622,6 @@ describe("useTranslation hook", () => {
     });
 
     it("should handle deeply nested null and undefined values", async () => {
-      const mockMessagesWithDeepNulls = {
-        ...mockEnMessages,
-        deepNullTest: {
-          level1: {
-            level2: {
-              nullValue: null,
-              undefinedValue: undefined,
-              validValue: "Valid",
-            },
-          },
-        },
-      };
-
-      vi.doMock("@/i18n/messages/en.json", () => ({
-        default: mockMessagesWithDeepNulls,
-      }));
-
       const { result } = renderHook(() => useTranslation(), {
         wrapper: createWrapper(),
       });

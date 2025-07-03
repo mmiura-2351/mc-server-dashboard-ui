@@ -2,7 +2,7 @@
 
 import { useTranslation } from "@/contexts/language";
 import type { FileSystemItem } from "@/types/files";
-import { formatFileSize, formatDateTime } from "@/utils/format";
+import { FileListItem } from "./FileListItem";
 import styles from "../file-explorer.module.css";
 
 interface FileListProps {
@@ -39,56 +39,6 @@ export function FileList({
   onNavigateUp,
 }: FileListProps) {
   const { t } = useTranslation();
-
-  const getFileIcon = (file: FileSystemItem): string => {
-    if (file.is_directory) return "📁";
-
-    const extension = file.name.split(".").pop()?.toLowerCase() || "";
-
-    // Image files
-    if (
-      ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg"].includes(extension)
-    ) {
-      return "🖼️";
-    }
-
-    // Text/config files
-    if (
-      [
-        "txt",
-        "properties",
-        "yml",
-        "yaml",
-        "json",
-        "log",
-        "cfg",
-        "conf",
-        "xml",
-        "html",
-        "css",
-        "js",
-        "ts",
-        "md",
-        "ini",
-        "toml",
-        "env",
-      ].includes(extension)
-    ) {
-      return "📄";
-    }
-
-    // Archive files
-    if (["zip", "rar", "7z", "tar", "gz"].includes(extension)) {
-      return "📦";
-    }
-
-    // Executable files
-    if (["jar", "exe", "sh", "bat"].includes(extension)) {
-      return "⚙️";
-    }
-
-    return "📄"; // Default file icon
-  };
 
   const renderBreadcrumb = () => {
     const pathParts = currentPath.split("/").filter(Boolean);
@@ -248,46 +198,14 @@ export function FileList({
               </div>
             )}
             {files.map((file) => (
-              <div
+              <FileListItem
                 key={file.name}
-                className={`${styles.fileItem} ${
-                  file.is_directory ? styles.directory : styles.file
-                } ${styles.clickable} ${
-                  selectedFiles.has(file.name) ? styles.selected : ""
-                }`}
-                onClick={(e) => {
-                  if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    onFileSelect(file.name);
-                  } else {
-                    onFileClick(file);
-                  }
-                }}
-                onContextMenu={(e) => onContextMenu(e, file)}
-                style={{ cursor: "pointer" }}
-              >
-                <div className={styles.columnCheckbox}>
-                  <input
-                    type="checkbox"
-                    checked={selectedFiles.has(file.name)}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onFileSelect(file.name);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                <div className={styles.fileName}>
-                  <span className={styles.fileIcon}>{getFileIcon(file)}</span>
-                  <span className={styles.fileNameText}>{file.name}</span>
-                </div>
-                <div className={styles.fileSize}>
-                  {!file.is_directory ? formatFileSize(file.size || 0) : "—"}
-                </div>
-                <div className={styles.fileDate}>
-                  {file.modified ? formatDateTime(file.modified) : "—"}
-                </div>
-              </div>
+                file={file}
+                isSelected={selectedFiles.has(file.name)}
+                onFileClick={onFileClick}
+                onContextMenu={onContextMenu}
+                onFileSelect={onFileSelect}
+              />
             ))}
           </div>
         )}

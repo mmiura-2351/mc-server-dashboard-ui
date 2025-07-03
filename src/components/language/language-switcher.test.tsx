@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, test, beforeEach, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, test, beforeEach, afterEach, expect, vi } from "vitest";
 import { LanguageProvider } from "@/contexts/language";
 import { LanguageSwitcher } from "./language-switcher";
 
@@ -25,59 +25,79 @@ describe("LanguageSwitcher", () => {
     mockLocalStorage.setItem.mockClear();
   });
 
-  test("renders language switcher with default English", () => {
-    render(
-      <TestWrapper>
-        <LanguageSwitcher />
-      </TestWrapper>
-    );
-
-    expect(screen.getByText("language.switchLanguage")).toBeInTheDocument();
-    expect(screen.getByText("language.english")).toBeInTheDocument();
-    expect(screen.getByText("language.japanese")).toBeInTheDocument();
+  afterEach(() => {
+    // Wait for any pending promises to resolve
+    return new Promise((resolve) => setTimeout(resolve, 0));
   });
 
-  test("switches to Japanese when Japanese button is clicked", () => {
+  test("renders language switcher with default English", async () => {
     render(
       <TestWrapper>
         <LanguageSwitcher />
       </TestWrapper>
     );
 
-    const japaneseButton = screen.getByText("language.japanese");
+    await waitFor(() => {
+      expect(screen.getByText("Language")).toBeInTheDocument();
+      expect(screen.getByText("English")).toBeInTheDocument();
+      expect(screen.getByText("日本語")).toBeInTheDocument();
+    });
+  });
+
+  test("switches to Japanese when Japanese button is clicked", async () => {
+    render(
+      <TestWrapper>
+        <LanguageSwitcher />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("日本語")).toBeInTheDocument();
+    });
+
+    const japaneseButton = screen.getByText("日本語");
     fireEvent.click(japaneseButton);
 
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith("locale", "ja");
   });
 
-  test("switches to English when English button is clicked", () => {
+  test("switches to English when English button is clicked", async () => {
     render(
       <TestWrapper>
         <LanguageSwitcher />
       </TestWrapper>
     );
 
-    const englishButton = screen.getByText("language.english");
+    await waitFor(() => {
+      expect(screen.getByText("English")).toBeInTheDocument();
+    });
+
+    const englishButton = screen.getByText("English");
     fireEvent.click(englishButton);
 
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith("locale", "en");
   });
 
-  test("language buttons have type='button' to prevent form submission", () => {
+  test("language buttons have type='button' to prevent form submission", async () => {
     render(
       <TestWrapper>
         <LanguageSwitcher />
       </TestWrapper>
     );
 
-    const englishButton = screen.getByText("language.english");
-    const japaneseButton = screen.getByText("language.japanese");
+    await waitFor(() => {
+      expect(screen.getByText("English")).toBeInTheDocument();
+      expect(screen.getByText("日本語")).toBeInTheDocument();
+    });
+
+    const englishButton = screen.getByText("English");
+    const japaneseButton = screen.getByText("日本語");
 
     expect(englishButton).toHaveAttribute("type", "button");
     expect(japaneseButton).toHaveAttribute("type", "button");
   });
 
-  test("language change does not submit form", () => {
+  test("language change does not submit form", async () => {
     const mockSubmit = vi.fn();
 
     render(
@@ -90,7 +110,11 @@ describe("LanguageSwitcher", () => {
       </TestWrapper>
     );
 
-    const japaneseButton = screen.getByText("language.japanese");
+    await waitFor(() => {
+      expect(screen.getByText("日本語")).toBeInTheDocument();
+    });
+
+    const japaneseButton = screen.getByText("日本語");
     fireEvent.click(japaneseButton);
 
     // Form should not be submitted when language button is clicked

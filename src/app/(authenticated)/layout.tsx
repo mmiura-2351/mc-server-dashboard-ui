@@ -3,6 +3,7 @@
 import { useAuth } from "@/contexts/auth";
 import { useTranslation } from "@/contexts/language";
 import { MainLayout } from "@/components/layout/main-layout";
+import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -45,5 +46,9 @@ export default function AuthenticatedLayout({
     return null; // Will redirect
   }
 
-  return <MainLayout>{children}</MainLayout>;
+  return (
+    <ErrorBoundary component="AuthenticatedLayout">
+      <MainLayout>{children}</MainLayout>
+    </ErrorBoundary>
+  );
 }
