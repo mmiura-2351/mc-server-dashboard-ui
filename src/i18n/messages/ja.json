@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "読み込み中...",
+    "loadingComponent": "コンポーネント読み込み中...",
     "refresh": "更新",
     "retry": "再試行",
     "save": "保存",
@@ -102,7 +103,7 @@
   },
   "admin": {
     "title": "管理",
-    "loading": "読み込み中..."
+    "loading": "管理者パネル読み込み中..."
   },
   "userManagement": {
     "title": "ユーザー管理",
@@ -171,7 +172,8 @@
     "title": "Minecraftサーバー",
     "dashboard": {
       "title": "サーバーダッシュボード",
-      "subtitle": "Minecraftサーバーを管理"
+      "subtitle": "Minecraftサーバーを管理",
+      "loading": "サーバーダッシュボード読み込み中..."
     },
     "createServer": "サーバー作成",
     "loadingServers": "サーバー読み込み中...",
@@ -545,6 +547,7 @@
     "loginHere": "こちらからログイン"
   },
   "files": {
+    "loading": "ファイルエクスプローラー読み込み中...",
     "deleteFile": "ファイルを削除",
     "deleteFiles": "ファイルを削除",
     "deleteFileConfirmation": "\"{name}\"を削除してもよろしいですか？この操作は元に戻すことができません。",
