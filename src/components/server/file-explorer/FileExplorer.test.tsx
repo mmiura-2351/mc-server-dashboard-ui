@@ -45,8 +45,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock child components with functional implementations
-vi.mock("./FileList", () => ({
-  FileList: ({
+vi.mock("./VirtualFileList", () => ({
+  VirtualFileList: ({
     onFileClick,
     onContextMenu,
     onRefresh,
