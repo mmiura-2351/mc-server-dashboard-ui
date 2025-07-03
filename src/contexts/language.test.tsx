@@ -571,6 +571,99 @@ describe("useTranslation hook", () => {
         );
       });
     });
+
+    it("should handle arrays in nested paths safely", async () => {
+      const mockMessagesWithArray = {
+        ...mockEnMessages,
+        arrayTest: {
+          validKey: "Valid value",
+          arrayValue: ["item1", "item2", "item3"],
+        },
+      };
+
+      vi.doMock("@/i18n/messages/en.json", () => ({
+        default: mockMessagesWithArray,
+      }));
+
+      const { result } = renderHook(() => useTranslation(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        // Should return key when encountering array
+        expect(result.current.t("arrayTest.arrayValue.0")).toBe(
+          "arrayTest.arrayValue.0"
+        );
+        expect(result.current.t("arrayTest.arrayValue")).toBe(
+          "arrayTest.arrayValue"
+        );
+      });
+    });
+
+    it("should handle primitive values in nested paths safely", async () => {
+      const mockMessagesWithPrimitives = {
+        ...mockEnMessages,
+        primitiveTest: {
+          validKey: "Valid value",
+          numberValue: 42,
+          booleanValue: true,
+        },
+      };
+
+      vi.doMock("@/i18n/messages/en.json", () => ({
+        default: mockMessagesWithPrimitives,
+      }));
+
+      const { result } = renderHook(() => useTranslation(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        // Should return key when encountering non-object values
+        expect(result.current.t("primitiveTest.numberValue.nested")).toBe(
+          "primitiveTest.numberValue.nested"
+        );
+        expect(result.current.t("primitiveTest.booleanValue.nested")).toBe(
+          "primitiveTest.booleanValue.nested"
+        );
+      });
+    });
+
+    it("should handle deeply nested null and undefined values", async () => {
+      const mockMessagesWithDeepNulls = {
+        ...mockEnMessages,
+        deepNullTest: {
+          level1: {
+            level2: {
+              nullValue: null,
+              undefinedValue: undefined,
+              validValue: "Valid",
+            },
+          },
+        },
+      };
+
+      vi.doMock("@/i18n/messages/en.json", () => ({
+        default: mockMessagesWithDeepNulls,
+      }));
+
+      const { result } = renderHook(() => useTranslation(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        // Should handle null/undefined values gracefully
+        expect(result.current.t("deepNullTest.level1.level2.nullValue")).toBe(
+          "deepNullTest.level1.level2.nullValue"
+        );
+        expect(
+          result.current.t("deepNullTest.level1.level2.undefinedValue")
+        ).toBe("deepNullTest.level1.level2.undefinedValue");
+        expect(result.current.t("deepNullTest.level1.level2.validValue")).toBe(
+          "Valid"
+        );
+      });
+    });
   });
 });
 

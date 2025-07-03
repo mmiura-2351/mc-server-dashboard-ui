@@ -73,6 +73,28 @@ export function useLanguage() {
   return context;
 }
 
+// Type guard to check if value is a valid nested object
+const isNestedObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
+// Safe function to get nested translation value
+const getNestedValue = (
+  obj: Record<string, unknown>,
+  path: string[]
+): string => {
+  let value: unknown = obj;
+
+  for (const key of path) {
+    if (!isNestedObject(value) || !(key in value)) {
+      return path.join("."); // Fallback to key path
+    }
+    value = value[key];
+  }
+
+  return typeof value === "string" ? value : path.join(".");
+};
+
 // Helper function to get nested translation
 export function useTranslation() {
   const { messages } = useLanguage();
@@ -80,24 +102,18 @@ export function useTranslation() {
   const t = useCallback(
     (key: string, params?: Record<string, string>) => {
       const keys = key.split(".");
-      let value: unknown = messages;
 
-      for (const k of keys) {
-        if (value && typeof value === "object" && k in value) {
-          value = (value as Record<string, unknown>)[k];
-        } else {
-          return key; // Return key if translation not found
-        }
-      }
+      // Use the safe nested value getter
+      const value = getNestedValue(messages, keys);
 
-      if (typeof value === "string" && params) {
+      if (params && typeof value === "string") {
         // Replace parameters in the string
         return Object.entries(params).reduce((str, [param, replacement]) => {
           return str.replace(`{${param}}`, replacement);
         }, value);
       }
 
-      return typeof value === "string" ? value : key;
+      return value;
     },
     [messages]
   );
