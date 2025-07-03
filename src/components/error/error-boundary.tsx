@@ -9,6 +9,7 @@ import React, { Component, ErrorInfo, ReactNode } from "react";
 import { ErrorHandler } from "@/utils/error-handler";
 import { ErrorSeverity } from "@/types/errors";
 import { useTranslation } from "@/contexts/language";
+import styles from "./error-boundary.module.css";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -151,9 +152,9 @@ function ErrorFallback({
   const { t } = useTranslation();
 
   return (
-    <div className="error-boundary">
-      <div className="error-boundary__container">
-        <div className="error-boundary__icon">
+    <div className={styles["error-boundary"]}>
+      <div className={styles["error-boundary__container"]}>
+        <div className={styles["error-boundary__icon"]}>
           <svg
             width="48"
             height="48"
@@ -171,16 +172,18 @@ function ErrorFallback({
           </svg>
         </div>
 
-        <h2 className="error-boundary__title">{t("errors.boundary.title")}</h2>
+        <h2 className={styles["error-boundary__title"]}>
+          {t("errors.boundary.title")}
+        </h2>
 
-        <p className="error-boundary__message">
+        <p className={styles["error-boundary__message"]}>
           {t("errors.boundary.message")}
         </p>
 
         {error && (
-          <details className="error-boundary__details">
+          <details className={styles["error-boundary__details"]}>
             <summary>{t("errors.boundary.technicalDetails")}</summary>
-            <div className="error-boundary__error-info">
+            <div className={styles["error-boundary__error-info"]}>
               <p>
                 <strong>{t("errors.boundary.errorMessage")}:</strong>{" "}
                 {error.message}
@@ -200,11 +203,11 @@ function ErrorFallback({
           </details>
         )}
 
-        <div className="error-boundary__actions">
+        <div className={styles["error-boundary__actions"]}>
           {canRetry && (
             <button
               onClick={onRetry}
-              className="error-boundary__button error-boundary__button--primary"
+              className={`${styles["error-boundary__button"]} ${styles["error-boundary__button--primary"]}`}
             >
               {t("errors.boundary.retry")}
             </button>
@@ -212,21 +215,21 @@ function ErrorFallback({
 
           <button
             onClick={onReset}
-            className="error-boundary__button error-boundary__button--secondary"
+            className={`${styles["error-boundary__button"]} ${styles["error-boundary__button--secondary"]}`}
           >
             {t("errors.boundary.reset")}
           </button>
 
           <button
             onClick={() => window.location.reload()}
-            className="error-boundary__button error-boundary__button--secondary"
+            className={`${styles["error-boundary__button"]} ${styles["error-boundary__button--secondary"]}`}
           >
             {t("errors.boundary.reload")}
           </button>
         </div>
 
-        <div className="error-boundary__help">
-          <p className="error-boundary__help-text">
+        <div className={styles["error-boundary__help"]}>
+          <p className={styles["error-boundary__help-text"]}>
             {t("errors.boundary.helpText")}
           </p>
         </div>
