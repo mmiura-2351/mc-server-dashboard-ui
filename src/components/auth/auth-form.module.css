@@ -64,7 +64,7 @@
 
 .input:disabled {
   background-color: #f9fafb;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   cursor: not-allowed;
 }
 
@@ -96,7 +96,7 @@
 
 .passwordInput:disabled {
   background-color: #f9fafb;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   cursor: not-allowed;
 }
 
@@ -107,7 +107,7 @@
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   font-size: 1.125rem;
   line-height: 1;
   display: flex;
@@ -168,7 +168,7 @@
 }
 
 .submitButton:disabled {
-  background-color: #9ca3af;
+  background-color: #6b7280; /* Improved contrast from #9ca3af */
   cursor: not-allowed;
 }
 
@@ -221,7 +221,7 @@
   text-align: center;
   margin-top: 1.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   line-height: 1.5;
   min-height: 2.5rem;
   word-wrap: break-word;
@@ -243,7 +243,7 @@
 }
 
 .switchButton:disabled {
-  color: #9ca3af;
+  color: #6b7280; /* Improved contrast from #9ca3af */
   cursor: not-allowed;
   text-decoration: none;
 }

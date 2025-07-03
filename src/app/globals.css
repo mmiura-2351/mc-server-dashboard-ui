@@ -89,12 +89,12 @@
   --z-popover: 1100;
   --z-tooltip: 1200;
 
-  /* Light theme colors */
+  /* Light theme colors - WCAG AA improved */
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-hover: #f1f5f9;
   --text-primary: #1f2937;
-  --text-secondary: #6b7280;
+  --text-secondary: #4b5563; /* Improved from #6b7280 for better contrast */
   --border-color: #e5e7eb;
   --border-hover: #d1d5db;
   --card-bg: #ffffff;
@@ -126,28 +126,28 @@
   --info-text: #1e3a8a;
   --info-border: #93c5fd;
 
-  /* Neutral colors */
+  /* Neutral colors - WCAG AA improved */
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
   --gray-200: #e5e7eb;
   --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  --gray-400: #6b7280; /* Improved from #9ca3af for better contrast */
+  --gray-500: #4b5563; /* Improved from #6b7280 for better contrast */
+  --gray-600: #374151; /* Improved from #4b5563 for better contrast */
+  --gray-700: #1f2937; /* Improved from #374151 for better contrast */
+  --gray-800: #111827; /* Improved from #1f2937 for better contrast */
+  --gray-900: #0f172a; /* Improved from #111827 for better contrast */
 
   /* Basic colors */
   --white: #ffffff;
   --black: #000000;
 
-  /* Form variables */
+  /* Form variables - WCAG AA improved */
   --input-background: #ffffff;
   --input-background-disabled: #f9fafb;
-  --text-disabled: #9ca3af;
-  --text-muted: #6b7280;
-  --button-disabled: #9ca3af;
+  --text-disabled: #6b7280; /* Improved from #9ca3af for better contrast */
+  --text-muted: #4b5563; /* Improved from #6b7280 for better contrast */
+  --button-disabled: #6b7280; /* Improved from #9ca3af for better contrast */
   --focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.1);
 
   /* Error, Success, Warning backgrounds */
@@ -166,7 +166,7 @@
   --success-hover: #059669;
   --danger-color: #ef4444;
   --danger-hover: #dc2626;
-  --text-tertiary: #9ca3af;
+  --text-tertiary: #6b7280; /* Improved from #9ca3af for better contrast */
   --bg-tertiary: #f3f4f6;
   --border-light: #f3f4f6;
   --animation-fast: 0.2s;

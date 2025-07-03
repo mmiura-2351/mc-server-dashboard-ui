@@ -107,7 +107,7 @@
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   cursor: pointer;
   padding: 0;
   width: 2rem;
@@ -205,7 +205,7 @@
 }
 
 .filterInput::placeholder {
-  color: #9ca3af;
+  color: #6b7280; /* Improved contrast from #9ca3af */
 }
 
 .sortOrderButton {
@@ -323,7 +323,7 @@
 }
 
 .compactFilterInput::placeholder {
-  color: #9ca3af;
+  color: #6b7280; /* Improved contrast from #9ca3af */
 }
 
 .compactSortButton {
@@ -423,7 +423,7 @@
 .loading {
   text-align: center;
   padding: 3rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   font-size: 1.125rem;
 }
 
@@ -442,7 +442,7 @@
 }
 
 .emptyState p {
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   margin-bottom: 2rem;
 }
 
@@ -521,12 +521,12 @@
 }
 
 .filterInput::placeholder {
-  color: #9ca3af;
+  color: #6b7280; /* Improved contrast from #9ca3af */
 }
 
 .resultsCount {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   font-weight: 500;
 }
 
@@ -628,7 +628,7 @@
 
 .serverDescriptionText {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -944,7 +944,7 @@
 
 .clickHint {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   font-weight: 500;
 }
 
@@ -1003,7 +1003,7 @@
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   cursor: pointer;
   padding: 0;
   width: 2rem;
@@ -1029,7 +1029,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   font-weight: 500;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1198,7 +1198,7 @@
 }
 
 .managementTabs p {
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
   margin-bottom: 1rem;
 }
 
@@ -1214,7 +1214,7 @@
   border: 1px solid #e5e7eb;
   border-radius: var(--radius-md);
   margin-bottom: 0.5rem;
-  color: #6b7280;
+  color: #4b5563; /* Improved contrast from #6b7280 */
 }
 
 /* Responsive table design - hide on small screens */
