@@ -100,6 +100,8 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     setShowPassword(!showPassword);
   };
 
+  const errorId = "login-error";
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.header}>
@@ -108,7 +110,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       </div>
 
       {error && (
-        <div className={styles.error} role="alert">
+        <div id={errorId} className={styles.error} role="alert">
           {error}
         </div>
       )}
@@ -130,6 +132,8 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
           maxLength={50}
           pattern="[a-zA-Z0-9._-]+"
           title={t("auth.usernameTooltip")}
+          aria-describedby={error ? errorId : undefined}
+          aria-invalid={error ? "true" : "false"}
         />
       </div>
 
@@ -150,6 +154,8 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
             minLength={6}
             maxLength={128}
             autoComplete="current-password"
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={error ? "true" : "false"}
           />
           <button
             type="button"

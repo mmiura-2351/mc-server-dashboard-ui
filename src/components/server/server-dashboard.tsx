@@ -548,8 +548,21 @@ export function ServerDashboard() {
             <div className={styles.filterButtonContainer}>
               <button
                 onClick={() => setShowFilters(!showFilters)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape" && showFilters) {
+                    setShowFilters(false);
+                  }
+                }}
                 className={styles.filterButton}
                 title={t("servers.filters.title")}
+                aria-expanded={showFilters}
+                aria-haspopup="dialog"
+                aria-controls="filter-modal"
+                aria-label={`${t("servers.filters.title")}${
+                  hasActiveFilters
+                    ? ` - ${t("servers.filters.filtersActive")}`
+                    : ""
+                }`}
               >
                 🔍 {t("servers.filters.title")}
                 {hasActiveFilters && (
@@ -563,10 +576,24 @@ export function ServerDashboard() {
                   <div
                     className={styles.filterOverlay}
                     onClick={() => setShowFilters(false)}
+                    aria-hidden="true"
                   />
-                  <div className={styles.expandedFilters}>
+                  <div
+                    className={styles.expandedFilters}
+                    id="filter-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="filter-modal-title"
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setShowFilters(false);
+                      }
+                    }}
+                  >
                     <div className={styles.filterHeader}>
-                      <h3>{t("servers.filters.title")}</h3>
+                      <h3 id="filter-modal-title">
+                        {t("servers.filters.title")}
+                      </h3>
                       <button
                         onClick={() => setShowFilters(false)}
                         className={styles.closeFiltersButton}
@@ -784,11 +811,12 @@ export function ServerDashboard() {
       )}
 
       {error && (
-        <div className={styles.error}>
+        <div className={styles.error} role="alert" aria-live="polite">
           {error}
           <button
             onClick={() => setError(null)}
             className={styles.dismissButton}
+            aria-label={t("common.dismiss")}
           >
             ×
           </button>
@@ -833,6 +861,28 @@ export function ServerDashboard() {
                       <th
                         className={styles.sortableHeader}
                         onClick={() => handleSort("name")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSort("name");
+                          }
+                        }}
+                        tabIndex={0}
+                        role="columnheader"
+                        aria-sort={
+                          sortBy === "name"
+                            ? sortOrder === "asc"
+                              ? "ascending"
+                              : "descending"
+                            : "none"
+                        }
+                        aria-label={`${t("servers.fields.name")} - ${
+                          sortBy === "name"
+                            ? t("servers.sorting.sortedBy", {
+                                order: t(`servers.sorting.${sortOrder}`),
+                              })
+                            : t("servers.sorting.clickToSort")
+                        }`}
                       >
                         <div className={styles.headerContent}>
                           <span>{t("servers.fields.name")}</span>
@@ -846,6 +896,28 @@ export function ServerDashboard() {
                       <th
                         className={styles.sortableHeader}
                         onClick={() => handleSort("status")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSort("status");
+                          }
+                        }}
+                        tabIndex={0}
+                        role="columnheader"
+                        aria-sort={
+                          sortBy === "status"
+                            ? sortOrder === "asc"
+                              ? "ascending"
+                              : "descending"
+                            : "none"
+                        }
+                        aria-label={`${t("servers.fields.status")} - ${
+                          sortBy === "status"
+                            ? t("servers.sorting.sortedBy", {
+                                order: t(`servers.sorting.${sortOrder}`),
+                              })
+                            : t("servers.sorting.clickToSort")
+                        }`}
                       >
                         <div className={styles.headerContent}>
                           <span>{t("servers.fields.status")}</span>
@@ -859,6 +931,28 @@ export function ServerDashboard() {
                       <th
                         className={styles.sortableHeader}
                         onClick={() => handleSort("version")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSort("version");
+                          }
+                        }}
+                        tabIndex={0}
+                        role="columnheader"
+                        aria-sort={
+                          sortBy === "version"
+                            ? sortOrder === "asc"
+                              ? "ascending"
+                              : "descending"
+                            : "none"
+                        }
+                        aria-label={`${t("servers.fields.version")} - ${
+                          sortBy === "version"
+                            ? t("servers.sorting.sortedBy", {
+                                order: t(`servers.sorting.${sortOrder}`),
+                              })
+                            : t("servers.sorting.clickToSort")
+                        }`}
                       >
                         <div className={styles.headerContent}>
                           <span>{t("servers.fields.version")}</span>

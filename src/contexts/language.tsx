@@ -96,9 +96,17 @@ const getNestedValue = (
   let value: unknown = obj;
 
   for (const key of path) {
-    if (!isNestedObject(value) || !(key in value)) {
+    // More robust checking for Node.js version compatibility
+    if (!isNestedObject(value)) {
       return path.join("."); // Fallback to key path
     }
+
+    // Use Object.prototype.hasOwnProperty.call for more reliable property checking
+    // This avoids potential issues with 'in' operator across different Node.js versions
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      return path.join("."); // Fallback to key path
+    }
+
     value = value[key];
   }
 

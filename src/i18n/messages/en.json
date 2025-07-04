@@ -25,6 +25,8 @@
     "creating": "Creating...",
     "add": "Add",
     "adding": "Adding...",
+    "close": "Close",
+    "dismiss": "Dismiss",
     "true": "true",
     "false": "false"
   },
@@ -206,6 +208,12 @@
       "asc": "Ascending",
       "desc": "Descending"
     },
+    "sorting": {
+      "clickToSort": "Click to sort",
+      "sortedBy": "Sorted by {order}",
+      "asc": "ascending",
+      "desc": "descending"
+    },
     "filters": {
       "title": "Filters",
       "toggle": "Filters",
@@ -259,7 +267,8 @@
       "filterBy": "Filter",
       "sortBy": "Sort",
       "reset": "Reset Filters",
-      "resultsCount": "Showing {count} of {total} servers"
+      "resultsCount": "Showing {count} of {total} servers",
+      "filtersActive": "filters active"
     },
     "serverNotFound": "Server not found",
     "backToDashboard": "← Back to Dashboard",
@@ -666,6 +675,10 @@
   },
   "files": {
     "loading": "Loading file explorer...",
+    "fileList": "File List",
+    "selectAll": "Select All",
+    "goUpDirectory": "Go Up One Directory",
+    "refreshFileList": "Refresh File List",
     "deleteFile": "Delete File",
     "deleteFiles": "Delete Files",
     "deleteFileConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
@@ -732,6 +745,8 @@
     "file": "File",
     "newNameFor": "New name for",
     "renaming": "✏️ Renaming...",
+    "renameInstructions": "Enter a new name and press Enter to confirm, or Escape to cancel",
+    "uploadInstructions": "File upload progress and status information",
     "itemsSelected": "item(s) selected",
     "downloadAsZip": "📥 Download as ZIP",
     "deleteSelected": "🗑️ Delete Selected",

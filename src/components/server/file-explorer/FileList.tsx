@@ -112,12 +112,26 @@ export function FileList({
   }
 
   if (error) {
+    const errorId = "file-list-error";
+    const errorTitleId = "file-list-error-title";
+
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <h3>{t("files.errorLoadingFiles")}</h3>
-          <p>{error}</p>
-          <button onClick={onRefresh} className={styles.retryButton}>
+          <h3 id={errorTitleId}>{t("files.errorLoadingFiles")}</h3>
+          <p
+            id={errorId}
+            role="alert"
+            aria-live="polite"
+            aria-labelledby={errorTitleId}
+          >
+            {error}
+          </p>
+          <button
+            onClick={onRefresh}
+            className={styles.retryButton}
+            aria-describedby={errorId}
+          >
             {t("files.retry")}
           </button>
         </div>
@@ -149,18 +163,27 @@ export function FileList({
             onClick={onNavigateUp}
             disabled={currentPath === "/"}
             className={styles.actionButton}
+            aria-label={t("files.goUpDirectory")}
           >
             {t("files.up")}
           </button>
-          <button onClick={onRefresh} className={styles.actionButton}>
+          <button
+            onClick={onRefresh}
+            className={styles.actionButton}
+            aria-label={t("files.refreshFileList")}
+          >
             {t("files.refresh")}
           </button>
         </div>
       </div>
 
-      <div className={styles.fileList}>
-        <div className={styles.fileListHeader}>
-          <div className={styles.columnCheckbox}>
+      <div
+        className={styles.fileList}
+        role="table"
+        aria-label={t("files.fileList")}
+      >
+        <div className={styles.fileListHeader} role="row">
+          <div className={styles.columnCheckbox} role="columnheader">
             <input
               type="checkbox"
               checked={selectedFiles.size === files.length && files.length > 0}
@@ -172,11 +195,18 @@ export function FileList({
                 }
               }}
               disabled={files.length === 0}
+              aria-label={t("files.selectAll")}
             />
           </div>
-          <div className={styles.columnName}>{t("files.columns.name")}</div>
-          <div className={styles.columnSize}>{t("files.columns.size")}</div>
-          <div className={styles.columnDate}>{t("files.columns.modified")}</div>
+          <div className={styles.columnName} role="columnheader">
+            {t("files.columns.name")}
+          </div>
+          <div className={styles.columnSize} role="columnheader">
+            {t("files.columns.size")}
+          </div>
+          <div className={styles.columnDate} role="columnheader">
+            {t("files.columns.modified")}
+          </div>
         </div>
 
         {files.length === 0 ? (

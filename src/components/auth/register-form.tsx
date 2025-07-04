@@ -172,6 +172,9 @@ export function RegisterForm({
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+  const errorId = "register-error";
+  const successId = "register-success";
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.header}>
@@ -180,13 +183,13 @@ export function RegisterForm({
       </div>
 
       {error && (
-        <div className={styles.error} role="alert">
+        <div id={errorId} className={styles.error} role="alert">
           {error}
         </div>
       )}
 
       {success && (
-        <div className={styles.success} role="alert">
+        <div id={successId} className={styles.success} role="alert">
           {success}
         </div>
       )}
@@ -209,6 +212,8 @@ export function RegisterForm({
           pattern="[a-zA-Z0-9._-]+"
           title={t("auth.usernameTooltip")}
           autoComplete="username"
+          aria-describedby={error ? errorId : success ? successId : undefined}
+          aria-invalid={error ? "true" : "false"}
         />
       </div>
 
@@ -227,6 +232,8 @@ export function RegisterForm({
           required
           maxLength={254}
           autoComplete="email"
+          aria-describedby={error ? errorId : success ? successId : undefined}
+          aria-invalid={error ? "true" : "false"}
         />
       </div>
 
@@ -248,6 +255,8 @@ export function RegisterForm({
             maxLength={128}
             autoComplete="new-password"
             title={t("auth.errors.passwordMinLength")}
+            aria-describedby={error ? errorId : success ? successId : undefined}
+            aria-invalid={error ? "true" : "false"}
           />
           <button
             type="button"
@@ -289,6 +298,8 @@ export function RegisterForm({
             minLength={8}
             maxLength={128}
             autoComplete="new-password"
+            aria-describedby={error ? errorId : success ? successId : undefined}
+            aria-invalid={error ? "true" : "false"}
           />
           <button
             type="button"
