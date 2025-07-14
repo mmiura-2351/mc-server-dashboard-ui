@@ -53,6 +53,18 @@ const eslintConfig = [
       "no-console": "off",
     },
   },
+  // Special rules for scripts directory - allow CommonJS require
+  {
+    files: ["scripts/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+    languageOptions: {
+      parserOptions: {
+        project: false, // Don't use TypeScript project for script files
+      },
+    },
+  },
 ];
 
 export default eslintConfig;
