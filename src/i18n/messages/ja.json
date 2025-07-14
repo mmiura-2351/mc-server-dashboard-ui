@@ -330,6 +330,18 @@
       "descriptionPlaceholder": "サーバーの説明を入力...",
       "creating": "作成中...",
       "createButton": "サーバー作成",
+      "serverTypes": {
+        "vanilla": "Vanilla",
+        "paper": "Paper",
+        "forge": "Forge"
+      },
+      "memoryOptions": {
+        "1024": "1 GB",
+        "2048": "2 GB",
+        "4096": "4 GB",
+        "8192": "8 GB",
+        "16384": "16 GB"
+      },
       "loadingVersions": "バージョン読み込み中...",
       "noVersionsAvailable": "利用可能なバージョンがありません",
       "errors": {
