@@ -101,13 +101,26 @@ const getNestedValue = (
       return path.join("."); // Fallback to key path
     }
 
-    // Use Object.prototype.hasOwnProperty.call for more reliable property checking
-    // This avoids potential issues with 'in' operator across different Node.js versions
-    if (!Object.prototype.hasOwnProperty.call(value, key)) {
-      return path.join("."); // Fallback to key path
-    }
+    // Try to access the property using try-catch for maximum compatibility
+    try {
+      // Use bracket notation for safer property access
+      const nextValue = value[key];
 
-    value = value[key];
+      // If property doesn't exist, nextValue will be undefined
+      if (nextValue === undefined) {
+        return path.join("."); // Fallback to key path
+      }
+
+      // If we encounter null at any level, return the path as fallback
+      if (nextValue === null) {
+        return path.join(".");
+      }
+
+      value = nextValue;
+    } catch {
+      // If any error occurs during property access, return fallback
+      return path.join(".");
+    }
   }
 
   return typeof value === "string" ? value : path.join(".");

@@ -1,0 +1,39 @@
+{
+  "categories": [
+    {
+      "order": 1,
+      "en": "Getting Started",
+      "ja": "はじめに"
+    },
+    {
+      "order": 2,
+      "en": "Server Management",
+      "ja": "サーバー管理"
+    },
+    {
+      "order": 3,
+      "en": "Player Management",
+      "ja": "プレイヤー管理"
+    },
+    {
+      "order": 4,
+      "en": "Backup & Restore",
+      "ja": "バックアップと復元"
+    },
+    {
+      "order": 5,
+      "en": "Advanced Features",
+      "ja": "高度な機能"
+    },
+    {
+      "order": 6,
+      "en": "Account Management",
+      "ja": "アカウント管理"
+    },
+    {
+      "order": 7,
+      "en": "Support",
+      "ja": "サポート"
+    }
+  ]
+}

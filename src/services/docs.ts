@@ -3,6 +3,7 @@ import { remark } from "remark";
 import remarkHtml from "remark-html";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import { parseFrontmatter } from "@/utils/docs-frontmatter";
 
 export interface DocMetadata {
   slug: string;
@@ -79,13 +80,19 @@ class DocsService {
 
       const markdownContent = await response.text();
 
-      // Process markdown to HTML
-      const processedResult = await this.processor.process(markdownContent);
+      // Parse frontmatter to extract content without frontmatter
+      const { content: contentWithoutFrontmatter } =
+        parseFrontmatter(markdownContent);
+
+      // Process markdown to HTML (without frontmatter)
+      const processedResult = await this.processor.process(
+        contentWithoutFrontmatter
+      );
       const htmlContent = processedResult.toString();
 
       const document: Document = {
         metadata,
-        content: markdownContent,
+        content: contentWithoutFrontmatter, // Store content without frontmatter
         htmlContent,
       };
 
@@ -98,7 +105,8 @@ class DocsService {
   }
 
   /**
-   * Get all available documents for a language, sorted by category and order
+   * Get all available documents for a language, using the order from manifest
+   * (which is already sorted by category order from docs.config.json)
    */
   async getAllDocuments(
     locale: string
@@ -108,15 +116,10 @@ class DocsService {
       return err(manifestResult.error);
     }
 
-    const documents = manifestResult.value.documents.sort((a, b) => {
-      // Sort by category first, then by order
-      if (a.category !== b.category) {
-        return a.category.localeCompare(b.category);
-      }
-      return a.order - b.order;
-    });
-
-    return ok(documents);
+    // Return documents in the order they appear in manifest.json
+    // The manifest is already sorted by category order (from docs.config.json)
+    // then by order field within each category
+    return ok(manifestResult.value.documents);
   }
 
   /**
