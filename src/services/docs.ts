@@ -105,7 +105,8 @@ class DocsService {
   }
 
   /**
-   * Get all available documents for a language, sorted by category and order
+   * Get all available documents for a language, using the order from manifest
+   * (which is already sorted by category order from docs.config.json)
    */
   async getAllDocuments(
     locale: string
@@ -115,15 +116,10 @@ class DocsService {
       return err(manifestResult.error);
     }
 
-    const documents = manifestResult.value.documents.sort((a, b) => {
-      // Sort by category first, then by order
-      if (a.category !== b.category) {
-        return a.category.localeCompare(b.category);
-      }
-      return a.order - b.order;
-    });
-
-    return ok(documents);
+    // Return documents in the order they appear in manifest.json
+    // The manifest is already sorted by category order (from docs.config.json)
+    // then by order field within each category
+    return ok(manifestResult.value.documents);
   }
 
   /**
