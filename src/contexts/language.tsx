@@ -108,6 +108,11 @@ const getNestedValue = (
     }
 
     value = value[key];
+
+    // If we encounter null or undefined at any level, return the path as fallback
+    if (value === null || value === undefined) {
+      return path.join(".");
+    }
   }
 
   return typeof value === "string" ? value : path.join(".");
