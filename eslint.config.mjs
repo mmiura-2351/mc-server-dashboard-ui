@@ -58,6 +58,8 @@ const eslintConfig = [
     files: ["scripts/**/*.js"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      "no-console": "off", // Allow console in script files
     },
     languageOptions: {
       parserOptions: {

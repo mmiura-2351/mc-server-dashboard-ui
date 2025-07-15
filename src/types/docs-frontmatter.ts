@@ -12,6 +12,12 @@ export interface DocsManifest {
   documents: DocsFrontmatter[];
 }
 
+export interface CategoryTranslation {
+  order: number;
+  en: string;
+  ja: string;
+}
+
 export interface CategoryOrder {
-  categories: string[];
+  categories: string[] | CategoryTranslation[];
 }

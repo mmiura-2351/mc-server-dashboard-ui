@@ -98,11 +98,26 @@ function validateFrontmatter(frontmatter, filePath) {
 function generateDocsManifest(docsDir, outputPath, categoryOrderFile) {
   console.log(`Generating docs manifest for ${docsDir}`);
 
-  // Load category order
+  // Load category order and translations
   let categoryOrder = [];
+  let categoryTranslations = {};
   if (fs.existsSync(categoryOrderFile)) {
     const config = JSON.parse(fs.readFileSync(categoryOrderFile, "utf8"));
-    categoryOrder = config.categories || [];
+    if (config.categories && config.categories.length > 0) {
+      // Check if new structure (array of objects) or old structure (array of strings)
+      if (typeof config.categories[0] === "object" && config.categories[0].en) {
+        // New structure with language support
+        categoryOrder = config.categories.map((cat) => cat.en); // Use English as base
+        categoryTranslations = config.categories.reduce((acc, cat) => {
+          acc[cat.en] = cat.ja;
+          acc[cat.ja] = cat.en;
+          return acc;
+        }, {});
+      } else {
+        // Fallback to old structure
+        categoryOrder = config.categories || [];
+      }
+    }
   }
 
   // Find all markdown files
@@ -140,13 +155,24 @@ function generateDocsManifest(docsDir, outputPath, categoryOrderFile) {
 
   // Sort documents by category order, then by order within category
   documents.sort((a, b) => {
-    // First sort by category order
-    const aCategoryIndex = categoryOrder.indexOf(a.category);
-    const bCategoryIndex = categoryOrder.indexOf(b.category);
+    // Find category index, considering language translations
+    const findCategoryIndex = (category) => {
+      let index = categoryOrder.indexOf(category);
+      if (index === -1 && categoryTranslations[category]) {
+        // Try with translated category name
+        index = categoryOrder.indexOf(categoryTranslations[category]);
+      }
+      return index;
+    };
+
+    const aCategoryIndex = findCategoryIndex(a.category);
+    const bCategoryIndex = findCategoryIndex(b.category);
 
     // If category is not in order list, put it at the end
-    const aIndex = aCategoryIndex === -1 ? categoryOrder.length : aCategoryIndex;
-    const bIndex = bCategoryIndex === -1 ? categoryOrder.length : bCategoryIndex;
+    const aIndex =
+      aCategoryIndex === -1 ? categoryOrder.length : aCategoryIndex;
+    const bIndex =
+      bCategoryIndex === -1 ? categoryOrder.length : bCategoryIndex;
 
     if (aIndex !== bIndex) {
       return aIndex - bIndex;
@@ -169,7 +195,9 @@ function generateDocsManifest(docsDir, outputPath, categoryOrderFile) {
 
   // Write manifest
   fs.writeFileSync(outputPath, JSON.stringify(manifest, null, 2));
-  console.log(`Generated manifest: ${outputPath} (${documents.length} documents)`);
+  console.log(
+    `Generated manifest: ${outputPath} (${documents.length} documents)`
+  );
 }
 
 // Webpack plugin class
@@ -187,12 +215,10 @@ class DocsManifestPlugin {
       const { docsDir, categoryOrderFile } = this.options;
 
       // Find all locale directories
-      const locales = fs
-        .readdirSync(docsDir)
-        .filter((item) => {
-          const itemPath = path.join(docsDir, item);
-          return fs.statSync(itemPath).isDirectory();
-        });
+      const locales = fs.readdirSync(docsDir).filter((item) => {
+        const itemPath = path.join(docsDir, item);
+        return fs.statSync(itemPath).isDirectory();
+      });
 
       // Generate manifest for each locale
       for (const locale of locales) {
@@ -222,12 +248,10 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  const locales = fs
-    .readdirSync(docsDir)
-    .filter((item) => {
-      const itemPath = path.join(docsDir, item);
-      return fs.statSync(itemPath).isDirectory();
-    });
+  const locales = fs.readdirSync(docsDir).filter((item) => {
+    const itemPath = path.join(docsDir, item);
+    return fs.statSync(itemPath).isDirectory();
+  });
 
   for (const locale of locales) {
     const localeDocsDir = path.join(docsDir, locale);
