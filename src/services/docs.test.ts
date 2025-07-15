@@ -81,6 +81,19 @@ describe("DocsService", () => {
 
     const mockMarkdownContent = "# User Guide\n\nThis is a user guide.";
 
+    const mockMarkdownWithFrontmatter = `---
+slug: user-guide
+title: User Guide
+description: Complete guide for users
+category: Getting Started
+order: 1
+lastUpdated: 2025-06-20
+---
+
+# User Guide
+
+This is a user guide.`;
+
     it("loads document successfully", async () => {
       // Mock manifest fetch
       mockFetch.mockResolvedValueOnce({
@@ -100,6 +113,38 @@ describe("DocsService", () => {
       if (result.isOk()) {
         expect(result.value.metadata).toEqual(mockManifest.documents[0]);
         expect(result.value.content).toBe(mockMarkdownContent);
+        expect(result.value.htmlContent).toContain("<h1>User Guide</h1>");
+      }
+    });
+
+    it("removes frontmatter from content and HTML", async () => {
+      // Mock manifest fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockManifest),
+      });
+
+      // Mock markdown content fetch with frontmatter
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: () => Promise.resolve(mockMarkdownWithFrontmatter),
+      });
+
+      const result = await docsService.loadDocument("user-guide", "en");
+
+      expect(result.isOk()).toBe(true);
+      if (result.isOk()) {
+        // Content should not contain frontmatter
+        expect(result.value.content).not.toContain("slug: user-guide");
+        expect(result.value.content).not.toContain("title: User Guide");
+        expect(result.value.content).not.toContain("---");
+        expect(result.value.content).toBe(
+          "# User Guide\n\nThis is a user guide."
+        );
+
+        // HTML should not contain frontmatter
+        expect(result.value.htmlContent).not.toContain("slug: user-guide");
+        expect(result.value.htmlContent).not.toContain("title: User Guide");
         expect(result.value.htmlContent).toContain("<h1>User Guide</h1>");
       }
     });

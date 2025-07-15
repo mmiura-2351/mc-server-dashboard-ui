@@ -3,6 +3,7 @@ import { remark } from "remark";
 import remarkHtml from "remark-html";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import { parseFrontmatter } from "@/utils/docs-frontmatter";
 
 export interface DocMetadata {
   slug: string;
@@ -79,13 +80,19 @@ class DocsService {
 
       const markdownContent = await response.text();
 
-      // Process markdown to HTML
-      const processedResult = await this.processor.process(markdownContent);
+      // Parse frontmatter to extract content without frontmatter
+      const { content: contentWithoutFrontmatter } =
+        parseFrontmatter(markdownContent);
+
+      // Process markdown to HTML (without frontmatter)
+      const processedResult = await this.processor.process(
+        contentWithoutFrontmatter
+      );
       const htmlContent = processedResult.toString();
 
       const document: Document = {
         metadata,
-        content: markdownContent,
+        content: contentWithoutFrontmatter, // Store content without frontmatter
         htmlContent,
       };
 
